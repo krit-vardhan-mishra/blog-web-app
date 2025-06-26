@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import SignupPage from '../pages/SignupPage';
 import LoginPage from '../pages/LoginPage';
 import LandingPage from '../pages/LandingPage';
+import PrivateRoute from './PrivateRoute';
 import { HomePage } from '../pages/HomePage';
 import MyPosts from '../pages/MyPosts';
 import DeletedBlogs from '../pages/DeletedBlogs';
@@ -15,10 +16,15 @@ const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/your-posts" element={<MyPosts />} />
-      <Route path="/deleted" element={<DeletedBlogs />} />
-      <Route path="/account-setting" element={<AccountSetting />} />
+      
+      {/* Protected Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/your-posts" element={<MyPosts />} />
+        <Route path="/deleted" element={<DeletedBlogs />} />
+        <Route path="/account-setting" element={<AccountSetting />} />
+      </Route>
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

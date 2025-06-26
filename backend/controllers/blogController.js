@@ -1,5 +1,4 @@
-// backend/controllers/blogController.js
-import { app } from './userController.js'; // Corrected import from userController.js
+import { app } from './userController.js'; 
 
 function createBlog(reqBody) {
   const { userId, title, content } = reqBody;
@@ -17,12 +16,10 @@ function createBlog(reqBody) {
   return { success: true, blogId };
 }
 
-// Get all blogs
 function getAllBlogs() {
   return app.getAllBlogs();
 }
 
-// Get blog by ID
 function getBlogById(blogId) {
   const blog = app.getBlogById(blogId);
   if (!blog) {
@@ -31,7 +28,6 @@ function getBlogById(blogId) {
   return { success: true, blog };
 }
 
-// Delete blog by ID
 function deleteBlog(userId, blogId) {
   const user = app.getUserById(userId);
   if (!user) return { success: false, message: "User not found." };
@@ -42,7 +38,6 @@ function deleteBlog(userId, blogId) {
   return { success: true, message: "Blog deleted successfully." };
 }
 
-// Update blog by ID
 function updateBlog(blogId, newTitle, newContent) {
   const blog = app.getBlogById(blogId);
   if (!blog) {

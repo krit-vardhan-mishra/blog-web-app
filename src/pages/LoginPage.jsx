@@ -46,10 +46,15 @@ export const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      window.location.href = "/home";
+      try {
+        await login(formData.email, formData.password);
+        navigate('/home');
+      } catch (error) {
+        setErrors({ ...errors, form: error.message });
+      }
     }
   };
 

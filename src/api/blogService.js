@@ -1,23 +1,5 @@
 // src/api/blogService.js
 import apiCall from './apiService.js'; // Ensure .js extension
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api/blogs/'; // Replace with your backend URL
-
-const createBlog = async (blogData, token) => {
-    const config = {
-        headers: {
-            'x-auth-token': token,
-        },
-    };
-    const response = await axios.post(API_URL, blogData, config);
-    return response.data;
-};
-
-const getAllBlogs = async () => {
-    const response = await axios.get(API_URL);
-    return response.data;
-};
 
 /**
  * Fetches all blogs from the backend.
@@ -36,6 +18,16 @@ export const fetchAllBlogs = async (token) => {
  */
 export const fetchBlogById = async (blogId, token) => {
     return apiCall(`/blogs/${blogId}`, 'GET', null, token);
+};
+
+/**
+ * Creates a new blog post in the backend.
+ * @param {object} blogData - The data for the new blog (e.g., { userId, title, content }).
+ * @param {string} token - Authentication token.
+ * @returns {Promise<object>} The result of the creation, usually including the new blogId.
+ */
+export const createBlog = async (blogData, token) => {
+    return apiCall('/blogs', 'POST', blogData, token);
 };
 
 /**

@@ -4,6 +4,9 @@ import useAuth from '../hooks/useAuth';
 
 const PrivateRoute = ({ redirectPath = '/login' }) => {
   const { user } = useAuth();
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   if (!user) {
     return <Navigate to={redirectPath} replace />;
   }

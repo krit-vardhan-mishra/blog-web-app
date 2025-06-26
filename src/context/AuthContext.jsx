@@ -1,45 +1,56 @@
 import React, { createContext, useState, useEffect } from 'react';
-import * as authService from '../api/authService'; // Removed .js extension again
+import * as authService from '../api/authService';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Initialize user and token from localStorage or null
-  const [user, setUser] = useState(() => authService.getCurrentUser());
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Effect to keep localStorage in sync with token state
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
-  }, [token]);
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      const user = authService.getCurrentUser();
+      
+      if (token && user) {
+        setToken(token);
+        setUser(user);
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
 
   const login = async (email, password) => {
-    const { token: jwt, user: userData } = await authService.login(email, password);
-    setToken(jwt);
-    setUser(userData); // Set the user state after successful login
+    try {
+      const { token, user } = await authService.login(email, password);
+      setToken(token);
+      setUser(user);
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const register = async (first, last, email, pass) => {
-    const { token: jwt, user: userData } = await authService.register(first, last, email, pass);
-    setToken(jwt);
-    setUser(userData); // Set the user state after successful registration
+  const register = async (firstName, lastName, email, password) => {
+    try {
+      const { token, user } = await authService.register(firstName, lastName, email, password);
+      setToken(token);
+      setUser(user);
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
     authService.logout();
     setToken(null);
-    setUser(null); // Clear the user state on logout
+    setUser(null);
   };
 
-  // The value provided to consumers of this context
-  const contextValue = { user, token, login, register, logout };
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -50,10 +50,20 @@ export const SignupPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      window.location.href = "/home";
+      try {
+        await register(
+          formData.firstName,
+          formData.lastName,
+          formData.email,
+          formData.password
+        );
+        navigate('/home');
+      } catch (error) {
+        setErrors({ ...errors, form: error.message });
+      }
     }
   };
 
