@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const Blog = require('../models/blogModel');
-const User = require('../models/userModel');
-const authMiddleware = require('../middleware/authMiddleware'); // You'll create this
+import { Router } from 'express';
+const router = Router();
+import Blog from '../models/blogModel.js';
+import User from '../models/userModel.js';
+import authMiddleware from '../middleware/authMiddleware.js'; // You'll create this
 
 // Create a new blog post (protected route)
 router.post('/', authMiddleware, async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const userId = req.user.id; // Get user ID from auth middleware
 
     // Find the user to get their name for the author field
-    const user = await User.findById(userId);
+    const user = await User._findById(userId);
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -110,7 +110,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     await blog.remove(); // Use deleteOne() or deleteMany() in newer Mongoose versions
 
     // Remove the blog ID from the user's blogs array
-    const user = await User.findById(req.user.id);
+    const user = await User._findById(req.user.id);
     user.blogs = user.blogs.filter(blogId => blogId.toString() !== req.params.id);
     await user.save();
 
@@ -124,4 +124,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

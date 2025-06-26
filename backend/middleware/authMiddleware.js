@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
+import pkg from 'jsonwebtoken';
+const { verify } = pkg;
 
-module.exports = function(req, res, next) {
-  // Get token from header
+export default function(req, res, next) { 
   const token = req.header('x-auth-token');
 
   // Check if not token
@@ -11,7 +11,7 @@ module.exports = function(req, res, next) {
 
   // Verify token
   try {
-    const decoded = jwt.verify(token, 'blog_web_app'); // Use the same secret as in authRoutes
+    const decoded = verify(token, 'blog_web_app'); // Use the same secret as in authRoutes
 
     req.user = decoded.user;
     next();

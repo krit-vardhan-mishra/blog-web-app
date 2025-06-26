@@ -1,8 +1,8 @@
 import express, { json } from 'express';
 import { connect } from 'mongoose';
 import cors from 'cors'; // Assuming you need CORS for frontend communication
-import authRoutes from './routes/authRoutes';
-import blogRoutes from './routes/blogRoutes'; // You'll create this
+import authRoutes from './routes/authRoutes.js';
+import blogRoutes from './routes/blogRoutes.js'; // You'll create this
 
 const app = express();
 

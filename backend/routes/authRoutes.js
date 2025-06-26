@@ -1,8 +1,9 @@
 import { Router } from 'express';
 const router = Router();
-import User, { findOne } from '../models/userModel';
+import User from '../models/userModel.js';
 import { genSalt, hash, compare } from 'bcrypt';
-import { sign } from 'jsonwebtoken'; // For generating JWT tokens
+import pkg from 'jsonwebtoken';
+const { sign } = pkg;
 
 // Signup
 router.post('/signup', async (req, res) => {
@@ -10,7 +11,7 @@ router.post('/signup', async (req, res) => {
     const { email, password, name, age } = req.body;
 
     // Check if user already exists
-    let user = await findOne({ email });
+    let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }

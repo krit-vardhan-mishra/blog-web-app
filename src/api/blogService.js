@@ -2,8 +2,6 @@
 import apiCall from './apiService.js'; // Ensure .js extension
 import axios from 'axios';
 
-import axios from 'axios';
-
 const API_URL = 'http://localhost:5000/api/blogs/'; // Replace with your backend URL
 
 const createBlog = async (blogData, token) => {
