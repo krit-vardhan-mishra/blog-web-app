@@ -60,9 +60,11 @@ export const SignupPage = () => {
           formData.email,
           formData.password
         );
+        console.log('navigating home')
         navigate('/home');
       } catch (error) {
         setErrors({ ...errors, form: error.message });
+        console.error('error occures.', error)
       }
     }
   };
