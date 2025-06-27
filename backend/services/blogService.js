@@ -43,7 +43,7 @@ export class BlogService {
     if (!blog) {
       throw new Error('Blog not found');
     }
-    
+
     if (newContent && newContent.trim() !== '') {
       blog.content = newContent;
       await blog.save();

@@ -1,8 +1,11 @@
 import { connect } from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const connectDB = async () => {
   try {
-    await connect('mongodb://localhost:27017/blog_web_app', {
+    await connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

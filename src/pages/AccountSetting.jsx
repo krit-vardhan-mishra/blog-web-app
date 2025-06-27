@@ -104,7 +104,7 @@ export const AccountSetting = () => {
                                 id="firstName"
                                 name="firstName"
                                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                                placeholder="Enter your first name"
+                                placeholder="Enter your updated first name"
                                 required
                             />
                         </motion.div>
@@ -128,7 +128,31 @@ export const AccountSetting = () => {
                                 id="lastName"
                                 name="lastName"
                                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                                placeholder="Enter your last name"
+                                placeholder="Enter your updated last name"
+                                required
+                            />
+                        </motion.div>
+                    </div>
+                   
+                    {/* Last Name */}
+                    <div className="grid grid-cols-4 gap-4 items-center">
+                        <label
+                            className="col-span-1 text-white font-bold transform transition-transform duration-200 hover:scale-110"
+                            htmlFor="age"
+                        >
+                            Age:
+                        </label>
+                        <motion.div
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="col-span-3"
+                        >
+                            <input
+                                type="number"
+                                id="age"
+                                name="age"
+                                className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                                placeholder="Enter your updated age"
                                 required
                             />
                         </motion.div>
@@ -152,7 +176,7 @@ export const AccountSetting = () => {
                                 id="email"
                                 name="email"
                                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                                placeholder="Enter your email"
+                                placeholder="Enter your updated email"
                                 required
                             />
                         </motion.div>
@@ -176,7 +200,7 @@ export const AccountSetting = () => {
                                 name="about"
                                 rows={3}
                                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200 resize-none"
-                                placeholder="Write something about yourself..."
+                                placeholder="Update about yourself..."
                                 required
                             />
                         </motion.div>

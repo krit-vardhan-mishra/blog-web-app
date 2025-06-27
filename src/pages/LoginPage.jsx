@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import FeaturesSidebar from "../components/FeaturesSidebar";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
+import { login } from '../api/authService';
+import { useNavigate } from 'react-router-dom';
 import { LoginPageSkeleton } from "../skeleton/pages/LoginPageSkelton";
+import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { loginUser } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -48,13 +53,33 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      try {
-        await login(formData.email, formData.password);
-        navigate('/home');
-      } catch (error) {
-        setErrors({ ...errors, form: error.message });
-      }
+
+    // Debug: Log form data before validation
+    console.log("Form data before validation:", formData);
+    console.log("Email:", formData.email);
+    console.log("Password:", formData.password);
+
+    if (!validate()) return;
+
+    try {
+      setIsLoading(true);
+
+      // Debug: Log what we're sending to the API
+      console.log("Calling login with:", {
+        email: formData.email,
+        password: formData.password
+      });
+
+      const data = await login(formData.email, formData.password);
+      console.log("Login API response:", data);
+      loginUser(data);
+      console.log("navigating to /home");
+      navigate('/home');
+    } catch (err) {
+      setErrors({ form: err.message });
+      console.error("login failed", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 

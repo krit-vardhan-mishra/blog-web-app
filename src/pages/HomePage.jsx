@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import { HomeIcon, UserIcon, SettingsIcon, Plus } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
@@ -6,16 +7,16 @@ import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFuncti
 import { motion } from 'framer-motion';
 import PostDetails from '../components/PostDetails.jsx';
 import Footer from '../components/Footer.jsx';
-import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx'; 
-import CreatePostModal from '../components/ui/modals/CreatePostModal.jsx'; 
-import EditPostModal from '../components/ui/modals/EditPostModal.jsx'; 
-import QuickStatsModal from '../components/ui/modals/QuickStatsModal.jsx'; 
-import SingleStatModal from '../components/ui/modals/SingleStatModal.jsx'; 
-import useAuth from '../hooks/useAuth.js'; 
-import * as blogService from '../api/blogService.js';
+import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
+import CreatePostModal from '../components/ui/modals/CreatePostModal.jsx';
+import EditPostModal from '../components/ui/modals/EditPostModal.jsx';
+import QuickStatsModal from '../components/ui/modals/QuickStatsModal.jsx';
+import SingleStatModal from '../components/ui/modals/SingleStatModal.jsx';
+import useAuth from '../hooks/useAuth';
+import * as blogService from '../api/blogService';
 
 export const HomePage = () => {
-  const { user, token } = useAuth();
+  const { user, token, setUser } = useAuth();
   const [selectedStat, setSelectedStat] = useState(null);
   const [isStatModalOpen, setIsStatModalOpen] = useState(false);
   const [isAllStatsOpen, setIsAllStatsOpen] = useState(false);
@@ -28,13 +29,23 @@ export const HomePage = () => {
   const [isEditPostOpen, setIsEditPostOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(getCurrentDateTime());
   const [isLoading, setIsLoading] = useState(true);
-  const [allBlogs, setAllBlogs] = useState([]); 
-  
+  const [allBlogs, setAllBlogs] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log("User in HomePage:", user);
+  }, [user]);
+
+
   useEffect(() => {
     const fetchAllBlogsData = async () => {
+      const delay = new Promise((resolve) => setTimeout(resolve, 1200));
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const blogsData = await blogService.fetchAllBlogs(token);
+        const [blogsData] = await Promise.all([
+          blogService.fetchAllBlogs(token),
+          delay
+        ]);
         setAllBlogs(blogsData);
       } catch (error) {
         console.error("Failed to fetch blogs", error);
@@ -48,14 +59,14 @@ export const HomePage = () => {
 
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
-    setDisplayedUserName(user?.name || 'Guest');
+    setDisplayedUserName(user?.name ? user.name.split(' ')[0]+'...' : 'Guest');
 
     const interval = setInterval(() => {
       setCurrentTime(getCurrentDateTime());
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [user]); 
+  }, [user]);
 
   // Dynamic document title
   useEffect(() => {
@@ -70,16 +81,41 @@ export const HomePage = () => {
 
   // Welcome banner effect
   useEffect(() => {
-    const hasVisited = localStorage.getItem('hasVisitedBlogWebApp');
-    if (!hasVisited) {
-      setShowWelcomeBanner(true);
-      localStorage.setItem('hasVisitedBlogWebApp', true);
-      const timer = setTimeout(() => {
-        setShowWelcomeBanner(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    setShowWelcomeBanner(true);
+    const timer = setTimeout(() => {
+      setShowWelcomeBanner(false);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        console.log("Fetched user profile from backend:", data);
+
+        if (res.ok && data.user && data.user.age) {
+          console.log("Age retrieved from DB:", data.user.age);
+          setUser(data.user);
+        } else {
+          console.warn("Failed to fetch valid user data:", data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err.message);
+      }
+    };
+
+    if (token && !user?.age) {
+      fetchUserDetails();
+    }
+  }, [token, user?.age, setUser]);
 
   // Notification banner effect
   useEffect(() => {
@@ -94,7 +130,7 @@ export const HomePage = () => {
 
   // Calculate stats based on fetched data
   const userBlogsCount = allBlogs.filter(blog => blog.userId === user?.id).length;
-  const totalViews = 0; 
+  const totalViews = 0;
   const lastUpdated = "N/A";
 
   const stats = [
@@ -210,21 +246,21 @@ export const HomePage = () => {
         {/* All Posts Section */}
         <h2 className="text-3xl font-bold mb-6 text-gray-100 border-b-2 border-indigo-300 pb-2">Recent Posts</h2>
         {allBlogs.length === 0 ? (
-            <p className="text-center text-lg text-gray-300 p-8 bg-[#2A2E36] rounded-lg shadow-sm">
-                No blogs available yet.
-            </p>
+          <p className="text-center text-lg text-gray-300 p-8 bg-[#2A2E36] rounded-lg shadow-sm">
+            No blogs available yet.
+          </p>
         ) : (
-            <div className="space-y-6">
-                {allBlogs.map((blog) => (
-                    <PostDetails
-                        key={blog.id}
-                        title={blog.title}
-                        content={blog.content}
-                        author={blog.author}
-                        onEdit={handleEditPost}
-                    />
-                ))}
-            </div>
+          <div className="space-y-6">
+            {allBlogs.map((blog) => (
+              <PostDetails
+                key={blog.id}
+                title={blog.title}
+                content={blog.content}
+                author={blog.author}
+                onEdit={handleEditPost}
+              />
+            ))}
+          </div>
         )}
       </div>
 

@@ -3,21 +3,26 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from '../components/ui/Button';
+import { register } from '../api/authService';
+import { useNavigate } from 'react-router-dom';
 import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
 import FormGroup from "../components/form/FormGroup";
+import { useAuth } from '../context/AuthContext';
 
 export const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { loginUser } = useAuth();
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
+    age: '',
   });
-
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     document.title = "Signup - Blog App";
@@ -45,29 +50,35 @@ export const SignupPage = () => {
     if (!formData.password) newErrors.password = "Password is required";
     else if (!passwordRegex.test(formData.password))
       newErrors.password = "Password must be 8+ chars, include 1 capital letter & 1 symbol";
-
+    if (!formData.age) newErrors.age = "Age is required";
+    else if (isNaN(formData.age) || formData.age <= 0) newErrors.age = "Age must be a positive number";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validate()) {
-      try {
-        await register(
-          formData.firstName,
-          formData.lastName,
-          formData.email,
-          formData.password
-        );
-        console.log('navigating home')
-        navigate('/home');
-      } catch (error) {
-        setErrors({ ...errors, form: error.message });
-        console.error('error occures.', error)
-      }
-    }
-  };
+  e.preventDefault();
+  if (!validate()) return;
+
+  try {
+    setIsLoading(true);
+    const data = await register(
+      formData.firstName,
+      formData.lastName,
+      formData.email,
+      formData.password,
+      parseInt(formData.age)
+    );
+    loginUser(data);
+    console.log("navigate to /home...");
+    navigate('/home', { state: { from: '/signup' } });
+  } catch (err) {
+    setErrors({ form: err.message });
+    console.error("Error from signup page", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   if (isLoading) {
     return <SignupPageSkeleton />;
@@ -109,6 +120,17 @@ export const SignupPage = () => {
             type="email"
           />
 
+          {/* Age */}
+          <FormGroup
+            id="age"
+            куль label="Age:"
+            value={formData.age}
+            onChange={handleChange}
+            error={errors.age}
+            type="number"
+            min="1"
+          />
+
           {/* Password */}
           <div className="grid grid-cols-4 gap-4 items-center">
             <label htmlFor="password" className="col-span-1 text-white hover:scale-110 transition-transform duration-200">
@@ -136,6 +158,11 @@ export const SignupPage = () => {
               <p className="col-span-4 text-red-500 text-sm mt-1 text-center">{errors.password}</p>
             )}
           </div>
+
+          {/* Display server error */}
+          {errors.form && (
+            <p className="text-red-500 text-sm mt-1 text-center">{errors.form}</p>
+          )}
 
           {/* Remember Me */}
           <div className="flex justify-center space-x-3">

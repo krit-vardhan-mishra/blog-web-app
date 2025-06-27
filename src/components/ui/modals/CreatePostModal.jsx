@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import CreatePost from '../../CreatePost';
-import ModalWrapper from './ModelWrapper';
+import ModalWrapper from './ModalWrapper';
 
 const CreatePostModal = ({ isOpen, onClose, onPostSuccess }) => {
   return (

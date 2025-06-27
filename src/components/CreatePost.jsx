@@ -1,28 +1,57 @@
 import { useState } from "react";
 import { CreatePostSkeleton } from "../skeleton/component/CreatePostSkeleton";
+import useAuth from "../hooks/useAuth";
 
 export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
-  if (isLoading) {
-    return <CreatePostSkeleton />
-  }
-
+  const { token } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [error, setError] = useState(null);
 
-  const postBlog = (e) => {
+  const postBlog = async (e) => {
     e.preventDefault();
+    setError(null);
     console.log("Attempting to create post with:", { title, content });
 
-    if (onPostSuccess) {
-      onPostSuccess("Blog Uploaded Successfully!");
+    if (!title.trim() || !content.trim()) {
+      setError("Title and content are required.");
+      return;
     }
-    setTitle("");
-    setContent("");
+
+    try {
+      const response = await fetch('http://localhost:5000/api/blogs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to create blog');
+      }
+
+      if (onPostSuccess) {
+        onPostSuccess("Blog Uploaded Successfully!");
+      }
+      setTitle("");
+      setContent("");
+    } catch (err) {
+      console.error("Error creating blog:", err.message);
+      setError(err.message);
+    }
+  };
+
+  if (isLoading) {
+    return <CreatePostSkeleton />
   }
 
   return (
     <div className="text-white">
       <h2 className="text-lg font-bold mb-4">Create New Post</h2>
+      {error && ( <p className="text-red-500 mb-4">{error}</p> )}
       <form onSubmit={postBlog}>
         <div className="mb-4">
           <label className="block mb-2">Title</label>

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import EditPost from '../../EditPost';
-import ModalWrapper from './ModelWrapper';
+import ModalWrapper from './ModalWrapper';
 
 const EditPostModal = ({ isOpen, onClose, onUpdateSuccess }) => {
   return (

@@ -4,33 +4,49 @@ import connectDB from './config/db.js';
 import { UserService } from './services/userService.js';
 import { BlogService } from './services/blogService.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import User from './models/mongoUser.js';
+import dotenv from 'dotenv';
 
-const app = express();
-const PORT = 5000;
-
-app.use(cors());
-app.use(express.json());
+// Load environment variables
+dotenv.config();
 
 // Connect to the database before starting the server
 await connectDB();
 
+const PORT = process.env.PORT || 5000;
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Middleware to verify JWT token
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
 // --- API Routes for Users ---
 
-// Get all users
-app.get('/api/users', async (req, res) => {
+// Get all users (protected)
+app.get('/api/users', authenticateToken, async (req, res) => {
   try {
     const users = await UserService.getAllUsers();
     res.json(users);
   } catch (error) {
-    // Handle server errors
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get a user by ID
-app.get('/api/users/:id', async (req, res) => {
+// Get a user by ID (protected)
+app.get('/api/users/:id', authenticateToken, async (req, res) => {
   try {
     const user = await UserService.getUserById(req.params.id);
     if (user) {
@@ -43,45 +59,9 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-// Create a new user
-app.post('/api/users', async (req, res) => {
-  try {
-    const { name, age } = req.body;
-    const user = await UserService.createUser(name, age);
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
+// --- API Routes for Blogs (all protected) ---
 
-// Update an existing user by ID
-app.put('/api/users/:id', async (req, res) => {
-  try {
-    const user = await UserService.updateUser(req.params.id, req.body);
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Delete a user by ID
-app.delete('/api/users/:id', async (req, res) => {
-  try {
-    await UserService.deleteUser(req.params.id);
-    res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// --- API Routes for Blogs ---
-
-// Get all blogs
-app.get('/api/blogs', async (req, res) => {
+app.get('/api/blogs', authenticateToken, async (req, res) => {
   try {
     const blogs = await BlogService.getAllBlogs();
     res.json(blogs);
@@ -90,8 +70,7 @@ app.get('/api/blogs', async (req, res) => {
   }
 });
 
-// Get a blog by ID
-app.get('/api/blogs/:id', async (req, res) => {
+app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
     const blog = await BlogService.getBlogById(req.params.id);
     if (blog) {
@@ -104,22 +83,33 @@ app.get('/api/blogs/:id', async (req, res) => {
   }
 });
 
-// Create a new blog
-app.post('/api/blogs', async (req, res) => {
+app.post('/api/blogs', authenticateToken, async (req, res) => {
   try {
-    const { title, content, authorId } = req.body;
-    const blog = await BlogService.createBlog({ title, content, authorId });
+    const { title, content } = req.body;
+    const authorId = req.user.id;
+    const blog = await BlogService.createBlog({
+      title, content, authorId
+    });
     res.status(201).json(blog);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
 
-// Update an existing blog by ID
-app.put('/api/blogs/:id', async (req, res) => {
+app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
     const { title, content } = req.body;
     const blogId = req.params.id;
+    const userId = req.user.id;
+
+    // Verify the user owns the blog before updating
+    const blog = await BlogService.getBlogById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
 
     let updated = false;
     if (title !== undefined) {
@@ -130,8 +120,8 @@ app.put('/api/blogs/:id', async (req, res) => {
     }
 
     if (updated) {
-      const blog = await BlogService.getBlogById(blogId);
-      res.json(blog);
+      const updatedBlog = await BlogService.getBlogById(blogId);
+      res.json(updatedBlog);
     } else {
       res.status(400).json({ message: "No valid updates provided" });
     }
@@ -140,10 +130,21 @@ app.put('/api/blogs/:id', async (req, res) => {
   }
 });
 
-// Delete a blog by ID
-app.delete('/api/blogs/:id', async (req, res) => {
+app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
-    const success = await BlogService.deleteBlog(req.params.id);
+    const blogId = req.params.id;
+    const userId = req.user.id;
+
+    // Verify the user owns the blog before deleting
+    const blog = await BlogService.getBlogById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const success = await BlogService.deleteBlog(blogId);
     if (success) {
       res.json({ message: "Blog deleted successfully" });
     } else {
@@ -154,41 +155,57 @@ app.delete('/api/blogs/:id', async (req, res) => {
   }
 });
 
-// Start the Express server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
-
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, age } = req.body;
+    console.log('Register request body:', req.body);
 
-    // Check if user exists
+    if (!email || !password || !firstName || !lastName || !age) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user
     const user = await User.create({
       name: `${firstName} ${lastName}`,
       email,
-      password: hashedPassword
+      password,
+      age: parseInt(age)
     });
 
-    // Create token
-    const token = jwt.sign(
-      { email: user.email, id: user._id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1h' }
-    );
+    const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.status(201).json({ user, token });
+    res.status(201).json({
+      user: { id: user._id, name: user.name, email: user.email, age: user.age },
+      token
+    });
   } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get user profile (protected)
+app.get('/api/user/profile', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('name email age');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age
+      }
+    });
+  } catch (error) {
+    console.error('Profile fetch error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -196,28 +213,34 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Check if user exists
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Check password
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Create token
-    const token = jwt.sign(
-      { email: user.email, id: user._id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1h' }
-    );
-
-    res.status(200).json({ user, token });
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age
+      }
+    });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
+});
+
+// Start the Express server
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });

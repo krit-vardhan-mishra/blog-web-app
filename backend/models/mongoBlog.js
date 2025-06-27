@@ -29,7 +29,7 @@ BlogSchema.methods = {
     }
     return false;
   },
-  
+
   updateContent(newContent) {
     if (newContent && newContent.trim() !== '') {
       this.content = newContent;
@@ -37,7 +37,7 @@ BlogSchema.methods = {
     }
     return false;
   },
-  
+
   toJSON() {
     const obj = this.toObject();
     obj.id = obj._id;
