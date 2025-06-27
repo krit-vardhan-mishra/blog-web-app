@@ -11,8 +11,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Connect to the database before starting the server
-await connectDB();
-
+await connectDB().then(() => console.log("Database connected")).catch(err => console.error("Database connection error:", err));
 const PORT = process.env.PORT || 5000;
 
 const app = express();
@@ -87,11 +86,13 @@ app.post('/api/blogs', authenticateToken, async (req, res) => {
   try {
     const { title, content } = req.body;
     const authorId = req.user.id;
+    console.log("Attempting to create blog with authorId:", authorId);
     const blog = await BlogService.createBlog({
       title, content, authorId
     });
     res.status(201).json(blog);
   } catch (error) {
+    console.error("Blog creation error:", error.message);
     res.status(400).json({ message: error.message });
   }
 });
@@ -192,18 +193,12 @@ app.post('/api/auth/register', async (req, res) => {
 // Get user profile (protected)
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
+    console.log("Fetching profile for userId:", req.user.id);
     const user = await User.findById(req.user.id).select('name email age');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        age: user.age
-      }
-    });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, age: user.age } });
   } catch (error) {
     console.error('Profile fetch error:', error);
     res.status(500).json({ message: error.message });
@@ -224,7 +219,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({
       token,
       user: {

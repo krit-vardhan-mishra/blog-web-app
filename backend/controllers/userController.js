@@ -1,34 +1,39 @@
-import { User } from '../models/mongoUser.js';
-import { MongoUser } from '../models/mongoUser.js';
-import { BlogApp } from '../models/models.js';
+import { MongoUser, User } from './mongoUser.js'; // Assuming mongoUser.js is in the same directory or adjust path
 
-let appInstance = new BlogApp();
-
+/**
+ * Creates a new user in the database.
+ * @param {object} reqBody - The request body containing user details.
+ * @param {string} reqBody.name - The name of the user.
+ * @param {number} reqBody.age - The age of the user.
+ * @returns {Promise<object>} An object indicating success/failure and the user data or error message.
+ */
 export async function createUser(reqBody) {
   const { name, age } = reqBody;
-  
+
   if (!name || age === undefined) {
     return { success: false, message: "Name and age are required." };
   }
 
   try {
     const mongoUser = await User.create({ name, age });
-    
-    const user = appInstance.createUser(name, age);
-    user.id = mongoUser._id.toString();
-    
-    return { 
-      success: true, 
-      user: new MongoUser(mongoUser) 
+    return {
+      success: true,
+      user: new MongoUser(mongoUser)
     };
   } catch (error) {
-    return { 
-      success: false, 
-      message: error.message 
+    return {
+      success: false,
+      message: error.message
     };
   }
 }
 
+/**
+ * Retrieves all users from the database.
+ * Users' blogs are populated automatically.
+ * @returns {Promise<Array<MongoUser>>} An array of MongoUser objects.
+ * @throws {Error} If there's a failure to retrieve users.
+ */
 export async function getAllUsers() {
   try {
     const users = await User.find().populate('blogs');
@@ -38,6 +43,12 @@ export async function getAllUsers() {
   }
 }
 
+/**
+ * Retrieves a single user by their ID.
+ * User's blogs are populated automatically.
+ * @param {string} userId - The ID of the user to retrieve.
+ * @returns {Promise<object>} An object indicating success/failure and the user data or error message.
+ */
 export async function getUserById(userId) {
   try {
     const user = await User.findById(userId).populate('blogs');
@@ -50,6 +61,11 @@ export async function getUserById(userId) {
   }
 }
 
+/**
+ * Retrieves all users who have associated blogs.
+ * @returns {Promise<Array<MongoUser>>} An array of MongoUser objects with blogs.
+ * @throws {Error} If there's a failure to retrieve users with blogs.
+ */
 export async function getUsersWithBlogs() {
   try {
     const users = await User.getUsersWithBlogs();
@@ -59,6 +75,11 @@ export async function getUsersWithBlogs() {
   }
 }
 
+/**
+ * Retrieves all users who do not have associated blogs.
+ * @returns {Promise<Array<MongoUser>>} An array of MongoUser objects without blogs.
+ * @throws {Error} If there's a failure to retrieve users without blogs.
+ */
 export async function getUsersWithoutBlogs() {
   try {
     const users = await User.getUsersWithoutBlogs();
@@ -66,12 +87,4 @@ export async function getUsersWithoutBlogs() {
   } catch (error) {
     throw new Error(`Failed to get users without blogs: ${error.message}`);
   }
-}
-
-export function setApp(newApp) {
-  appInstance = newApp;
-}
-
-export function getApp() {
-  return appInstance;
 }

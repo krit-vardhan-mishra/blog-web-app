@@ -3,7 +3,7 @@ import { CreatePostSkeleton } from "../skeleton/component/CreatePostSkeleton";
 import useAuth from "../hooks/useAuth";
 
 export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
@@ -11,7 +11,8 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const postBlog = async (e) => {
     e.preventDefault();
     setError(null);
-    console.log("Attempting to create post with:", { title, content });
+    console.log("User:", user, "Token:", token);
+    console.log("Attempting to create post with:", { title, content, authorId: user?.id });
 
     if (!title.trim() || !content.trim()) {
       setError("Title and content are required.");
@@ -44,6 +45,7 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
     }
   };
 
+
   if (isLoading) {
     return <CreatePostSkeleton />
   }
@@ -51,7 +53,7 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   return (
     <div className="text-white">
       <h2 className="text-lg font-bold mb-4">Create New Post</h2>
-      {error && ( <p className="text-red-500 mb-4">{error}</p> )}
+      {error && (<p className="text-red-500 mb-4">{error}</p>)}
       <form onSubmit={postBlog}>
         <div className="mb-4">
           <label className="block mb-2">Title</label>

@@ -56,7 +56,7 @@ UserSchema.methods = {
   },
 
   canPostBlog() {
-    return this.age >= 13;
+    return this.age >= 10;
   },
 
   toJSON() {

@@ -3,20 +3,16 @@ import User from '../models/mongoUser.js';
 
 export class BlogService {
   static async createBlog({ title, content, authorId }) {
+    console.log("Looking up user with ID:", authorId);
     const user = await User.findById(authorId);
     if (!user) {
+      console.error("User not found for ID:", authorId);
       throw new Error('User not found');
     }
     if (!user.canPostBlog()) {
       throw new Error('User is not old enough to post blogs');
     }
-
-    const blog = await Blog.create({
-      title,
-      content,
-      author: authorId
-    });
-
+    const blog = await Blog.create({ title, content, author: authorId });
     return await blog.populate('author');
   }
 

@@ -1,4 +1,3 @@
-// src/api/blogService.js
 import apiCall from './apiService.js'; // Ensure .js extension
 
 /**
