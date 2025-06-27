@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import FeaturesSidebar from "../components/FeaturesSidebar";
-import { Button } from "../components/ui/Button";
+import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { login } from '../api/authService';

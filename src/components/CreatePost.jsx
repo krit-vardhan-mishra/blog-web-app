@@ -11,13 +11,19 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const postBlog = async (e) => {
     e.preventDefault();
     setError(null);
-    console.log("User:", user, "Token:", token);
-    console.log("Attempting to create post with:", { title, content, authorId: user?.id });
+    console.log("User from useAuth:", user, "Token:", token);
 
     if (!title.trim() || !content.trim()) {
       setError("Title and content are required.");
       return;
     }
+
+    if (!token) {
+      setError("Authentication required. Please log in again.");
+      return;
+    }
+
+    console.log("Attempting to create post with:", { title, content });
 
     try {
       const response = await fetch('http://localhost:5000/api/blogs', {
@@ -29,8 +35,21 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
         body: JSON.stringify({ title, content }),
       });
 
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
       if (!response.ok) {
-        const data = await response.json();
+        if (response.status === 401 && data.expired) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          throw new Error('Session expired. Please log in again.');
+        }
         throw new Error(data.message || 'Failed to create blog');
       }
 
@@ -45,39 +64,49 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
     }
   };
 
-
   if (isLoading) {
-    return <CreatePostSkeleton />
+    return <CreatePostSkeleton />;
   }
 
   return (
     <div className="text-white">
       <h2 className="text-lg font-bold mb-4">Create New Post</h2>
-      {error && (<p className="text-red-500 mb-4">{error}</p>)}
+      {error && <p id="post-error" className="text-red-500 mb-4">{error}</p>}
       <form onSubmit={postBlog}>
         <div className="mb-4">
-          <label className="block mb-2">Title</label>
+          <label htmlFor="post-title" className="block mb-2">
+            Title
+          </label>
           <input
+            id="post-title"
+            name="title"
             type="text"
             className="w-full p-2 bg-[#1C222A] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white"
             placeholder="Enter post title"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
+            aria-describedby={error ? "post-error" : undefined}
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-2">Content</label>
+          <label htmlFor="post-content" className="block mb-2">
+            Content
+          </label>
           <textarea
+            id="post-content"
+            name="content"
             rows={4}
             className="w-full p-2 bg-[#1C222A] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white resize-none"
             placeholder="Write your content here..."
             value={content}
-            onChange={e => setContent(e.target.value)}
-          ></textarea>
+            onChange={(e) => setContent(e.target.value)}
+            aria-describedby={error ? "post-error" : undefined}
+          />
         </div>
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          aria-label="Submit post"
         >
           Post
         </button>

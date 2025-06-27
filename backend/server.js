@@ -7,10 +7,8 @@ import jwt from 'jsonwebtoken';
 import User from './models/mongoUser.js';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
-// Connect to the database before starting the server
 await connectDB().then(() => console.log("Database connected")).catch(err => console.error("Database connection error:", err));
 const PORT = process.env.PORT || 5000;
 
@@ -23,10 +21,19 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) return res.sendStatus(401);
+  if (!token) {
+    console.log("No token provided, sending 401");
+    return res.status(401).json({ message: 'No token provided' });
+  }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.log("Token verification failed:", err.message);
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expired', expired: true });
+      }
+      return res.status(403).json({ message: 'Invalid token' });
+    }
     req.user = user;
     next();
   });
@@ -85,10 +92,22 @@ app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
 app.post('/api/blogs', authenticateToken, async (req, res) => {
   try {
     const { title, content } = req.body;
-    const authorId = req.user.id;
-    console.log("Attempting to create blog with authorId:", authorId);
+    const authorIdFromToken = req.user.id; 
+
+    console.log("Attempting to create blog. authorId from token:", authorIdFromToken);
+
+    if (!authorIdFromToken) {
+        return res.status(400).json({ message: 'Authenticated user ID not found in token.' });
+    }
+
+    if (!title || !content) {
+        return res.status(400).json({ message: 'Title and content are required.' });
+    }
+
     const blog = await BlogService.createBlog({
-      title, content, authorId
+      title,
+      content,
+      authorId: authorIdFromToken 
     });
     res.status(201).json(blog);
   } catch (error) {
@@ -103,7 +122,6 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
     const blogId = req.params.id;
     const userId = req.user.id;
 
-    // Verify the user owns the blog before updating
     const blog = await BlogService.getBlogById(blogId);
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -134,9 +152,8 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
 app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
     const blogId = req.params.id;
-    const userId = req.user.id;
+    const userId = req.user.id; 
 
-    // Verify the user owns the blog before deleting
     const blog = await BlogService.getBlogById(blogId);
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -178,7 +195,8 @@ app.post('/api/auth/register', async (req, res) => {
       age: parseInt(age)
     });
 
-    const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Consistent JWT payload key: 'id'
+    const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
       user: { id: user._id, name: user.name, email: user.email, age: user.age },
@@ -193,8 +211,8 @@ app.post('/api/auth/register', async (req, res) => {
 // Get user profile (protected)
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
-    console.log("Fetching profile for userId:", req.user.id);
-    const user = await User.findById(req.user.id).select('name email age');
+    console.log("Fetching profile for userId from token:", req.user.id); 
+    const user = await User.findById(req.user.id).select('name email age'); 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -219,7 +237,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
     res.json({
       token,
       user: {

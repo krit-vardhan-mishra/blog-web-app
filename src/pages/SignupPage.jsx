@@ -123,7 +123,7 @@ export const SignupPage = () => {
           {/* Age */}
           <FormGroup
             id="age"
-            куль label="Age:"
+            label="Age:"
             value={formData.age}
             onChange={handleChange}
             error={errors.age}
@@ -188,6 +188,5 @@ export const SignupPage = () => {
     </div>
   );
 };
-
 
 export default SignupPage;

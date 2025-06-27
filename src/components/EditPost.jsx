@@ -1,5 +1,6 @@
 import { useState } from "react";
 import EditPostSkeleton from '../skeleton/component/EditPostSkeleton';
+import { Button } from '../components/ui/Button';
 
 export const EditPost = ({ onUpdateSuccess, isLoading = false }) => {
   if (isLoading) {
@@ -45,12 +46,12 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false }) => {
             onChange={e => setContent(e.target.value)}
           ></textarea>
         </div>
-        <button
+        <Button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
         >
           Update
-        </button>
+        </Button>
       </form>
     </div>
   );
