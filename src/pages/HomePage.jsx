@@ -30,11 +30,42 @@ export const HomePage = () => {
   const [blogToEdit, setBlogToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allBlogs, setAllBlogs] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null); // New state for last updated
 
   useEffect(() => {
     console.log("User in HomePage:", user);
   }, [user]);
 
+  // Load last updated time from localStorage on component mount
+  useEffect(() => {
+    const savedLastUpdated = localStorage.getItem(`lastUpdated_${user?.id}`);
+    if (savedLastUpdated) {
+      setLastUpdated(savedLastUpdated);
+    }
+  }, [user?.id]);
+
+  // Function to update last updated time
+  const updateLastUpdatedTime = () => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    const dateString = now.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const lastUpdatedString = `${timeString}\n${dateString}`;
+
+    setLastUpdated(lastUpdatedString);
+
+    // Save to localStorage for persistence
+    if (user?.id) {
+      localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
+    }
+  };
 
   useEffect(() => {
     const fetchAllBlogsData = async () => {
@@ -131,12 +162,11 @@ export const HomePage = () => {
   // Calculate stats based on fetched data
   const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
   const totalViews = 0;
-  const lastUpdated = "N/A";
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
     { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
-    { title: 'Last Updated', count: lastUpdated, subtitle: 'Recent activity' }
+    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' }
   ];
 
   const colorMap = {
@@ -159,6 +189,7 @@ export const HomePage = () => {
     setNotificationMessage(message);
     setShowNotificationBanner(true);
     setIsCreatePostOpen(false);
+    updateLastUpdatedTime(); // Update last updated time
     blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
   };
 
@@ -166,6 +197,14 @@ export const HomePage = () => {
     setNotificationMessage(message);
     setShowNotificationBanner(true);
     setIsEditPostOpen(false);
+    updateLastUpdatedTime(); // Update last updated time
+    blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
+  };
+
+  const handlePostDeleteSuccess = (message) => {
+    setNotificationMessage(message || "Post deleted successfully!");
+    setShowNotificationBanner(true);
+    updateLastUpdatedTime(); // Update last updated time
     blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
   };
 
@@ -235,7 +274,7 @@ export const HomePage = () => {
                 className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
               >
                 <h3 className="text-white font-semibold mb-2">{stat.title}</h3>
-                <p className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'}`}>
+                <p className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'} whitespace-pre-line`}>
                   {stat.count || stat.count === 0 ? stat.count : '-'}
                 </p>
                 <p className="text-gray-400 text-sm">{stat.subtitle}</p>
@@ -262,6 +301,7 @@ export const HomePage = () => {
                 userId={user.id}
                 token={token}
                 onEdit={() => handleEditPost(blog)}
+                onDelete={handlePostDeleteSuccess} // Pass delete handler
                 onUpdateSuccess={handlePostUpdateSuccess}
               />
             ))}
@@ -286,9 +326,12 @@ export const HomePage = () => {
       <EditPostModal
         isOpen={isEditPostOpen}
         onClose={() => setIsEditPostOpen(false)}
-        onUpdateSuccess={(handlePostUpdateSuccess)}
+        onUpdateSuccess={handlePostUpdateSuccess}
         title={blogToEdit?.title || ''}
         content={blogToEdit?.content || ''}
+        blogId={blogToEdit?.id || blogToEdit?._id}
+        userId={user?.id}
+        token={token}
       />
       <QuickStatsModal
         isOpen={isAllStatsOpen}
@@ -306,7 +349,7 @@ export const HomePage = () => {
       {/* Notification Banners */}
       {showWelcomeBanner && (
         <NotifyBanner
-          message="Welcome back to the Blog Web App!"
+          message={`Welcome back to the Blog Web App, ${user.name}!`}
           onClose={() => setShowWelcomeBanner(false)}
         />
       )}

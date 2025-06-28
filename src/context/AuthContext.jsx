@@ -9,9 +9,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      const user = authService.getCurrentUser();
+    const initializeAuth = () => {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const userJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
+      const user = userJSON ? JSON.parse(userJSON) : null;
 
       if (token && user) {
         setToken(token);
@@ -41,9 +42,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginUser = ({ token, user }) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+  const loginUser = ({ token, user }, rememberMe = false) => {
+    if (rememberMe) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('user', JSON.stringify(user));
+    }
+
     setToken(token);
     setUser(user);
   };
@@ -57,8 +64,11 @@ export const AuthProvider = ({ children }) => {
   const logoutUser = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setUser(null);
   };
+
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout, loginUser, setUser, logoutUser }}>

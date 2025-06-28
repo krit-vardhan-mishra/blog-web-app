@@ -47,10 +47,18 @@ const QuickStatsModal = ({ isOpen, onClose, stats = [] }) => {
                   className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100"
                 >
                   <h3 className="text-white font-semibold mb-2">{title}</h3>
-                  <p className={`text-2xl font-bold ${colorMap[title] || 'text-gray-300'}`}>
-                    {count || count === 0 ? count : '-'}
-                  </p>
-                  <p className="text-gray-400 text-sm">{subtitle}</p>
+                  <div className={`text-2xl font-bold ${colorMap[title] || 'text-gray-300'}`}>
+                    {title === 'Last Updated' && count && count !== 'Never' ? (
+                      <div className="whitespace-pre-line leading-tight">
+                        {count}
+                      </div>
+                    ) : (
+                      <div>
+                        {count || count === 0 ? count : '-'}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm mt-2">{subtitle}</p>
                 </motion.div>
               ))}
             </div>

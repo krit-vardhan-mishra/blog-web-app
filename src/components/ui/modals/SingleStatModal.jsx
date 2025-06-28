@@ -35,10 +35,32 @@ const SingleStatModal = ({ stat, isOpen, onClose }) => {
           </button>
 
           <h2 className="text-white text-2xl font-bold mb-4">{stat.title}</h2>
-          <p className={`text-4xl font-extrabold ${colorMap[stat.title] || 'text-gray-300'}`}>
-            {stat.count || stat.count === 0 ? stat.count : '-'}
-          </p>
-          <p className="text-gray-400 mt-2">{stat.subtitle}</p>
+          
+          <div className={`text-4xl font-extrabold ${colorMap[stat.title] || 'text-gray-300'}`}>
+            {stat.title === 'Last Updated' && stat.count && stat.count !== 'Never' ? (
+              <div className="whitespace-pre-line leading-tight text-center">
+                {stat.count}
+              </div>
+            ) : (
+              <div className="text-center">
+                {stat.count || stat.count === 0 ? stat.count : '-'}
+              </div>
+            )}
+          </div>
+          
+          <p className="text-gray-400 mt-4 text-center">{stat.subtitle}</p>
+          
+          {/* Additional info for Last Updated */}
+          {stat.title === 'Last Updated' && (
+            <div className="mt-4 p-3 bg-[#2A2E36] rounded-lg">
+              <p className="text-gray-300 text-sm text-center">
+                {stat.count === 'Never' ? 
+                  'No blog activities yet. Create, edit, or delete a blog to see the last updated time.' :
+                  'This shows when you last created, edited, or deleted a blog post.'
+                }
+              </p>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

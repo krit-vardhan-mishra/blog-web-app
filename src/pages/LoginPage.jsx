@@ -12,14 +12,24 @@ export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [rememberMe, setRememberMe] = useState(false);
   const { loginUser } = useAuth();
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-  const [errors, setErrors] = useState({});
+  useEffect(() => {
+    if (errors.form) {
+      const timer = setTimeout(() => {
+        setErrors((prevErrors) => ({ ...prevErrors, form: "" }));
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.form]);
 
   useEffect(() => {
     document.title = "Login - Blog App";
@@ -54,17 +64,11 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Debug: Log form data before validation
-    console.log("Form data before validation:", formData);
-    console.log("Email:", formData.email);
-    console.log("Password:", formData.password);
-
     if (!validate()) return;
 
     try {
       setIsLoading(true);
 
-      // Debug: Log what we're sending to the API
       console.log("Calling login with:", {
         email: formData.email,
         password: formData.password
@@ -72,12 +76,11 @@ export const LoginPage = () => {
 
       const data = await login(formData.email, formData.password);
       console.log("Login API response:", data);
-      loginUser(data);
+      loginUser(data, rememberMe);
       console.log("navigating to /home");
       navigate('/home');
     } catch (err) {
       setErrors({ form: err.message });
-      console.error("login failed", err);
     } finally {
       setIsLoading(false);
     }
@@ -171,12 +174,20 @@ export const LoginPage = () => {
             <input
               type="checkbox"
               id="remember"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
             />
             <label htmlFor="remember" className="text-white">
               <b>Remember Me</b>
             </label>
           </div>
+
+          {
+            errors.form && (
+              <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
+            )
+          }
 
           {/* Login Button */}
           <div className="flex justify-center mt-6">

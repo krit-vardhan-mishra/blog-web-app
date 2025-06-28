@@ -2,7 +2,7 @@ import FeaturesSidebar from "../components/FeaturesSidebar";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import { register } from '../api/authService';
 import { useNavigate } from 'react-router-dom';
 import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
@@ -14,6 +14,7 @@ export const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { loginUser } = useAuth();
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -23,6 +24,16 @@ export const SignupPage = () => {
     password: '',
     age: '',
   });
+
+  useEffect(() => {
+    if (errors.form) {
+      const timer = setTimeout(() => {
+        setErrors((prevErrors) => ({ ...prevErrors, form: "" }));
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.form]);
 
   useEffect(() => {
     document.title = "Signup - Blog App";
@@ -57,28 +68,26 @@ export const SignupPage = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validate()) return;
+    e.preventDefault();
+    if (!validate()) return;
 
-  try {
-    setIsLoading(true);
-    const data = await register(
-      formData.firstName,
-      formData.lastName,
-      formData.email,
-      formData.password,
-      parseInt(formData.age)
-    );
-    loginUser(data);
-    console.log("navigate to /home...");
-    navigate('/home', { state: { from: '/signup' } });
-  } catch (err) {
-    setErrors({ form: err.message });
-    console.error("Error from signup page", err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setIsLoading(true);
+      const data = await register(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.password,
+        parseInt(formData.age)
+      );
+      loginUser(data, rememberMe);
+      navigate('/home', { state: { from: '/signup' } });
+    } catch (err) {
+      setErrors({ form: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return <SignupPageSkeleton />;
@@ -166,9 +175,15 @@ export const SignupPage = () => {
 
           {/* Remember Me */}
           <div className="flex justify-center space-x-3">
-            <input type="checkbox" id="remember" className="h-5 w-5" />
+            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} id="remember" className="h-5 w-5" />
             <label htmlFor="remember" className="text-white"><b>Remember Me</b></label>
           </div>
+
+          {
+            errors.form && (
+              <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
+            )
+          }
 
           {/* Submit */}
           <div className="flex justify-center mt-6">
