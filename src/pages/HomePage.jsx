@@ -185,14 +185,10 @@ export const HomePage = () => {
   const updateLastUpdatedTime = () => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
     const dateString = now.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      month: 'short', day: 'numeric', year: 'numeric'
     });
     const lastUpdatedString = `${timeString}\n${dateString}`;
 

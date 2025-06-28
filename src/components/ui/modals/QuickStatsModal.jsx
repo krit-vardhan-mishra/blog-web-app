@@ -8,7 +8,8 @@ const colorMap = {
   'Last Updated': 'text-purple-400',
 };
 
-const QuickStatsModal = ({ isOpen, onClose, stats = [] }) => {
+// Add onStatClick prop
+const QuickStatsModal = ({ isOpen, onClose, stats = [], onStatClick }) => {
   if (!isOpen) return null;
 
   return (
@@ -44,7 +45,11 @@ const QuickStatsModal = ({ isOpen, onClose, stats = [] }) => {
                   key={index}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100"
+                  onClick={() => {
+                    onClose(); // Close QuickStatsModal
+                    onStatClick({ title, count, subtitle }); // Open SingleStatModal
+                  }}
+                  className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
                 >
                   <h3 className="text-white font-semibold mb-2">{title}</h3>
                   <div className={`text-2xl font-bold ${colorMap[title] || 'text-gray-300'}`}>
