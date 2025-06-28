@@ -34,6 +34,18 @@ export const HomePage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
+  const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
+  const totalViews = allBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+  const stats = [
+    { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
+    { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
+    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' }
+  ];
+  const colorMap = {
+    'Your Blogs': 'text-blue-400',
+    'Total Views': 'text-green-400',
+    'Last Updated': 'text-purple-400'
+  };
 
   useEffect(() => {
     console.log("User in HomePage:", user);
@@ -45,45 +57,6 @@ export const HomePage = () => {
       setLastUpdated(savedLastUpdated);
     }
   }, [user?.id]);
-
-  const updateLastUpdatedTime = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    const dateString = now.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-    const lastUpdatedString = `${timeString}\n${dateString}`;
-
-    setLastUpdated(lastUpdatedString);
-
-    if (user?.id) {
-      localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
-    }
-  };
-
-  const fetchAllBlogsData = async () => {
-    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsLoading(true);
-    try {
-      const [blogsData] = await Promise.all([
-        blogService.fetchAllBlogs(token),
-        delay
-      ]);
-      console.log("Fetched blogs:", blogsData);
-      setAllBlogs(blogsData);
-    } catch (error) {
-      console.error("Failed to fetch blogs", error);
-      setAllBlogs([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (token) {
@@ -103,7 +76,6 @@ export const HomePage = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Dynamic document title
   useEffect(() => {
     if (isEditPostOpen) {
       document.title = "Edit Post";
@@ -128,17 +100,11 @@ export const HomePage = () => {
     const fetchUserDetails = async () => {
       try {
         const res = await fetch('http://localhost:5000/api/user/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
 
         const data = await res.json();
-
-        console.log("Fetched user profile from backend:", data);
-
         if (res.ok && data.user && data.user.age) {
-          console.log("Age retrieved from DB:", data.user.age);
           setUser(data.user);
         } else {
           console.warn("Failed to fetch valid user data:", data);
@@ -162,21 +128,6 @@ export const HomePage = () => {
       return () => clearTimeout(timer);
     }
   }, [showNotificationBanner]);
-
-  const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
-  const totalViews = allBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
-
-  const stats = [
-    { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
-    { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
-    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' }
-  ];
-
-  const colorMap = {
-    'Your Blogs': 'text-blue-400',
-    'Total Views': 'text-green-400',
-    'Last Updated': 'text-purple-400'
-  };
 
   const handleStatClick = (stat) => {
     setSelectedStat(stat);
@@ -231,10 +182,46 @@ export const HomePage = () => {
     );
   };
 
+  const updateLastUpdatedTime = () => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    const dateString = now.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const lastUpdatedString = `${timeString}\n${dateString}`;
 
-  if (isLoading) {
-    return <HomePageSkeleton />;
-  }
+    setLastUpdated(lastUpdatedString);
+
+    if (user?.id) {
+      localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
+    }
+  };
+
+  const fetchAllBlogsData = async () => {
+    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsLoading(true);
+    try {
+      const [blogsData] = await Promise.all([
+        blogService.fetchAllBlogs(token),
+        delay
+      ]);
+      console.log("Fetched blogs:", blogsData);
+      setAllBlogs(blogsData);
+    } catch (error) {
+      console.error("Failed to fetch blogs", error);
+      setAllBlogs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) { return <HomePageSkeleton />; }
 
   return (
     <div className="bg-[#1C222A] min-h-screen">
