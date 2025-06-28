@@ -5,6 +5,7 @@ import NotifyBanner from '../components/ui/NotifyBanner.jsx';
 import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
 import { motion } from 'framer-motion';
 import PostDetails from '../components/PostDetails.jsx';
+import PostModal from '../components/ui/modals/PostModal.jsx';
 import Footer from '../components/Footer.jsx';
 import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
 import CreatePostModal from '../components/ui/modals/CreatePostModal.jsx';
@@ -30,13 +31,15 @@ export const HomePage = () => {
   const [blogToEdit, setBlogToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allBlogs, setAllBlogs] = useState([]);
-  const [lastUpdated, setLastUpdated] = useState(null); // New state for last updated
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
+
 
   useEffect(() => {
     console.log("User in HomePage:", user);
   }, [user]);
 
-  // Load last updated time from localStorage on component mount
   useEffect(() => {
     const savedLastUpdated = localStorage.getItem(`lastUpdated_${user?.id}`);
     if (savedLastUpdated) {
@@ -44,7 +47,6 @@ export const HomePage = () => {
     }
   }, [user?.id]);
 
-  // Function to update last updated time
   const updateLastUpdatedTime = () => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
@@ -61,32 +63,35 @@ export const HomePage = () => {
 
     setLastUpdated(lastUpdatedString);
 
-    // Save to localStorage for persistence
     if (user?.id) {
       localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
     }
   };
 
-  useEffect(() => {
-    const fetchAllBlogsData = async () => {
-      const delay = new Promise((resolve) => setTimeout(resolve, 1200));
-      setIsLoading(true);
-      try {
-        const [blogsData] = await Promise.all([
-          blogService.fetchAllBlogs(token),
-          delay
-        ]);
-        console.log("Fetched blogs:", blogsData);
-        setAllBlogs(blogsData);
-      } catch (error) {
-        console.error("Failed to fetch blogs", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchAllBlogsData = async () => {
+    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsLoading(true);
+    try {
+      const [blogsData] = await Promise.all([
+        blogService.fetchAllBlogs(token),
+        delay
+      ]);
+      console.log("Fetched blogs:", blogsData);
+      setAllBlogs(blogsData);
+    } catch (error) {
+      console.error("Failed to fetch blogs", error);
+      setAllBlogs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchAllBlogsData();
+  useEffect(() => {
+    if (token) {
+      fetchAllBlogsData();
+    }
   }, [token]);
+
 
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
@@ -105,12 +110,13 @@ export const HomePage = () => {
       document.title = "Edit Post";
     } else if (isCreatePostOpen) {
       document.title = "Create Post";
+    } else if (isPostModalOpen) {
+      document.title = selectedBlogForModal?.title || "View Post";
     } else {
       document.title = "Home - Blog Web App";
     }
-  }, [isEditPostOpen, isCreatePostOpen]);
+  }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
-  // Welcome banner effect
   useEffect(() => {
     setShowWelcomeBanner(true);
     const timer = setTimeout(() => {
@@ -148,7 +154,6 @@ export const HomePage = () => {
     }
   }, [token, user?.age, setUser]);
 
-  // Notification banner effect
   useEffect(() => {
     if (showNotificationBanner) {
       const timer = setTimeout(() => {
@@ -159,9 +164,8 @@ export const HomePage = () => {
     }
   }, [showNotificationBanner]);
 
-  // Calculate stats based on fetched data
   const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
-  const totalViews = 0;
+  const totalViews = allBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
@@ -189,23 +193,34 @@ export const HomePage = () => {
     setNotificationMessage(message);
     setShowNotificationBanner(true);
     setIsCreatePostOpen(false);
-    updateLastUpdatedTime(); // Update last updated time
-    blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
+    updateLastUpdatedTime();
+    fetchAllBlogsData();
   };
 
   const handlePostUpdateSuccess = (message) => {
     setNotificationMessage(message);
     setShowNotificationBanner(true);
     setIsEditPostOpen(false);
-    updateLastUpdatedTime(); // Update last updated time
-    blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
+    updateLastUpdatedTime();
+    fetchAllBlogsData();
   };
 
   const handlePostDeleteSuccess = (message) => {
     setNotificationMessage(message || "Post deleted successfully!");
     setShowNotificationBanner(true);
-    updateLastUpdatedTime(); // Update last updated time
-    blogService.fetchAllBlogs(token).then(setAllBlogs).catch(err => console.error("Failed to refresh blogs:", err));
+    updateLastUpdatedTime();
+    fetchAllBlogsData();
+  };
+
+  const handleOpenPostModal = (blogData) => {
+    setSelectedBlogForModal(blogData);
+    setIsPostModalOpen(true);
+  };
+
+  const handleClosePostModal = () => {
+    setIsPostModalOpen(false);
+    setSelectedBlogForModal(null);
+    fetchAllBlogsData();
   };
 
   if (isLoading) {
@@ -298,11 +313,12 @@ export const HomePage = () => {
                 content={blog.content}
                 author={blog.author}
                 blogId={blog.id || blog._id}
-                userId={user.id}
+                userId={user?.id}
                 token={token}
                 onEdit={() => handleEditPost(blog)}
-                onDelete={handlePostDeleteSuccess} // Pass delete handler
-                onUpdateSuccess={handlePostUpdateSuccess}
+                onDelete={handlePostDeleteSuccess}
+                onOpenModal={handleOpenPostModal}
+                initialViews={blog.views}
               />
             ))}
           </div>
@@ -343,13 +359,29 @@ export const HomePage = () => {
         onClose={() => setIsStatModalOpen(false)}
         stat={selectedStat}
       />
+      {/* The PostModal to show full blog content */}
+      {selectedBlogForModal && (
+        <PostModal
+          isOpen={isPostModalOpen}
+          onClose={handleClosePostModal}
+          title={selectedBlogForModal.title}
+          content={selectedBlogForModal.content}
+          author={selectedBlogForModal.author}
+          blogId={selectedBlogForModal.blogId}
+          userId={user?.id}
+          token={token}
+          onEdit={() => handleEditPost(selectedBlogForModal)}
+          onDelete={handlePostDeleteSuccess}
+          initialViews={selectedBlogForModal.initialViews}
+        />
+      )}
 
       <Footer />
 
       {/* Notification Banners */}
       {showWelcomeBanner && (
         <NotifyBanner
-          message={`Welcome back to the Blog Web App, ${user.name}!`}
+          message="Welcome back to the Blog Web App!"
           onClose={() => setShowWelcomeBanner(false)}
         />
       )}

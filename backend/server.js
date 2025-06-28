@@ -5,6 +5,7 @@ import { UserService } from './services/userService.js';
 import { BlogService } from './services/blogService.js';
 import jwt from 'jsonwebtoken';
 import User from './models/mongoUser.js';
+import Blog from './models/mongoBlog.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -51,6 +52,34 @@ app.get('/api/users', authenticateToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+export const incrementBlogView = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    blog.views = (blog.views || 0) + 1; // Increment views
+    await blog.save();
+
+    res.status(200).json({ message: 'View incremented successfully', blog });
+  } catch (error) {
+    console.error("Error incrementing blog view:", error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const fetchAllBlogs = async (req, res) => {
+  try {
+    const blogs = await Blog.find().populate('author', 'name').sort({ createdAt: -1 });
+    res.status(200).json({ blogs });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
 // Get a user by ID (protected)
 app.get('/api/users/:id', authenticateToken, async (req, res) => {

@@ -34,7 +34,8 @@ export class BlogService {
     if (!blog) {
       throw new Error('Blog not found');
     }
-    return await blog.updateTitle(newTitle);
+    blog.title = newTitle;
+    return await blog.save();
   }
 
   static async updateBlogContent(blogId, newContent) {
@@ -59,5 +60,14 @@ export class BlogService {
   static async getBlogsByUser(userId) {
     const blogs = await Blog.find({ author: userId }).populate('author');
     return blogs;
+  }
+  static async incrementBlogView(blogId) {
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      throw new Error('Blog not found');
+    }
+    blog.views = (blog.views || 0) + 1;
+    await blog.save();
+    return blog;
   }
 }
