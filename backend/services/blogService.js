@@ -22,8 +22,11 @@ export class BlogService {
   }
 
   static async getBlogById(blogId) {
-    const blog = await Blog.findById(blogId).populate('author');
-    return blog;
+    return await Blog.findById(blogId)
+  }
+
+  static async getBlogByIdWithAuthor(blogId) {
+    return await Blog.findById(blogId).populate('author');
   }
 
   static async updateBlogTitle(blogId, newTitle) {

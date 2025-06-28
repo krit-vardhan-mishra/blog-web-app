@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import { HomeIcon, UserIcon, SettingsIcon, Plus } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
@@ -31,7 +30,6 @@ export const HomePage = () => {
   const [blogToEdit, setBlogToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allBlogs, setAllBlogs] = useState([]);
-  const location = useLocation();
 
   useEffect(() => {
     console.log("User in HomePage:", user);
@@ -47,6 +45,7 @@ export const HomePage = () => {
           blogService.fetchAllBlogs(token),
           delay
         ]);
+        console.log("Fetched blogs:", blogsData);
         setAllBlogs(blogsData);
       } catch (error) {
         console.error("Failed to fetch blogs", error);
@@ -60,7 +59,7 @@ export const HomePage = () => {
 
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
-    setDisplayedUserName(user?.name ? user.name.split(' ')[0]+'...' : 'Guest');
+    setDisplayedUserName(user?.name ? user.name.split(' ')[0] + '...' : 'Guest');
 
     const interval = setInterval(() => {
       setCurrentTime(getCurrentDateTime());
@@ -130,7 +129,7 @@ export const HomePage = () => {
   }, [showNotificationBanner]);
 
   // Calculate stats based on fetched data
-  const userBlogsCount = allBlogs.filter(blog => blog.userId === user?.id).length;
+  const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
   const totalViews = 0;
   const lastUpdated = "N/A";
 
@@ -255,14 +254,14 @@ export const HomePage = () => {
           <div className="space-y-6">
             {allBlogs.map((blog) => (
               <PostDetails
-                key={blog.id}
+                key={blog.id || blog._id}
                 title={blog.title}
                 content={blog.content}
                 author={blog.author}
-                blogId={blog._id}
+                blogId={blog.id || blog._id}
                 userId={user.id}
                 token={token}
-                onEdit={ () => handleEditPost(blog)}
+                onEdit={() => handleEditPost(blog)}
                 onUpdateSuccess={handlePostUpdateSuccess}
               />
             ))}

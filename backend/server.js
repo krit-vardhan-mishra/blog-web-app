@@ -34,6 +34,7 @@ const authenticateToken = (req, res, next) => {
       }
       return res.status(403).json({ message: 'Invalid token' });
     }
+    console.log("JWT payload:", user);
     req.user = user;
     next();
   });
@@ -78,7 +79,7 @@ app.get('/api/blogs', authenticateToken, async (req, res) => {
 
 app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
-    const blog = await BlogService.getBlogById(req.params.id);
+    const blog = await BlogService.getBlogByIdWithAuthor(req.params.id);
     if (blog) {
       res.json(blog);
     } else {
@@ -92,22 +93,22 @@ app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
 app.post('/api/blogs', authenticateToken, async (req, res) => {
   try {
     const { title, content } = req.body;
-    const authorIdFromToken = req.user.id; 
+    const authorIdFromToken = req.user.id;
 
     console.log("Attempting to create blog. authorId from token:", authorIdFromToken);
 
     if (!authorIdFromToken) {
-        return res.status(400).json({ message: 'Authenticated user ID not found in token.' });
+      return res.status(400).json({ message: 'Authenticated user ID not found in token.' });
     }
 
     if (!title || !content) {
-        return res.status(400).json({ message: 'Title and content are required.' });
+      return res.status(400).json({ message: 'Title and content are required.' });
     }
 
     const blog = await BlogService.createBlog({
       title,
       content,
-      authorId: authorIdFromToken 
+      authorId: authorIdFromToken
     });
     res.status(201).json(blog);
   } catch (error) {
@@ -126,7 +127,27 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
-    if (blog.author.toString() !== userId) {
+
+    console.log("Blog author:", blog.author);
+    console.log("Blog author type:", typeof blog.author);
+    console.log("User ID from token:", userId);
+    console.log("User ID type:", typeof userId);
+
+    // Fix the comparison - handle both ObjectId and populated User object
+    let authorId;
+    if (typeof blog.author === 'object' && blog.author._id) {
+      // Author is populated (User object)
+      authorId = blog.author._id.toString();
+    } else {
+      // Author is ObjectId
+      authorId = blog.author.toString();
+    }
+
+    console.log("Author ID for comparison:", authorId);
+    console.log("User ID for comparison:", userId.toString());
+    console.log("Are they equal?", authorId === userId.toString());
+
+    if (authorId !== userId.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -139,12 +160,13 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
     }
 
     if (updated) {
-      const updatedBlog = await BlogService.getBlogById(blogId);
+      const updatedBlog = await BlogService.getBlogByIdWithAuthor(blogId); // Use populated version for response
       res.json(updatedBlog);
     } else {
       res.status(400).json({ message: "No valid updates provided" });
     }
   } catch (error) {
+    console.error("PUT /api/blogs/:id error:", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -152,7 +174,7 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
 app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
     const blogId = req.params.id;
-    const userId = req.user.id; 
+    const userId = req.user.id;
 
     const blog = await BlogService.getBlogById(blogId);
     if (!blog) {
@@ -211,8 +233,8 @@ app.post('/api/auth/register', async (req, res) => {
 // Get user profile (protected)
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
-    console.log("Fetching profile for userId from token:", req.user.id); 
-    const user = await User.findById(req.user.id).select('name email age'); 
+    console.log("Fetching profile for userId from token:", req.user.id);
+    const user = await User.findById(req.user.id).select('name email age');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

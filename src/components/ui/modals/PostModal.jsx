@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, color } from 'framer-motion';
 import PostModalSkeleton from '../../../skeleton/component/ui/PostModalSkeleton';
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
+import SimpleBar from 'simplebar-react';
+import 'simplebar-react/dist/simplebar.min.css';
 
 const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false, onEdit, onDelete, userId, blogId, token }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -49,8 +51,7 @@ const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false,
             <div className="relative bg-[#1C222A] rounded-lg shadow-2xl">
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-red-400 hover:text-red-600 hover:scale-110 z-10 rounded-full p商家-2 shadow-md transition duration-200"
-              >
+                className="absolute top-4 right-4 text-red-400 hover:text-red-600 hover:scale-110 z-10 rounded-full p商家-2 shadow-md transition duration-200" >
                 <X className="h-5 w-5" />
               </button>
 
@@ -61,7 +62,11 @@ const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false,
                 </div>
 
                 <div className="mb-6">
-                  <p className="text-gray-300 leading-relaxed text-lg mb-4">{content}</p>
+                  <SimpleBar style={{ maxHeight: 256 }}>
+                    <div className="text-gray-300 leading-relaxed text-lg whitespace-pre-line pr-2">
+                      {content}
+                    </div>
+                  </SimpleBar>
                   <div className="w-full h-px bg-gray-600"></div>
                 </div>
 
