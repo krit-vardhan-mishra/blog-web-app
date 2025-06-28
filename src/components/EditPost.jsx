@@ -1,30 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditPostSkeleton from '../skeleton/component/EditPostSkeleton';
 import { Button } from '../components/ui/Button';
+import { updateBlog } from '../api/blogService';
 
-export const EditPost = ({ onUpdateSuccess, isLoading = false }) => {
+export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTitle = "", content: initialContent = "", blogId, userId, token }) => {
+
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+    setContent(initialContent);
+  }, [initialTitle, initialContent]);
+
+  const postEditedBlog = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await updateBlog(userId, blogId, { title, content }, token);
+
+      if (response && (response.success || response.updated)) {
+        onUpdateSuccess("Blog Updated Successfully!");
+      } else {
+        throw new Error("Update failed");
+      }
+    } catch (err) {
+      console.error("Update failed:", err);
+      onUpdateSuccess("Failed to update blog");
+    }
+  };
+
   if (isLoading) {
     return <EditPostSkeleton />
   }
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-
-  const postEditedBlog = (e) => {
-    e.preventDefault();
-    console.log("Attempting to update post with:", { title, content });
-
-    if (onUpdateSuccess) {
-      onUpdateSuccess("Blog Updated Successfully!");
-    }
-
-    setTitle("");
-    setContent("");
-  };
-
   return (
     <div className="text-white">
-      <h2 className="text-lg font-bold mb-4">Update Post</h2>
+      <h2 className="text-2xl font-bold mb-4">Update Post</h2>
       <form onSubmit={postEditedBlog}>
         <div className="mb-4">
           <label className="block mb-2">Enter updated title</label>

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { Button } from "../../ui/button";
+import { Button } from "../../ui/Button";
 import PermanentDeleteDialogSkeleton from '../../../skeleton/component/ui/PermanentDeleteDialogSkeleton';
 
 const PermanentDeleteDialog = ({ isOpen, isLoading, onClose, onConfirm }) => {

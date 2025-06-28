@@ -3,20 +3,36 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import PostModal from './ui/modals/PostModal';
 import PostDeltailsSkeleton from '../skeleton/component/PostDetailsSkeleton';
+import EditPostModal from './ui/modals/EditPostModal';
 
-export const PostDetails = ({ title, content, author, onEdit, onDelete, isLoading = false }) => {
+export const PostDetails = ({ title, content, author, onEdit, onDelete, isLoading = false, blogId, userId, token, onUpdateSuccess }) => {
   if (isLoading) {
     return <PostDeltailsSkeleton />;
   }
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentPostData, setCurrentPostData] = useState({ title, content, author });
+
+  useState(() => {
+    setCurrentPostData({ title, content, author });
+  }, [title, content, author]);
 
   const handleEditClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onEdit) onEdit({ title, content });
+    setIsEditModalOpen(true);
   };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+  }
+
+  const handleUpdateSuccess = (message) => {
+    setIsEditModalOpen(false);
+    if (onUpdateSuccess) { onUpdateSuccess(message); }
+  }
 
   const handleDeleteClick = (e) => {
     e.preventDefault();
@@ -78,12 +94,26 @@ export const PostDetails = ({ title, content, author, onEdit, onDelete, isLoadin
         </motion.div>
       </div>
 
+      {isEditModalOpen && (
+        <EditPostModal
+          key="edit-post-modal"
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          onUpdateSuccess={handleUpdateSuccess}
+          title={title}
+          content={content}
+          blogId={blogId}
+          userId={userId}
+          token={token}
+        />
+      )}
+
       <PostModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={title}
-        content={content}
-        author={author}
+        title={currentPostData.title}
+        content={currentPostData.content}
+        author={currentPostData.author}
         isLoading={isModalLoading}
         onEdit={onEdit}
         onDelete={onDelete}

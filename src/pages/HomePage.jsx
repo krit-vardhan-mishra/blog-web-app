@@ -28,6 +28,7 @@ export const HomePage = () => {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [isEditPostOpen, setIsEditPostOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(getCurrentDateTime());
+  const [blogToEdit, setBlogToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allBlogs, setAllBlogs] = useState([]);
   const location = useLocation();
@@ -150,7 +151,8 @@ export const HomePage = () => {
     setIsStatModalOpen(true);
   };
 
-  const handleEditPost = () => {
+  const handleEditPost = (blog) => {
+    setBlogToEdit(blog);
     setIsEditPostOpen(true);
   };
 
@@ -257,7 +259,11 @@ export const HomePage = () => {
                 title={blog.title}
                 content={blog.content}
                 author={blog.author}
-                onEdit={handleEditPost}
+                blogId={blog._id}
+                userId={user.id}
+                token={token}
+                onEdit={ () => handleEditPost(blog)}
+                onUpdateSuccess={handlePostUpdateSuccess}
               />
             ))}
           </div>
@@ -281,7 +287,9 @@ export const HomePage = () => {
       <EditPostModal
         isOpen={isEditPostOpen}
         onClose={() => setIsEditPostOpen(false)}
-        onUpdateSuccess={handlePostUpdateSuccess}
+        onUpdateSuccess={(handlePostUpdateSuccess)}
+        title={blogToEdit?.title || ''}
+        content={blogToEdit?.content || ''}
       />
       <QuickStatsModal
         isOpen={isAllStatsOpen}
@@ -303,6 +311,7 @@ export const HomePage = () => {
           onClose={() => setShowWelcomeBanner(false)}
         />
       )}
+
       {showNotificationBanner && notificationMessage && (
         <NotifyBanner
           message={notificationMessage}

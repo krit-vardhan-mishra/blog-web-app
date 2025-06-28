@@ -5,7 +5,7 @@ import PostModalSkeleton from '../../../skeleton/component/ui/PostModalSkeleton'
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
 
-const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false, onEdit, onDelete }) => {
+const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false, onEdit, onDelete, userId, blogId, token }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -111,6 +111,9 @@ const PostModal = ({ isOpen, onClose, title, content, author, isLoading = false,
           onUpdateSuccess={handleUpdateSuccess}
           title={title}
           content={content}
+          blogId={blogId}
+          userId={userId}
+          token={token}
         />
       )}
     </AnimatePresence>
