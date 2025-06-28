@@ -35,7 +35,6 @@ export const HomePage = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
 
-
   useEffect(() => {
     console.log("User in HomePage:", user);
   }, [user]);
@@ -220,8 +219,18 @@ export const HomePage = () => {
   const handleClosePostModal = () => {
     setIsPostModalOpen(false);
     setSelectedBlogForModal(null);
-    fetchAllBlogsData();
   };
+
+  const handleViewIncrement = (blogId, newViews) => {
+    setAllBlogs(prevBlogs =>
+      prevBlogs.map(blog =>
+        (blog._id === blogId || blog.id === blogId)
+          ? { ...blog, views: newViews }
+          : blog
+      )
+    );
+  };
+
 
   if (isLoading) {
     return <HomePageSkeleton />;
@@ -370,6 +379,7 @@ export const HomePage = () => {
           blogId={selectedBlogForModal.blogId}
           userId={user?.id}
           token={token}
+          onViewIncrement={handleViewIncrement}
           onEdit={() => handleEditPost(selectedBlogForModal)}
           onDelete={handlePostDeleteSuccess}
           initialViews={selectedBlogForModal.initialViews}

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Eye } from 'lucide-react'; 
+import { X, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PostModalSkeleton from '../../../skeleton/component/ui/PostModalSkeleton';
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
-import * as blogService from '../../../api/blogService'; 
+import * as blogService from '../../../api/blogService';
 
 const PostModal = ({
   isOpen, onClose, title, content, author,
   isLoading = false, onEdit, onDelete,
   userId, blogId, token,
-  initialViews = 0
+  initialViews = 0, onViewIncrement
 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentViews, setCurrentViews] = useState(initialViews);
@@ -22,8 +22,15 @@ const PostModal = ({
       const incrementView = async () => {
         try {
           const updatedBlogResponse = await blogService.incrementBlogView(blogId, token);
-          setCurrentViews(updatedBlogResponse.blog.views);
-          console.log(`View for blog ${blogId} incremented to: ${updatedBlogResponse.blog.views}`);
+          const newViews = updatedBlogResponse.blog.views;
+
+          setCurrentViews(newViews);
+          console.log(`View for blog ${blogId} incremented to: ${newViews}`);
+
+          if (onViewIncrement) {
+            onViewIncrement(blogId, newViews);
+          }
+
         } catch (error) {
           console.error("Failed to increment blog view:", error);
         }
@@ -32,7 +39,7 @@ const PostModal = ({
       incrementView();
     }
   }, [isOpen, blogId, token]);
-  if (!isOpen) return null;
+
 
   if (isLoading) {
     return <PostModalSkeleton isOpen={isOpen} onClose={onClose} />;
@@ -85,12 +92,12 @@ const PostModal = ({
                 </div>
 
                 <div className="mb-6">
-                  <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)' }}> {/* Adjust max height */}
+                  <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)' }}>
                     <div className="text-gray-300 leading-relaxed text-lg whitespace-pre-line pr-2">
                       {content}
                     </div>
                   </SimpleBar>
-                  <div className="w-full h-px bg-gray-600 mt-4"></div> {/* Added margin-top */}
+                  <div className="w-full h-px bg-gray-600 mt-4"></div>
                 </div>
 
                 <div className="flex justify-between items-end flex-wrap gap-4">
@@ -109,7 +116,7 @@ const PostModal = ({
                     <span className="text-white font-medium">{currentViews} Views</span>
                   </div>
 
-                  {isAuthor && ( 
+                  {isAuthor && (
                     <div className="flex gap-2">
                       <Button
                         onClick={(e) => {
@@ -123,7 +130,7 @@ const PostModal = ({
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDelete(); 
+                          onDelete();
                         }}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition duration-200"
                       >

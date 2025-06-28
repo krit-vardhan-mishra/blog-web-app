@@ -26,5 +26,17 @@ export const deleteBlog = async (userId, blogId, token) => {
 };
 
 export const incrementBlogView = async (blogId, token) => {
-  return apiCall(`/blogs/${blogId}/view`, 'PUT', null, token);
+  const res = await fetch(`http://localhost:5000/api/blogs/increment-view/${blogId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to increment view count');
+  }
+
+  return await res.json();
 };
+
