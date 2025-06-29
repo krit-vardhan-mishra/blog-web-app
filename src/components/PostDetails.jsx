@@ -3,7 +3,17 @@ import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye } from 'lucide-react';
 
 const PostDetails = ({
-  blogId, title, content, author, userId, token, onEdit, onDelete, onOpenModal, initialViews = 0 }) => {
+  blogId,
+  title,
+  content,
+  author,
+  userId,
+  token,
+  onEdit,
+  onDelete,
+  onOpenModal,
+  initialViews = 0,
+}) => {
   const isAuthor = author?._id === userId;
 
   return (
@@ -11,8 +21,18 @@ const PostDetails = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      onClick={() => onOpenModal({ blogId: blogId, id: blogId, title, content, author, initialViews, views: initialViews })
-      } className="bg-[#2A2E36] rounded-lg p-6 shadow-md border-t-4 border-blue-500 hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
+      onClick={() =>
+        onOpenModal({
+          blogId: blogId,
+          id: blogId,
+          title,
+          content,
+          author,
+          initialViews,
+          views: initialViews,
+        })
+      }
+      className="bg-[#2A2E36] rounded-lg p-6 shadow-md border-t-4 border-blue-500 hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
     >
       <div className="flex justify-between items-start mb-4">
         {/* Truncate title to fit in the preview if it's too long */}
@@ -23,14 +43,20 @@ const PostDetails = ({
           <div className="flex space-x-2">
             {/* These buttons stop propagation to prevent opening the modal when clicked */}
             <button
-              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
               className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
               aria-label="Edit Post"
             >
               <Pencil className="w-5 h-5" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
               className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
               aria-label="Delete Post"
             >

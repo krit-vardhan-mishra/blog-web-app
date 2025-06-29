@@ -9,10 +9,19 @@ import 'simplebar-react/dist/simplebar.min.css';
 import * as blogService from '../../../api/blogService';
 
 const PostModal = ({
-  isOpen, onClose, title, content, author,
-  isLoading = false, onEdit, onDelete,
-  userId, blogId, token,
-  initialViews = 0, onViewIncrement
+  isOpen,
+  onClose,
+  title,
+  content,
+  author,
+  isLoading = false,
+  onEdit,
+  onDelete,
+  userId,
+  blogId,
+  token,
+  initialViews = 0,
+  onViewIncrement,
 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentViews, setCurrentViews] = useState(initialViews);
@@ -22,23 +31,26 @@ const PostModal = ({
       const incrementView = async () => {
         try {
           const updatedBlogResponse = await blogService.incrementBlogView(blogId, token);
-          const newViews = updatedBlogResponse.blog.views;
-
+          const newViews = updatedBlogResponse.blog.views || updatedBlogResponse.views || initialViews + 1;
           setCurrentViews(newViews);
           console.log(`View for blog ${blogId} incremented to: ${newViews}`);
 
           if (onViewIncrement) {
             onViewIncrement(blogId, newViews);
           }
-
         } catch (error) {
-          console.error("Failed to increment blog view:", error);
+          console.error('Failed to increment blog view:', error);
+          // Optimistic update in case of failure
+          setCurrentViews(initialViews + 1);
+          if (onViewIncrement) {
+            onViewIncrement(blogId, initialViews + 1);
+          }
         }
       };
 
       incrementView();
     }
-  }, [isOpen, blogId, token]);
+  }, [isOpen, blogId, token, onViewIncrement, initialViews]);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,7 +59,9 @@ const PostModal = ({
       document.body.style.overflow = 'auto';
     }
 
-    return () => { document.body.style.overflow = 'auto'; };
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, [isOpen]);
 
   if (isLoading) {
@@ -90,7 +104,8 @@ const PostModal = ({
             <div className="relative bg-[#1C222A] rounded-lg shadow-2xl">
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-red-400 hover:text-red-600 hover:scale-110 z-10 rounded-full p-2 shadow-md transition duration-200" >
+                className="absolute top-4 right-4 text-red-400 hover:text-red-600 hover:scale-110 z-10 rounded-full p-2 shadow-md transition duration-200"
+              >
                 <X className="h-5 w-5" />
               </button>
 
@@ -119,7 +134,6 @@ const PostModal = ({
                     )}
                   </div>
 
-                  {/* Display current views inside the modal */}
                   <div className="flex items-center space-x-1 text-gray-400 text-lg">
                     <Eye className="w-5 h-5 mr-1 text-blue-300" />
                     <span className="text-white font-medium">{currentViews} Views</span>

@@ -3,9 +3,9 @@ import apiCall from './apiService.js';
 export const fetchAllBlogs = async (token) => {
   const response = await apiCall('/blogs', 'GET', null, token);
   const blogs = response.blogs || response;
-  return blogs.map(blog => ({
+  return blogs.map((blog) => ({
     ...blog,
-    _id: blog._id || blog.id
+    _id: blog._id || blog.id,
   }));
 };
 
@@ -29,8 +29,9 @@ export const incrementBlogView = async (blogId, token) => {
   const res = await fetch(`http://localhost:5000/api/blogs/increment-view/${blogId}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
 
   if (!res.ok) {
@@ -39,4 +40,3 @@ export const incrementBlogView = async (blogId, token) => {
 
   return await res.json();
 };
-

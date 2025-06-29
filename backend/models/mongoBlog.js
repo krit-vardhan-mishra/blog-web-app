@@ -1,29 +1,32 @@
 import mongoose from 'mongoose';
 
-const BlogSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true
+const BlogSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    views: {
+      type: Number,
+      default: 0,
+    },
   },
-  content: {
-    type: String,
-    required: true
-  },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  views: {
-    type: Number,
-    default: 0
+  {
+    timestamps: true,
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
   }
-}, {
-  timestamps: true,
-  toObject: { virtuals: true },
-  toJSON: { virtuals: true }
-});
+);
 
 BlogSchema.methods = {
   updateTitle(newTitle) {
@@ -48,7 +51,7 @@ BlogSchema.methods = {
     delete obj._id;
     delete obj.__v;
     return obj;
-  }
+  },
 };
 
 const Blog = mongoose.model('Blog', BlogSchema);

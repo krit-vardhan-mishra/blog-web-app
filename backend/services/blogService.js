@@ -3,10 +3,10 @@ import User from '../models/mongoUser.js';
 
 export class BlogService {
   static async createBlog({ title, content, authorId }) {
-    console.log("Looking up user with ID:", authorId);
+    console.log('Looking up user with ID:', authorId);
     const user = await User.findById(authorId);
     if (!user) {
-      console.error("User not found for ID:", authorId);
+      console.error('User not found for ID:', authorId);
       throw new Error('User not found');
     }
     if (!user.canPostBlog()) {
@@ -22,7 +22,7 @@ export class BlogService {
   }
 
   static async getBlogById(blogId) {
-    return await Blog.findById(blogId)
+    return await Blog.findById(blogId);
   }
 
   static async getBlogByIdWithAuthor(blogId) {
@@ -43,7 +43,6 @@ export class BlogService {
     if (!blog) {
       throw new Error('Blog not found');
     }
-
     if (newContent && newContent.trim() !== '') {
       blog.content = newContent;
       await blog.save();
@@ -61,6 +60,7 @@ export class BlogService {
     const blogs = await Blog.find({ author: userId }).populate('author');
     return blogs;
   }
+
   static async incrementBlogView(blogId) {
     const blog = await Blog.findById(blogId);
     if (!blog) {
