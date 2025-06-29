@@ -14,6 +14,7 @@ import QuickStatsModal from '../components/ui/modals/QuickStatsModal.jsx';
 import SingleStatModal from '../components/ui/modals/SingleStatModal.jsx';
 import useAuth from '../hooks/useAuth';
 import * as blogService from '../api/blogService';
+import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal.jsx';
 
 export const HomePage = () => {
   const { user, token, setUser } = useAuth();
@@ -31,6 +32,8 @@ export const HomePage = () => {
   const [blogToEdit, setBlogToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allBlogs, setAllBlogs] = useState([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
@@ -139,6 +142,11 @@ export const HomePage = () => {
     setIsEditPostOpen(true);
   };
 
+  const handleDeleteClick = (blogId) => {
+    setSelectedBlogId(blogId);
+    setIsConfirmOpen(true);
+  };
+
   const handlePostCreationSuccess = (message) => {
     setNotificationMessage(message);
     setShowNotificationBanner(true);
@@ -155,11 +163,20 @@ export const HomePage = () => {
     fetchAllBlogsData();
   };
 
-  const handlePostDeleteSuccess = (message) => {
-    setNotificationMessage(message || "Post deleted successfully!");
-    setShowNotificationBanner(true);
-    updateLastUpdatedTime();
-    fetchAllBlogsData();
+  const handlePostDeleteSuccess = async (blogId) => {
+    try {
+      console.log("Deleting blog with token:", token);
+      await blogService.deleteBlog(blogId, token);
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
+      setNotificationMessage("Post deleted successfully!");
+      setShowNotificationBanner(true);
+      updateLastUpdatedTime();
+      fetchAllBlogsData();
+    } catch (error) {
+      console.error("Failed to delete blog:", error);
+      setNotificationMessage("Failed to delete the post.");
+      setShowNotificationBanner(true);
+    }
   };
 
   const handleOpenPostModal = (blogData) => {
@@ -308,7 +325,7 @@ export const HomePage = () => {
                 userId={user?.id}
                 token={token}
                 onEdit={() => handleEditPost(blog)}
-                onDelete={handlePostDeleteSuccess}
+                onDelete={() => handleDeleteClick(blog.id || blog._id)}
                 onOpenModal={handleOpenPostModal}
                 initialViews={blog.views}
               />
@@ -351,6 +368,7 @@ export const HomePage = () => {
         onClose={() => setIsStatModalOpen(false)}
         stat={selectedStat}
       />
+      
       {/* The PostModal to show full blog content */}
       {selectedBlogForModal && (
         <PostModal
@@ -364,7 +382,9 @@ export const HomePage = () => {
           token={token}
           onViewIncrement={handleViewIncrement}
           onEdit={() => handleEditPost(selectedBlogForModal)}
-          onDelete={handlePostDeleteSuccess}
+          onDelete={() => { 
+            handleDeleteClick(selectedBlogForModal.id || selectedBlogForModal._id); 
+            handleClosePostModal(); }}
           initialViews={selectedBlogForModal.initialViews}
         />
       )}
@@ -385,6 +405,26 @@ export const HomePage = () => {
           onClose={() => setShowNotificationBanner(false)}
         />
       )}
+
+      <ConfirmDeleteModal
+        isOpen={isConfirmOpen}
+        onCancel={() => {
+          setIsConfirmOpen(false);
+          setSelectedBlogId(null);
+        }}
+        onConfirm={async () => {
+          try {
+            setIsConfirmOpen(false);
+            await handlePostDeleteSuccess(selectedBlogId);
+            setBlogs((prev) => prev.filter((b) => b._id !== selectedBlogId));
+          } catch (error) {
+            console.error("Failed to delete blog:", error);
+          } finally {
+            setSelectedBlogId(null);
+          }
+        }}
+      />
+
     </div>
   );
 };

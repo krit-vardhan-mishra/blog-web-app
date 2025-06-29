@@ -11,7 +11,7 @@ const PostDetails = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      onClick={() => onOpenModal({ id: blogId, title, content, author, initialViews })
+      onClick={() => onOpenModal({ blogId: blogId, id: blogId, title, content, author, initialViews, views: initialViews })
       } className="bg-[#2A2E36] rounded-lg p-6 shadow-md border-t-4 border-blue-500 hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
     >
       <div className="flex justify-between items-start mb-4">

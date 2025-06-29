@@ -21,7 +21,7 @@ export const updateBlog = async (blogId, blogData, token) => {
   return apiCall(`/blogs/${blogId}`, 'PUT', blogData, token);
 };
 
-export const deleteBlog = async (userId, blogId, token) => {
+export const deleteBlog = async (blogId, token) => {
   return apiCall(`/blogs/${blogId}`, 'DELETE', null, token);
 };
 

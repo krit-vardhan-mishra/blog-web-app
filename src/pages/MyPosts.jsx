@@ -3,6 +3,8 @@ import Header from '../components/Header';
 import { HomeIcon, Trash2, SettingsIcon, LogOut, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PostDetails from '../components/PostDetails';
+import PostModal from '../components/ui/modals/PostModal.jsx';
+import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal.jsx';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import Footer from '../components/Footer';
 import MyPostsSkeleton from '../skeleton/pages/MyPostsSkeleton';
@@ -23,9 +25,14 @@ export const MyPosts = () => {
   const [isStatModalOpen, setIsStatModalOpen] = useState(false);
   const [isAllStatsOpen, setIsAllStatsOpen] = useState(false);
   const [selectedStat, setSelectedStat] = useState(null);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
   const [allBlogs, setAllBlogs] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
-
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState(null);
+  const [blogToEdit, setBlogToEdit] = useState(null); // Added missing state
+  
   const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
   const totalViews = allBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
 
@@ -55,19 +62,16 @@ export const MyPosts = () => {
   }, [token]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
     if (isEditPostOpen) {
       document.title = "Edit Post";
     } else if (isCreatePostOpen) {
       document.title = "Create Post";
+    } else if (isPostModalOpen) {
+      document.title = selectedBlogForModal?.title || "View Post";
     } else {
       document.title = "Your Blogs";
     }
-
-    return () => clearTimeout(timer);
-  }, [isEditPostOpen, isCreatePostOpen]);
+  }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
   useEffect(() => {
     if (showNotificationBanner) {
@@ -80,9 +84,13 @@ export const MyPosts = () => {
   }, [showNotificationBanner]);
 
   const fetchAllBlogsData = async () => {
+    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
     setIsLoading(true);
     try {
-      const blogsData = await blogService.fetchAllBlogs(token);
+      const [blogsData] = await Promise.all([
+        blogService.fetchAllBlogs(token),
+        delay
+      ]);
       const userBlogs = blogsData.filter(blog => blog.author?._id === user?.id);
       setAllBlogs(userBlogs);
     } catch (error) {
@@ -112,7 +120,33 @@ export const MyPosts = () => {
 
   const handleEditPost = (blog) => {
     console.log('Edit post clicked', blog);
+    setBlogToEdit(blog); // Set the blog to edit
     setIsEditPostOpen(true);
+  };
+
+  const handleDeleteClick = (blogId) => {
+    setSelectedBlogId(blogId);
+    setIsConfirmOpen(true);
+  };
+
+  const handleOpenPostModal = (blogData) => {
+    setSelectedBlogForModal(blogData);
+    setIsPostModalOpen(true);
+  };
+
+  const handleClosePostModal = () => {
+    setIsPostModalOpen(false);
+    setSelectedBlogForModal(null);
+  };
+
+  const handleViewIncrement = (blogId, newViews) => {
+    setAllBlogs(prevBlogs =>
+      prevBlogs.map(blog =>
+        (blog._id === blogId || blog.id === blogId)
+          ? { ...blog, views: newViews }
+          : blog
+      )
+    );
   };
 
   const handlePostCreationSuccess = (message) => {
@@ -134,6 +168,22 @@ export const MyPosts = () => {
   const handleStatClick = (stat) => {
     setSelectedStat(stat);
     setIsStatModalOpen(true);
+  };
+
+  const handlePostDeleteSuccess = async (blogId) => {
+    try {
+      console.log("Deleting blog with token:", token);
+      await blogService.deleteBlog(blogId, token);
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
+      setNotificationMessage("Post deleted successfully!");
+      setShowNotificationBanner(true);
+      updateLastUpdatedTime();
+      fetchAllBlogsData();
+    } catch (error) {
+      console.error("Failed to delete blog:", error);
+      setNotificationMessage("Failed to delete the post.");
+      setShowNotificationBanner(true);
+    }
   };
 
   if (isLoading) {
@@ -162,7 +212,7 @@ export const MyPosts = () => {
           </button>
         </div>
 
-        <div className="grid grid- cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {stats.map((stat, index) => (
             <motion.div
               key={index}
@@ -195,7 +245,9 @@ export const MyPosts = () => {
                 blogId={blog.id || blog._id}
                 userId={user?.id}
                 token={token}
+                onDelete={() => handleDeleteClick(blog.id || blog._id)}
                 onEdit={() => handleEditPost(blog)}
+                onOpenModal={handleOpenPostModal}
                 initialViews={blog.views}
               />
             ))}
@@ -203,6 +255,7 @@ export const MyPosts = () => {
         )}
       </div>
 
+      {/* Floating Action Button */}
       <div
         onClick={() => setIsCreatePostOpen(true)}
         className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg cursor-pointer transition-all duration-300"
@@ -210,6 +263,7 @@ export const MyPosts = () => {
         <Plus className="w-6 h-6" />
       </div>
 
+      {/* Modals */}
       <CreatePostModal
         isOpen={isCreatePostOpen}
         onClose={() => setIsCreatePostOpen(false)}
@@ -220,6 +274,11 @@ export const MyPosts = () => {
         isOpen={isEditPostOpen}
         onClose={() => setIsEditPostOpen(false)}
         onUpdateSuccess={handlePostUpdateSuccess}
+        title={blogToEdit?.title || ''}
+        content={blogToEdit?.content || ''}
+        blogId={blogToEdit?.id || blogToEdit?._id}
+        userId={user?.id}
+        token={token}
       />
 
       <QuickStatsModal
@@ -232,6 +291,45 @@ export const MyPosts = () => {
         isOpen={isStatModalOpen}
         onClose={() => setIsStatModalOpen(false)}
         stat={selectedStat}
+      />
+
+      {/* The PostModal to show full blog content */}
+      {selectedBlogForModal && (
+        <PostModal
+          isOpen={isPostModalOpen}
+          onClose={handleClosePostModal}
+          title={selectedBlogForModal.title}
+          content={selectedBlogForModal.content}
+          author={selectedBlogForModal.author}
+          blogId={selectedBlogForModal.id || selectedBlogForModal._id}
+          userId={user?.id}
+          token={token}
+          onViewIncrement={handleViewIncrement}
+          onEdit={() => handleEditPost(selectedBlogForModal)}
+          onDelete={() => {
+            handleDeleteClick(selectedBlogForModal.id || selectedBlogForModal._id)
+            handleClosePostModal();
+          }}
+          initialViews={selectedBlogForModal.views}
+        />
+      )}
+
+      <ConfirmDeleteModal
+        isOpen={isConfirmOpen}
+        onCancel={() => {
+          setIsConfirmOpen(false);
+          setSelectedBlogId(null);
+        }}
+        onConfirm={async () => {
+          try {
+            setIsConfirmOpen(false);
+            await handlePostDeleteSuccess(selectedBlogId);
+          } catch (error) {
+            console.error("Failed to delete blog:", error);
+          } finally {
+            setSelectedBlogId(null);
+          }
+        }}
       />
 
       <Footer />

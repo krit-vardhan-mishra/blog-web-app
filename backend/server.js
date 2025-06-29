@@ -23,19 +23,16 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    console.log("No token provided, sending 401");
     return res.status(401).json({ message: 'No token provided' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.log("Token verification failed:", err.message);
       if (err.name === 'TokenExpiredError') {
         return res.status(401).json({ message: 'Token expired', expired: true });
       }
       return res.status(403).json({ message: 'Invalid token' });
     }
-    console.log("JWT payload:", user);
     req.user = user;
     next();
   });
@@ -124,8 +121,6 @@ app.post('/api/blogs', authenticateToken, async (req, res) => {
     const { title, content } = req.body;
     const authorIdFromToken = req.user.id;
 
-    console.log("Attempting to create blog. authorId from token:", authorIdFromToken);
-
     if (!authorIdFromToken) {
       return res.status(400).json({ message: 'Authenticated user ID not found in token.' });
     }
@@ -141,7 +136,6 @@ app.post('/api/blogs', authenticateToken, async (req, res) => {
     });
     res.status(201).json(blog);
   } catch (error) {
-    console.error("Blog creation error:", error.message);
     res.status(400).json({ message: error.message });
   }
 });
@@ -246,7 +240,6 @@ app.post('/api/auth/register', async (req, res) => {
       age: parseInt(age)
     });
 
-    // Consistent JWT payload key: 'id'
     const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
@@ -254,7 +247,6 @@ app.post('/api/auth/register', async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Register error:', error);
     res.status(500).json({ message: error.message });
   }
 });

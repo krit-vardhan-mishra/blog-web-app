@@ -8,7 +8,6 @@ const colorMap = {
   'Last Updated': 'text-purple-400',
 };
 
-// Add onStatClick prop
 const QuickStatsModal = ({ isOpen, onClose, stats = [], onStatClick }) => {
   if (!isOpen) return null;
 
@@ -46,8 +45,8 @@ const QuickStatsModal = ({ isOpen, onClose, stats = [], onStatClick }) => {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
-                    onClose(); // Close QuickStatsModal
-                    onStatClick({ title, count, subtitle }); // Open SingleStatModal
+                    onClose();
+                    onStatClick({ title, count, subtitle }); 
                   }}
                   className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
                 >
