@@ -29,9 +29,8 @@ export const incrementBlogView = async (blogId, token) => {
   const res = await fetch(`http://localhost:5000/api/blogs/increment-view/${blogId}`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+      'Authorization': `Bearer ${token}`
+    }
   });
 
   if (!res.ok) {

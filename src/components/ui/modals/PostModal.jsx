@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PostModalSkeleton from '../../../skeleton/component/ui/PostModalSkeleton';
@@ -9,48 +9,40 @@ import 'simplebar-react/dist/simplebar.min.css';
 import * as blogService from '../../../api/blogService';
 
 const PostModal = ({
-  isOpen,
-  onClose,
-  title,
-  content,
-  author,
-  isLoading = false,
-  onEdit,
-  onDelete,
-  userId,
-  blogId,
-  token,
-  initialViews = 0,
-  onViewIncrement,
+  isOpen, onClose, title, content, author,
+  isLoading = false, onEdit, onDelete,
+  userId, blogId, token,
+  initialViews = 0, onViewIncrement
 }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentViews, setCurrentViews] = useState(initialViews);
+  const hasIncrementedRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen && blogId && token) {
+    if (isOpen && blogId && token && !hasIncrementedRef.current) {
+      hasIncrementedRef.current = true;
+      
       const incrementView = async () => {
         try {
           const updatedBlogResponse = await blogService.incrementBlogView(blogId, token);
-          const newViews = updatedBlogResponse.blog.views || updatedBlogResponse.views || initialViews + 1;
+          const newViews = updatedBlogResponse.blog.views;
           setCurrentViews(newViews);
-          console.log(`View for blog ${blogId} incremented to: ${newViews}`);
-
           if (onViewIncrement) {
             onViewIncrement(blogId, newViews);
           }
+          hasIncrementedRef.current = true;
         } catch (error) {
-          console.error('Failed to increment blog view:', error);
-          // Optimistic update in case of failure
-          setCurrentViews(initialViews + 1);
-          if (onViewIncrement) {
-            onViewIncrement(blogId, initialViews + 1);
-          }
+          console.error("Failed to increment blog view:", error);
         }
       };
-
       incrementView();
     }
-  }, [isOpen, blogId, token, onViewIncrement, initialViews]);
+
+    if (!isOpen) {
+      hasIncrementedRef.current = false;
+    }
+  }, [isOpen, blogId, token]);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -58,14 +50,11 @@ const PostModal = ({
     } else {
       document.body.style.overflow = 'auto';
     }
-
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
+    return () => { document.body.style.overflow = 'auto'; };
   }, [isOpen]);
 
   if (isLoading) {
-    return <PostModalSkeleton isOpen={isOpen} onClose={onClose} />;
+    return <PostModalSkeleton />;
   }
 
   const handleEdit = () => {
@@ -87,97 +76,89 @@ const PostModal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          key="post-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.8 }}
-            className="relative w-full max-w-2xl mx-4"
+            initial={{ scale: 0.9, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 50 }}
+            transition={{ duration: 0.3 }}
+            className="bg-[#1A1C20] rounded-lg shadow-2xl w-full max-w-2xl h-full max-h-[90vh] flex flex-col overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-[#1C222A] rounded-lg shadow-2xl">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h2 className="text-2xl font-bold text-white pr-10">{title}</h2>
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-red-400 hover:text-red-600 hover:scale-110 z-10 rounded-full p-2 shadow-md transition duration-200"
+                className="p-2 rounded-full bg-gray-700 hover:bg-red-600 hover:scale-110 text-white transition-colors duration-200"
+                aria-label="Close"
               >
-                <X className="h-5 w-5" />
+                <X size={24} />
               </button>
+            </div>
 
-              <div className="p-8">
-                <div className="mb-6">
-                  <h2 className="text-3xl font-bold text-white mb-4">{title}</h2>
-                  <div className="w-full h-px bg-gray-600"></div>
+            <div className="mb-6 min-h-[640px]">
+              <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)', flexGrow: 1, overflowY: 'auto' }} className="px-4 py-3">
+                <div className="text-gray-300 whitespace-pre-line">
+                  {content}
                 </div>
+              </SimpleBar>
+            </div>
 
-                <div className="mb-6">
-                  <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)' }}>
-                    <div className="text-gray-300 leading-relaxed text-lg whitespace-pre-line pr-2">
-                      {content}
-                    </div>
-                  </SimpleBar>
-                  <div className="w-full h-px bg-gray-600 mt-4"></div>
-                </div>
-
-                <div className="flex justify-between items-end flex-wrap gap-4">
-                  <div>
-                    <p className="text-gray-400 text-lg">
-                      <span className="font-medium">Author:</span> {author?.name || 'Unknown'}
-                    </p>
-                    {author?.email && (
-                      <p className="text-gray-500 text-sm mt-1">{author.email}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-1 text-gray-400 text-lg">
-                    <Eye className="w-5 h-5 mr-1 text-blue-300" />
-                    <span className="text-white font-medium">{currentViews} Views</span>
-                  </div>
-
-                  {isAuthor && (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit();
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition duration-200"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete();
-                        }}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition duration-200"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  )}
-                </div>
+            <div className="p-4 border-t border-gray-700 flex justify-between items-center text-base text-gray-400">
+              <div className="flex flex-col">
+                <span>Author: {author?.name || 'Unknown'}</span>
+                {author?.email && (
+                  <span className="text-xs text-gray-500">{author.email}</span>
+                )}
               </div>
+
+              {/* Display current views inside the modal */}
+              <div className="flex items-center text-blue-400">
+                <Eye size={16} className="mr-1" />
+                <span>{currentViews} Views</span>
+              </div>
+
+              {isAuthor && (
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit();
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition duration-200"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete();
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition duration-200"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
       )}
       {isEditModalOpen && (
         <EditPostModal
-          key="edit-post-modal"
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           onUpdateSuccess={handleUpdateSuccess}
-          title={title}
-          content={content}
           blogId={blogId}
-          userId={userId}
+          title={title} // Pass current title and content
+          content={content}
           token={token}
+          userId={userId}
         />
       )}
     </AnimatePresence>

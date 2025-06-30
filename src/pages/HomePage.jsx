@@ -38,19 +38,21 @@ export const HomePage = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
 
-  // Calculate stats for the user
-  const userBlogs = allBlogs.filter((blog) => blog.author?._id === user?.id);
+  // Calculate user-specific stats
+  const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
-  const totalViews = userBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+  const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
+  
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
     { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
-    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' },
+    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' }
   ];
+
   const colorMap = {
     'Your Blogs': 'text-blue-400',
     'Total Views': 'text-green-400',
-    'Last Updated': 'text-purple-400',
+    'Last Updated': 'text-purple-400'
   };
 
   useEffect(() => {
@@ -69,23 +71,21 @@ export const HomePage = () => {
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
     setDisplayedUserName(user?.name ? user.name.split(' ')[0] + '...' : 'Guest');
-
     const interval = setInterval(() => {
       setCurrentTime(getCurrentDateTime());
     }, 1000);
-
     return () => clearInterval(interval);
   }, [user]);
 
   useEffect(() => {
     if (isEditPostOpen) {
-      document.title = 'Edit Post';
+      document.title = "Edit Post";
     } else if (isCreatePostOpen) {
-      document.title = 'Create Post';
+      document.title = "Create Post";
     } else if (isPostModalOpen) {
-      document.title = selectedBlogForModal?.title || 'View Post';
+      document.title = selectedBlogForModal?.title || "View Post";
     } else {
-      document.title = 'Home - Blog Web App';
+      document.title = "Home - Blog Web App";
     }
   }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
@@ -101,20 +101,18 @@ export const HomePage = () => {
     const fetchUserDetails = async () => {
       try {
         const res = await fetch('http://localhost:5000/api/user/profile', {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data = await res.json();
         if (res.ok && data.user && data.user.age) {
           setUser(data.user);
         } else {
-          console.warn('Failed to fetch valid user data:', data);
+          console.warn("Failed to fetch valid user data:", data);
         }
       } catch (err) {
-        console.error('Failed to fetch user profile:', err.message);
+        console.error("Failed to fetch user profile:", err.message);
       }
     };
-
     if (token && !user?.age) {
       fetchUserDetails();
     }
@@ -163,16 +161,16 @@ export const HomePage = () => {
 
   const handlePostDeleteSuccess = async (blogId) => {
     try {
-      console.log('Deleting blog with token:', token);
+      console.log("Deleting blog with token:", token);
       await blogService.deleteBlog(blogId, token);
       setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
-      setNotificationMessage('Post deleted successfully!');
+      setNotificationMessage("Post deleted successfully!");
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
       fetchAllBlogsData();
     } catch (error) {
-      console.error('Failed to delete blog:', error);
-      setNotificationMessage('Failed to delete the post.');
+      console.error("Failed to delete blog:", error);
+      setNotificationMessage("Failed to delete the post.");
       setShowNotificationBanner(true);
     }
   };
@@ -188,9 +186,11 @@ export const HomePage = () => {
   };
 
   const handleViewIncrement = (blogId, newViews) => {
-    setAllBlogs((prevBlogs) =>
-      prevBlogs.map((blog) =>
-        blog._id === blogId || blog.id === blogId ? { ...blog, views: newViews } : blog
+    setAllBlogs(prevBlogs =>
+      prevBlogs.map(blog =>
+        (blog._id === blogId || blog.id === blogId)
+          ? { ...blog, views: newViews }
+          : blog
       )
     );
   };
@@ -198,19 +198,13 @@ export const HomePage = () => {
   const updateLastUpdatedTime = () => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
     const dateString = now.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+      month: 'short', day: 'numeric', year: 'numeric'
     });
     const lastUpdatedString = `${timeString}\n${dateString}`;
-
     setLastUpdated(lastUpdatedString);
-
     if (user?.id) {
       localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
     }
@@ -220,11 +214,14 @@ export const HomePage = () => {
     const delay = new Promise((resolve) => setTimeout(resolve, 1200));
     setIsLoading(true);
     try {
-      const [blogsData] = await Promise.all([blogService.fetchAllBlogs(token), delay]);
-      console.log('Fetched blogs:', blogsData);
+      const [blogsData] = await Promise.all([
+        blogService.fetchAllBlogs(token),
+        delay
+      ]);
+      console.log("Fetched blogs:", blogsData);
       setAllBlogs(blogsData);
     } catch (error) {
-      console.error('Failed to fetch blogs', error);
+      console.error("Failed to fetch blogs", error);
       setAllBlogs([]);
     } finally {
       setIsLoading(false);
@@ -236,7 +233,7 @@ export const HomePage = () => {
   }
 
   return (
-    <div className="bg-[#1C222A] min-h-screen">
+    <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
       <Header
         title="Home"
         icons={[
@@ -246,32 +243,43 @@ export const HomePage = () => {
         ]}
       />
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            {greeting}, {displayedUserName}!
-          </h1>
-          <p className="text-gray-300 text-lg">{currentTime}</p>
-          <div className="flex items-center py-2 rounded-md space-x-4">
-            <h2 className="text-2xl font-bold text-white">{user?.name || 'Loading Name...'}</h2>
-            <h2 className="text-xl font-bold text-white">( Age: {user?.age || 'N/A'} )</h2>
-          </div>
-          <div className="h-1 w-full bg-blue-500 rounded-full mt-3"></div>
-        </div>
-
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {/* Greeting */}
         <motion.div
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="bg-[#2A2E36] rounded-lg p-6 mb-6 hover:border-2 transition-all duration-100"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#2A2E36] rounded-lg p-6 shadow-lg mb-8"
         >
-          <h2 className="text-2xl font-semibold text-white mb-3">Welcome to Your Blog Space</h2>
-          <p className="text-gray-300 leading-relaxed">
-            Ready to share your thoughts with the world? Your creative journey continues here.
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {greeting}, <span className="text-blue-400">{displayedUserName}</span>!
+          </h1>
+
+          <p className="text-gray-400 mb-4">{currentTime}</p>
+
+          <div className="flex items-center text-gray-300">
+            <UserIcon size={20} className="mr-2 text-blue-400" />
+            <p>
+              {user?.name || 'Loading Name...'}
+              {user?.age && <span className="ml-2">( Age: {user?.age || 'N/A'} )</span>}
+            </p>
+          </div>
         </motion.div>
 
+        {/* Welcome Message */}
+        {showWelcomeBanner && (
+          <NotifyBanner
+            message="Welcome to Your Blog Space"
+            subMessage="Ready to share your thoughts with the world? Your creative journey continues here."
+            onClose={() => setShowWelcomeBanner(false)}
+          />
+        )}
+
+        {/* Quick Stats Container */}
         <div className="bg-[#323943] rounded-lg p-6 mb-6">
-          <div className="flex justify-end mb-4">
+          {/* Header row with title and button */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-white">Your Stats</h2>
             <button
               onClick={() => setIsAllStatsOpen(true)}
               className="text-blue-400 hover:text-blue-500 font-medium underline"
@@ -280,6 +288,7 @@ export const HomePage = () => {
             </button>
           </div>
 
+          {/* Quick Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {stats.map((stat, index) => (
               <motion.div
@@ -299,44 +308,55 @@ export const HomePage = () => {
           </div>
         </div>
 
-        <h2 className="text-3xl font-bold mb-6 text-gray-100 border-b-2 border-indigo-300 pb-2">Recent Posts</h2>
+        {/* All Posts Section */}
+        <h2 className="text-2xl font-bold text-white mb-6">Recent Posts</h2>
+
         {allBlogs.length === 0 ? (
-          <p className="text-center text-lg text-gray-300 p-8 bg-[#2A2E36] rounded-lg shadow-sm">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-gray-400 text-lg mt-10"
+          >
             No blogs available yet.
-          </p>
+          </motion.div>
+
         ) : (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allBlogs.map((blog) => (
               <PostDetails
-                key={blog.id || blog._id}
+                key={blog._id || blog.id}
+                blogId={blog._id || blog.id}
                 title={blog.title}
                 content={blog.content}
                 author={blog.author}
-                blogId={blog.id || blog._id}
                 userId={user?.id}
                 token={token}
                 onEdit={() => handleEditPost(blog)}
                 onDelete={() => handleDeleteClick(blog.id || blog._id)}
                 onOpenModal={handleOpenPostModal}
-                initialViews={blog.views || 0}
+                initialViews={blog.views}
               />
             ))}
           </div>
         )}
-      </div>
+      </main>
 
-      <div
+      {/* Floating Action Button */}
+      <button
         onClick={() => setIsCreatePostOpen(true)}
         className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg cursor-pointer transition-all duration-300"
+        aria-label="Create New Post"
       >
-        <Plus className="w-6 h-6" />
-      </div>
+        <Plus size={28} />
+      </button>
 
+      {/* Modals */}
       <CreatePostModal
         isOpen={isCreatePostOpen}
         onClose={() => setIsCreatePostOpen(false)}
         onPostSuccess={handlePostCreationSuccess}
       />
+
       <EditPostModal
         isOpen={isEditPostOpen}
         onClose={() => setIsEditPostOpen(false)}
@@ -347,17 +367,20 @@ export const HomePage = () => {
         userId={user?.id}
         token={token}
       />
+
       <QuickStatsModal
         isOpen={isAllStatsOpen}
         onClose={() => setIsAllStatsOpen(false)}
         stats={stats}
       />
+
       <SingleStatModal
         isOpen={isStatModalOpen}
         onClose={() => setIsStatModalOpen(false)}
         stat={selectedStat}
       />
 
+      {/* The PostModal to show full blog content */}
       {selectedBlogForModal && (
         <PostModal
           isOpen={isPostModalOpen}
@@ -365,38 +388,39 @@ export const HomePage = () => {
           title={selectedBlogForModal.title}
           content={selectedBlogForModal.content}
           author={selectedBlogForModal.author}
-          blogId={selectedBlogForModal.blogId}
+          blogId={selectedBlogForModal.blogId || selectedBlogForModal.id}
           userId={user?.id}
           token={token}
-          onViewIncrement={handleViewIncrement}
           onEdit={() => handleEditPost(selectedBlogForModal)}
           onDelete={() => {
             handleDeleteClick(selectedBlogForModal.id || selectedBlogForModal._id);
             handleClosePostModal();
           }}
-          initialViews={selectedBlogForModal.views || selectedBlogForModal.initialViews || 0}
+          initialViews={selectedBlogForModal.initialViews}
+          onViewIncrement={handleViewIncrement}
         />
       )}
 
       <Footer />
 
+      {/* Notification Banners */}
       {showWelcomeBanner && (
         <NotifyBanner
-          message="Welcome back to the Blog Web App!"
+          message="Welcome to Your Blog Space"
+          subMessage="Ready to share your thoughts with the world? Your creative journey continues here."
           onClose={() => setShowWelcomeBanner(false)}
         />
       )}
-
       {showNotificationBanner && notificationMessage && (
         <NotifyBanner
           message={notificationMessage}
+          type="success"
           onClose={() => setShowNotificationBanner(false)}
         />
       )}
-
       <ConfirmDeleteModal
         isOpen={isConfirmOpen}
-        onCancel={() => {
+        onClose={() => {
           setIsConfirmOpen(false);
           setSelectedBlogId(null);
         }}
@@ -405,7 +429,7 @@ export const HomePage = () => {
             setIsConfirmOpen(false);
             await handlePostDeleteSuccess(selectedBlogId);
           } catch (error) {
-            console.error('Failed to delete blog:', error);
+            console.error("Failed to delete blog:", error);
           } finally {
             setSelectedBlogId(null);
           }

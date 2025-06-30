@@ -31,10 +31,11 @@ export const MyPosts = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedBlogId, setSelectedBlogId] = useState(null);
-  const [blogToEdit, setBlogToEdit] = useState(null); // Added missing state
-  
-  const userBlogsCount = allBlogs.filter(blog => blog.author?._id === user?.id).length;
-  const totalViews = allBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+  const [blogToEdit, setBlogToEdit] = useState(null);
+
+  const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
+  const userBlogsCount = userBlogs.length;
+  const totalViews = userBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
@@ -120,7 +121,7 @@ export const MyPosts = () => {
 
   const handleEditPost = (blog) => {
     console.log('Edit post clicked', blog);
-    setBlogToEdit(blog); // Set the blog to edit
+    setBlogToEdit(blog);
     setIsEditPostOpen(true);
   };
 
@@ -191,7 +192,7 @@ export const MyPosts = () => {
   }
 
   return (
-    <div className="bg-[#1C222A] min-h-screen">
+    <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
       <Header
         title="Your Posts"
         icons={[
@@ -202,58 +203,75 @@ export const MyPosts = () => {
         ]}
       />
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => setIsAllStatsOpen(true)}
-            className="text-blue-400 hover:text-blue-500 font-medium underline"
-          >
-            View All Stats
-          </button>
-        </div>
+      {/* Main content area - this will grow to push footer down */}
+      <div className="flex-1">
+        <div className="max-w-4xl mx-auto p-6">
+          {/* Quick Stats Container */}
+          <div className="bg-[#323943] rounded-lg p-6 mb-6">
+            {/* Header row with title and button */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-white">Your Stats</h2>
+              <button
+                onClick={() => setIsAllStatsOpen(true)}
+                className="text-blue-400 hover:text-blue-500 font-medium underline"
+              >
+                View All Stats
+              </button>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleStatClick(stat)}
-              className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
-            >
-              <h3 className="text-white font-semibold mb-2">{stat.title}</h3>
-              <p className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'} whitespace-pre-line`}>
-                {stat.count || stat.count === 0 ? stat.count : '-'}
-              </p>
-              <p className="text-gray-400 text-sm">{stat.subtitle}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        {allBlogs.length === 0 ? (
-          <p className="text-center text-lg text-gray-300 p-8 bg-[#2A2E36] rounded-lg shadow-sm">
-            No blogs available yet.
-          </p>
-        ) : (
-          <div className="space-y-6">
-            {allBlogs.map((blog) => (
-              <PostDetails
-                key={blog.id || blog._id}
-                title={blog.title}
-                content={blog.content}
-                author={blog.author}
-                blogId={blog.id || blog._id}
-                userId={user?.id}
-                token={token}
-                onDelete={() => handleDeleteClick(blog.id || blog._id)}
-                onEdit={() => handleEditPost(blog)}
-                onOpenModal={handleOpenPostModal}
-                initialViews={blog.views}
-              />
-            ))}
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleStatClick(stat)}
+                  className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
+                >
+                  <h3 className="text-white font-semibold mb-2">{stat.title}</h3>
+                  <p className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'} whitespace-pre-line`}>
+                    {stat.count || stat.count === 0 ? stat.count : '-'}
+                  </p>
+                  <p className="text-gray-400 text-sm">{stat.subtitle}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        )}
+
+          {allBlogs.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-gray-400 text-lg mt-10"
+            >
+              No blogs available yet.
+            </motion.div>
+
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {allBlogs.map((blog) => (
+                <PostDetails
+                  key={blog.id || blog._id}
+                  title={blog.title}
+                  content={blog.content}
+                  author={blog.author}
+                  blogId={blog.id || blog._id}
+                  userId={user?.id}
+                  token={token}
+                  onDelete={() => handleDeleteClick(blog.id || blog._id)}
+                  onEdit={() => handleEditPost(blog)}
+                  onOpenModal={handleOpenPostModal}
+                  initialViews={blog.views}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Footer - will stick to bottom */}
+      <Footer />
 
       {/* Floating Action Button */}
       <div
@@ -331,8 +349,6 @@ export const MyPosts = () => {
           }
         }}
       />
-
-      <Footer />
 
       {showNotificationBanner && notificationMessage && (
         <NotifyBanner
