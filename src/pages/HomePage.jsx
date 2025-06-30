@@ -38,7 +38,6 @@ export const HomePage = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
 
-  // Calculate user-specific stats
   const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
   const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
@@ -161,16 +160,15 @@ export const HomePage = () => {
 
   const handlePostDeleteSuccess = async (blogId) => {
     try {
-      console.log("Deleting blog with token:", token);
-      await blogService.deleteBlog(blogId, token);
-      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
-      setNotificationMessage("Post deleted successfully!");
+      console.log("Soft deleting blog from HomePage with token:", token);
+      await blogService.deleteBlog(blogId, token); // This calls the soft delete API
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId)); // Remove from current view
+      setNotificationMessage("Post moved to trash successfully!");
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
-      fetchAllBlogsData();
     } catch (error) {
-      console.error("Failed to delete blog:", error);
-      setNotificationMessage("Failed to delete the post.");
+      console.error("Failed to move blog to trash:", error);
+      setNotificationMessage("Failed to move the post to trash.");
       setShowNotificationBanner(true);
     }
   };

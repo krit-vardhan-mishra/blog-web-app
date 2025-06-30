@@ -17,7 +17,6 @@ const apiCall = async (endpoint, method = 'GET', data = null, token = null) => {
         config.body = JSON.stringify(data);
     }
 
-    // ✅ Optional Debug Log
     console.log(`[API CALL] ${method} ${API_BASE_URL}${endpoint}`, {
         headers,
         body: config.body,

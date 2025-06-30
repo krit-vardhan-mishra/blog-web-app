@@ -25,6 +25,14 @@ export const deleteBlog = async (blogId, token) => {
   return apiCall(`/blogs/${blogId}`, 'DELETE', null, token);
 };
 
+export const permanentlyDeleteBlog = async (blogId, token) => {
+  return apiCall(`/blogs/permanent/${blogId}`, 'DELETE', null, token);
+};
+
+export const restoreBlog = async (blogId, token) => {
+  return apiCall(`/blogs/restore/${blogId}`, 'POST', null, token);
+};
+
 export const incrementBlogView = async (blogId, token) => {
   const res = await fetch(`http://localhost:5000/api/blogs/increment-view/${blogId}`, {
     method: 'POST',
@@ -38,4 +46,13 @@ export const incrementBlogView = async (blogId, token) => {
   }
 
   return await res.json();
+};
+
+export const fetchDeletedBlogs = async (token) => {
+  const response = await apiCall('/blogs/deleted', 'GET', null, token);
+  const blogs = response.blogs || response;
+  return blogs.map((blog) => ({
+    ...blog,
+    _id: blog._id || blog.id,
+  }));
 };

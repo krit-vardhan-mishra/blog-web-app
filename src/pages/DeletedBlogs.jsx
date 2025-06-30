@@ -7,37 +7,68 @@ import NotifyBanner from '../components/ui/NotifyBanner';
 import Footer from '../components/Footer';
 import DeletedBlogsSkeleton from '../skeleton/pages/DeletedBlogsSkeleton';
 import PermanentDeleteDialog from '../components/ui/modals/PermanentDeleteDialog';
+import useAuth from '../hooks/useAuth';
+import * as blogService from '../api/blogService';
 
 export const DeletedBlogs = () => {
+  const { user, token } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDialogLoading, setIsDialogLoading] = useState(false);
   const [confirmationDeleteId, setConfirmationDeleteId] = useState(null);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const [deletedPosts, setDeletedPosts] = useState([]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIsLoading(false);
-    }, 1500);
     document.title = "Deleted Blogs";
-    return () => setTimeout(timer);
-  }, []);
+    if (token) {
+      fetchDeletedBlogsData();
+    }
+  }, [token]);
 
-  const [deletedPosts, setDeletedPosts] = useState([
-    { id: 1, title: 'Hello', content: 'This is a deleted blog post.', author: 'Yash' },
-    { id: 2, title: 'Namaste', content: 'Namaste from the other side.', author: 'Amit' },
-    { id: 3, title: 'Namoskar', content: 'A greeting post.', author: 'Priya' },
-    { id: 4, title: 'Pranaam', content: 'Respectfully deleted.', author: 'Ravi' }
-  ]);
+  useEffect(() => {
+    if (showNotification) {
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+        setNotificationMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNotification]);
 
-  const handleRestore = (id) => {
-    setDeletedPosts(prev => prev.filter(post => post.id !== id));
-    setNotificationMessage('Post restored successfully.');
-    setShowNotification(true);
+  const fetchDeletedBlogsData = async () => {
+    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsLoading(true);
+    try {
+      const [blogsData] = await Promise.all([
+        blogService.fetchDeletedBlogs(token), // Fetch only deleted blogs
+        delay
+      ]);
+      const userDeletedBlogs = blogsData.filter(blog => blog.author?._id === user?.id && blog.isDeleted);
+      setDeletedPosts(userDeletedBlogs);
+    } catch (error) {
+      console.error("Failed to fetch deleted blogs", error);
+      setDeletedPosts([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Trigger dialog
+  const handleRestore = async (id) => {
+    try {
+      await blogService.restoreBlog(id, token);
+      setNotificationMessage('Post restored successfully.');
+      setShowNotification(true);
+      fetchDeletedBlogsData(); // Re-fetch to update the list
+    } catch (error) {
+      console.error("Failed to restore blog:", error);
+      setNotificationMessage("Failed to restore the post.");
+      setShowNotification(true);
+    }
+  };
+
+  // Trigger dialog for permanent delete
   const handleDelete = (id) => {
     setConfirmationDeleteId(id);
     setIsDialogOpen(true);
@@ -48,19 +79,25 @@ export const DeletedBlogs = () => {
     }, 800);
   };
 
-  // Confirm deletion
-  const handleDeletionConfirm = (e) => {
+  // Confirm permanent deletion
+  const handleDeletionConfirm = async (e) => {
     e.preventDefault();
 
     if (confirmationDeleteId !== null) {
-      setDeletedPosts(prev =>
-        prev.filter(post => post.id !== confirmationDeleteId)
-      );
-      setNotificationMessage('Blog deleted permanently.');
-      setShowNotification(true);
-      setConfirmationDeleteId(null);
-      setIsDialogOpen(false);
-      setIsDialogLoading(false);
+      try {
+        await blogService.permanentlyDeleteBlog(confirmationDeleteId, token);
+        setNotificationMessage('Blog deleted permanently.');
+        setShowNotification(true);
+        fetchDeletedBlogsData(); // Re-fetch to update the list
+      } catch (error) {
+        console.error("Failed to permanently delete blog:", error);
+        setNotificationMessage("Failed to permanently delete the post.");
+        setShowNotification(true);
+      } finally {
+        setConfirmationDeleteId(null);
+        setIsDialogOpen(false);
+        setIsDialogLoading(false);
+      }
     }
   };
 
@@ -94,16 +131,26 @@ export const DeletedBlogs = () => {
       </motion.div>
 
       <div className="space-y-6 px-6 pb-10">
-        {deletedPosts.map((post) => (
-          <DeletedPost
-            key={post.id}
-            title={post.title}
-            content={post.content}
-            author={post.author}
-            onRestore={() => handleRestore(post.id)}
-            onDelete={() => handleDelete(post.id)}
-          />
-        ))}
+        {deletedPosts.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-gray-400 text-lg mt-10"
+          >
+            No deleted blogs available.
+          </motion.div>
+        ) : (
+          deletedPosts.map((post) => (
+            <DeletedPost
+              key={post.id || post._id}
+              title={post.title}
+              content={post.content}
+              author={post.author?.name || 'Unknown'} 
+              onRestore={() => handleRestore(post.id || post._id)}
+              onDelete={() => handleDelete(post.id || post._id)}
+            />
+          ))
+        )}
       </div>
 
       {/* Confirm Delete Dialog */}

@@ -3,30 +3,28 @@ import User from '../models/mongoUser.js';
 
 export class BlogService {
   static async createBlog({ title, content, authorId }) {
-    console.log("Looking up user with ID:", authorId);
     const user = await User.findById(authorId);
     if (!user) {
-      console.error("User not found for ID:", authorId);
       throw new Error('User not found');
     }
     if (!user.canPostBlog()) {
       throw new Error('User is not old enough to post blogs');
     }
-    const blog = await Blog.create({ title, content, author: authorId });
+    const blog = await Blog.create({ title, content, author: authorId, isDeleted: false }); // Ensure new blogs are not deleted
     return await blog.populate('author');
   }
 
   static async getAllBlogs() {
-    const blogs = await Blog.find().populate('author');
+    const blogs = await Blog.find({ isDeleted: false }).populate('author');
     return blogs;
   }
 
   static async getBlogById(blogId) {
-    return await Blog.findById(blogId);
+    return await Blog.findOne({ _id: blogId });
   }
 
   static async getBlogByIdWithAuthor(blogId) {
-    return await Blog.findById(blogId).populate('author');
+    return await Blog.findOne({ _id: blogId }).populate('author');
   }
 
   static async updateBlogTitle(blogId, newTitle) {
@@ -52,13 +50,36 @@ export class BlogService {
     return false;
   }
 
-  static async deleteBlog(blogId) {
+  static async softDeleteBlog(blogId) {
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      throw new Error('Blog not found');
+    }
+    await blog.softDelete();
+    return true;
+  }
+
+  static async permanentlyDeleteBlog(blogId) {
     const result = await Blog.findByIdAndDelete(blogId);
     return !!result;
   }
 
+  static async restoreBlog(blogId) {
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      throw new Error('Blog not found');
+    }
+    await blog.restore();
+    return true;
+  }
+
   static async getBlogsByUser(userId) {
-    const blogs = await Blog.find({ author: userId }).populate('author');
+    const blogs = await Blog.find({ author: userId, isDeleted: false }).populate('author');
+    return blogs;
+  }
+
+  static async getDeletedBlogsByUser(userId) {
+    const blogs = await Blog.find({ author: userId, isDeleted: true }).populate('author');
     return blogs;
   }
 

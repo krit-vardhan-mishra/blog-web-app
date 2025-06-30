@@ -33,7 +33,7 @@ export const MyPosts = () => {
   const [selectedBlogId, setSelectedBlogId] = useState(null);
   const [blogToEdit, setBlogToEdit] = useState(null);
 
-  const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
+  const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id && !blog.isDeleted);
   const userBlogsCount = userBlogs.length;
   const totalViews = userBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
 
@@ -92,8 +92,8 @@ export const MyPosts = () => {
         blogService.fetchAllBlogs(token),
         delay
       ]);
-      const userBlogs = blogsData.filter(blog => blog.author?._id === user?.id);
-      setAllBlogs(userBlogs);
+      const userNonDeletedBlogs = blogsData.filter(blog => blog.author?._id === user?.id && !blog.isDeleted);
+      setAllBlogs(userNonDeletedBlogs);
     } catch (error) {
       console.error("Failed to fetch blogs", error);
       setAllBlogs([]);
@@ -173,16 +173,15 @@ export const MyPosts = () => {
 
   const handlePostDeleteSuccess = async (blogId) => {
     try {
-      console.log("Deleting blog with token:", token);
-      await blogService.deleteBlog(blogId, token);
-      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
-      setNotificationMessage("Post deleted successfully!");
+      console.log("Soft deleting blog with token:", token);
+      await blogService.deleteBlog(blogId, token); 
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId)); 
+      setNotificationMessage("Post moved to trash successfully!");
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
-      fetchAllBlogsData();
     } catch (error) {
-      console.error("Failed to delete blog:", error);
-      setNotificationMessage("Failed to delete the post.");
+      console.error("Failed to move blog to trash:", error);
+      setNotificationMessage("Failed to move the post to trash.");
       setShowNotificationBanner(true);
     }
   };
@@ -239,7 +238,7 @@ export const MyPosts = () => {
             </div>
           </div>
 
-          {allBlogs.length === 0 ? (
+          {userBlogs.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -250,7 +249,7 @@ export const MyPosts = () => {
 
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allBlogs.map((blog) => (
+              {userBlogs.map((blog) => (
                 <PostDetails
                   key={blog.id || blog._id}
                   title={blog.title}
@@ -270,7 +269,6 @@ export const MyPosts = () => {
         </div>
       </div>
 
-      {/* Footer - will stick to bottom */}
       <Footer />
 
       {/* Floating Action Button */}

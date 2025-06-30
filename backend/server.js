@@ -78,15 +78,28 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
 
 // --- API Routes for Blogs (all protected) ---
 
+// Get all non-deleted blogs
 app.get('/api/blogs', authenticateToken, async (req, res) => {
   try {
-    // Ensuring 'author' is populated to display author name on the frontend
-    const blogs = await Blog.find().populate('author', 'name').sort({ createdAt: -1 });
+    // Only fetch blogs where isDeleted is false
+    const blogs = await Blog.find({ isDeleted: false }).populate('author', 'name').sort({ createdAt: -1 });
     res.status(200).json({ blogs });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+// Get all deleted blogs for the authenticated user
+app.get('/api/blogs/deleted', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const deletedBlogs = await BlogService.getDeletedBlogsByUser(userId);
+    res.status(200).json({ blogs: deletedBlogs });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 
 app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
@@ -164,6 +177,7 @@ app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Soft delete a blog (marks isDeleted to true)
 app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
   try {
     const blogId = req.params.id;
@@ -178,16 +192,73 @@ app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const success = await BlogService.deleteBlog(blogId);
+    // Call softDeleteBlog instead of permanently deleting
+    const success = await BlogService.softDeleteBlog(blogId);
     if (success) {
-      res.json({ message: "Blog deleted successfully" });
+      res.json({ message: "Blog moved to trash successfully" });
     } else {
-      res.status(404).json({ message: "Blog not found" });
+      res.status(404).json({ message: "Blog not found or could not be moved to trash" });
     }
   } catch (error) {
+    console.error("Soft delete blog error:", error);
     res.status(500).json({ message: error.message });
   }
 });
+
+// Permanently delete a blog
+app.delete('/api/blogs/permanent/:id', authenticateToken, async (req, res) => {
+  try {
+    const blogId = req.params.id;
+    const userId = req.user.id;
+
+    const blog = await BlogService.getBlogById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const success = await BlogService.permanentlyDeleteBlog(blogId);
+    if (success) {
+      res.json({ message: "Blog permanently deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Blog not found or could not be permanently deleted" });
+    }
+  } catch (error) {
+    console.error("Permanent delete blog error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Restore a deleted blog
+app.post('/api/blogs/restore/:id', authenticateToken, async (req, res) => {
+  try {
+    const blogId = req.params.id;
+    const userId = req.user.id;
+
+    const blog = await BlogService.getBlogById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const success = await BlogService.restoreBlog(blogId);
+    if (success) {
+      res.json({ message: "Blog restored successfully" });
+    } else {
+      res.status(404).json({ message: "Blog not found or could not be restored" });
+    }
+  } catch (error) {
+    console.error("Restore blog error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {

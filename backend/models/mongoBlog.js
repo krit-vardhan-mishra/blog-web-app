@@ -20,6 +20,10 @@ const BlogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,
@@ -43,6 +47,16 @@ BlogSchema.methods = {
       return this.save();
     }
     return false;
+  },
+
+  softDelete() {
+    this.isDeleted = true;
+    return this.save();
+  },
+
+  restore() {
+    this.isDeleted = false;
+    return this.save();
   },
 
   toJSON() {
