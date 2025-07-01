@@ -117,6 +117,7 @@ export const LoginPage = () => {
               <input
                 type="email"
                 id="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
@@ -146,6 +147,7 @@ export const LoginPage = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"

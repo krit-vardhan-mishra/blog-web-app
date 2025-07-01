@@ -269,16 +269,26 @@ export const HomePage = () => {
           {/* About Section */}
           {user?.about && (
             <div className="flex items-start text-gray-300 bg-[#1A1C20] rounded-lg p-4 mt-4">
-              <Info size={20} className="mr-2 text-green-400 flex-shrink-0 mt-0.5" />
+              <div className="mr-2 mt-0.5 text-green-400 flex-shrink-0">
+                <Info size={20} />
+                <p className="text-green-400 font-mono text-sm ms-1 mt-3">&gt;</p>
+              </div>
               <div>
                 <p className="text-sm font-medium text-green-400 mb-1">About</p>
-                <p className="text-sm leading-relaxed">
-                  {user?.about || "No about info provided yet."}
-                </p>
+                <div className="text-sm leading-relaxed whitespace-pre-line mt-3">
+                  {user.about
+                    .split('\n')
+                    .map((line, index) => (
+                      <p key={index} className="whitespace-pre-line">
+                        <span className="text-green-400">&gt; </span>
+                        {line}
+                      </p>
+                    ))}
+                </div>
               </div>
             </div>
-
           )}
+
         </motion.div>
 
         {/* Welcome Message */}

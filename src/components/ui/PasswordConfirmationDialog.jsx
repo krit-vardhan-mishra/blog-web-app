@@ -1,7 +1,7 @@
 import React from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 
 const PasswordConfirmationDialog = ({
   isOpen,

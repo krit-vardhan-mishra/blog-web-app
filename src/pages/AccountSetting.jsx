@@ -2,14 +2,14 @@ import { useEffect, useState, useRef } from 'react';
 import Header from '../components/Header';
 import { HomeIcon, Eye, EyeOff, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '../components/ui/button';
+import { Button } from '../components/ui/Button';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import Footer from '../components/Footer';
 import AccountSettingSkeleton from '../skeleton/pages/AccountSettingSkeleton';
 import PasswordConfirmationDialog from '../components/ui/PasswordConfirmationDialog';
 import useAuth from '../hooks/useAuth';
 import { updateUserProfile } from '../api/userService';
-import { verifyPassword } from '../api/authService'; // Import the new verifyPassword function
+import { verifyPassword } from '../api/authService';
 
 export const AccountSetting = () => {
     const { user, token, setUser } = useAuth();
