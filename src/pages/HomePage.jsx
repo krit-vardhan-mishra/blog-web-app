@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header.jsx';
-import { HomeIcon, UserIcon, SettingsIcon, Plus } from 'lucide-react';
+import { HomeIcon, UserIcon, SettingsIcon, Plus, Info } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
 import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
 import { motion } from 'framer-motion';
@@ -41,7 +41,7 @@ export const HomePage = () => {
   const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
   const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
-  
+
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
     { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
@@ -103,7 +103,7 @@ export const HomePage = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        if (res.ok && data.user && data.user.age) {
+        if (res.ok && data.user) {
           setUser(data.user);
         } else {
           console.warn("Failed to fetch valid user data:", data);
@@ -112,10 +112,10 @@ export const HomePage = () => {
         console.error("Failed to fetch user profile:", err.message);
       }
     };
-    if (token && !user?.age) {
+    if (token && (!user?.age || !user?.about)) {
       fetchUserDetails();
     }
-  }, [token, user?.age, setUser]);
+  }, [token, user?.age, user?.about, setUser]);
 
   useEffect(() => {
     if (showNotificationBanner) {
@@ -128,8 +128,11 @@ export const HomePage = () => {
   }, [showNotificationBanner]);
 
   const handleStatClick = (stat) => {
-    setSelectedStat(stat);
-    setIsStatModalOpen(true);
+    setIsAllStatsOpen(false);
+    setTimeout(() => {
+      setSelectedStat(stat);
+      setIsStatModalOpen(true);
+    }, 300);
   };
 
   const handleEditPost = (blog) => {
@@ -255,13 +258,27 @@ export const HomePage = () => {
 
           <p className="text-gray-400 mb-4">{currentTime}</p>
 
-          <div className="flex items-center text-gray-300">
+          <div className="flex items-center text-gray-300 mb-3">
             <UserIcon size={20} className="mr-2 text-blue-400" />
             <p>
               {user?.name || 'Loading Name...'}
               {user?.age && <span className="ml-2">( Age: {user?.age || 'N/A'} )</span>}
             </p>
           </div>
+
+          {/* About Section */}
+          {user?.about && (
+            <div className="flex items-start text-gray-300 bg-[#1A1C20] rounded-lg p-4 mt-4">
+              <Info size={20} className="mr-2 text-green-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-green-400 mb-1">About</p>
+                <p className="text-sm leading-relaxed">
+                  {user?.about || "No about info provided yet."}
+                </p>
+              </div>
+            </div>
+
+          )}
         </motion.div>
 
         {/* Welcome Message */}
@@ -370,6 +387,7 @@ export const HomePage = () => {
         isOpen={isAllStatsOpen}
         onClose={() => setIsAllStatsOpen(false)}
         stats={stats}
+        onStatClick={handleStatClick}
       />
 
       <SingleStatModal

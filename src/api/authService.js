@@ -1,3 +1,5 @@
+import apiCall from './apiService.js'; // Ensure apiCall is imported
+
 export const register = async (firstName, lastName, email, password, age) => {
   const res = await fetch('http://localhost:5000/api/auth/register', {
     method: 'POST',
@@ -34,4 +36,15 @@ export const logout = () => {
 export const getCurrentUser = () => {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
+};
+
+// New function to verify user's password
+export const verifyPassword = async (password, token) => {
+  try {
+    const response = await apiCall('/auth/verify-password', 'POST', { password }, token);
+    return response.success; // The backend returns { success: true } on success
+  } catch (error) {
+    console.error("Error verifying password:", error);
+    throw error; // Re-throw to be caught by the calling component
+  }
 };

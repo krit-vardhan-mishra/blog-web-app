@@ -76,6 +76,92 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Update user profile (protected)
+app.put('/api/user/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, email, age, about } = req.body; // Include 'about' here
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID not found in token.' });
+    }
+
+    const updateData = {};
+    if (firstName !== undefined || lastName !== undefined) {
+        const currentUser = await UserService.getUserById(userId); // Fetch current user to preserve existing parts of name
+        let currentFirstName = currentUser?.name?.split(' ')[0] || '';
+        let currentLastName = currentUser?.name?.split(' ').slice(1).join(' ') || '';
+
+        if (firstName !== undefined) {
+            currentFirstName = firstName;
+        }
+        if (lastName !== undefined) {
+            currentLastName = lastName;
+        }
+        updateData.name = `${currentFirstName} ${currentLastName}`.trim();
+    }
+
+    if (email !== undefined) {
+      updateData.email = email;
+    }
+    if (age !== undefined) {
+      updateData.age = parseInt(age);
+    }
+    if (about !== undefined) { // Add 'about' to updateData
+        updateData.about = about;
+    }
+
+    const updatedUser = await UserService.updateUser(userId, updateData);
+
+    if (updatedUser) {
+      // Return updated user data, including 'about'
+      res.json({
+        message: 'Profile updated successfully!',
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          age: updatedUser.age,
+          about: updatedUser.about, // Include 'about' in the response
+        },
+      });
+    } else {
+      res.status(404).json({ message: 'User not found or update failed.' });
+    }
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Endpoint to verify user's password
+app.post('/api/auth/verify-password', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+
+    const user = await User.findById(userId).select('+password'); // Select password for comparison
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    res.status(200).json({ success: true, message: 'Password verified' });
+  } catch (error) {
+    console.error('Password verification error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 // --- API Routes for Blogs (all protected) ---
 
 // Get all non-deleted blogs
@@ -296,11 +382,12 @@ app.post('/api/auth/register', async (req, res) => {
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     console.log("Fetching profile for userId from token:", req.user.id);
-    const user = await User.findById(req.user.id).select('name email age');
+    // Select 'about' field here
+    const user = await User.findById(req.user.id).select('name email age about');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({ user: { id: user._id, name: user.name, email: user.email, age: user.age } });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, age: user.age, about: user.about } });
   } catch (error) {
     console.error('Profile fetch error:', error);
     res.status(500).json({ message: error.message });
@@ -331,7 +418,8 @@ app.post('/api/auth/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        age: user.age
+        age: user.age,
+        about: user.about // Include 'about' here in login response
       }
     });
   } catch (error) {

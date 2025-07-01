@@ -167,15 +167,18 @@ export const MyPosts = () => {
   };
 
   const handleStatClick = (stat) => {
-    setSelectedStat(stat);
-    setIsStatModalOpen(true);
+    setIsAllStatsOpen(false);
+    setTimeout(() => {
+      setSelectedStat(stat);
+      setIsStatModalOpen(true);
+    }, 300);
   };
 
   const handlePostDeleteSuccess = async (blogId) => {
     try {
       console.log("Soft deleting blog with token:", token);
-      await blogService.deleteBlog(blogId, token); 
-      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId)); 
+      await blogService.deleteBlog(blogId, token);
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
       setNotificationMessage("Post moved to trash successfully!");
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
@@ -301,6 +304,7 @@ export const MyPosts = () => {
         isOpen={isAllStatsOpen}
         onClose={() => setIsAllStatsOpen(false)}
         stats={stats}
+        onStatClick={handleStatClick}
       />
 
       <SingleStatModal

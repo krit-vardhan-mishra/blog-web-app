@@ -8,6 +8,12 @@ const colorMap = {
   'Last Updated': 'text-purple-400',
 };
 
+const infoMessages = {
+  'Your Blogs': 'This shows the number of blog posts you’ve published. Create more to grow your content library.',
+  'Total Views': 'This shows the total number of times your blogs have been viewed. More views mean more reach!',
+  'Last Updated': 'This shows when you last created, edited, or deleted a blog post.'
+};
+
 const SingleStatModal = ({ stat, isOpen, onClose }) => {
   if (!isOpen || !stat) return null;
 
@@ -35,7 +41,7 @@ const SingleStatModal = ({ stat, isOpen, onClose }) => {
           </button>
 
           <h2 className="text-white text-2xl font-bold mb-4">{stat.title}</h2>
-          
+
           <div className={`text-4xl font-extrabold ${colorMap[stat.title] || 'text-gray-300'}`}>
             {stat.title === 'Last Updated' && stat.count && stat.count !== 'Never' ? (
               <div className="whitespace-pre-line leading-tight text-center">
@@ -47,17 +53,16 @@ const SingleStatModal = ({ stat, isOpen, onClose }) => {
               </div>
             )}
           </div>
-          
+
           <p className="text-gray-400 mt-4 text-center">{stat.subtitle}</p>
-          
-          {/* Additional info for Last Updated */}
-          {stat.title === 'Last Updated' && (
+
+          {/* Additional info message */}
+          {infoMessages[stat.title] && (
             <div className="mt-4 p-3 bg-[#2A2E36] rounded-lg">
               <p className="text-gray-300 text-sm text-center">
-                {stat.count === 'Never' ? 
-                  'No blog activities yet. Create, edit, or delete a blog to see the last updated time.' :
-                  'This shows when you last created, edited, or deleted a blog post.'
-                }
+                {stat.title === 'Last Updated' && stat.count === 'Never'
+                  ? 'No blog activities yet. Create, edit, or delete a blog to see the last updated time.'
+                  : infoMessages[stat.title]}
               </p>
             </div>
           )}
