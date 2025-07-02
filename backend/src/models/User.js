@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: {
     type: String, required: true, trim: true
   },
@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Virtual for blogs
-UserSchema.virtual('blogs', {
+userSchema.virtual('blogs', {
   ref: 'Blog',
   localField: '_id',
   foreignField: 'author',
@@ -42,7 +42,7 @@ UserSchema.virtual('blogs', {
 });
 
 // Methods
-UserSchema.methods = {
+userSchema.methods = {
   comparePassword: async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
   },
@@ -61,7 +61,7 @@ UserSchema.methods = {
 };
 
 // Static methods
-UserSchema.statics = {
+userSchema.statics = {
   async getUsersWithBlogs() {
     return this.find().populate('blogs').exec();
   },
@@ -85,8 +85,7 @@ UserSchema.statics = {
   }
 };
 
-// Hash password before saving
-UserSchema.pre('save', async function (next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   try {
@@ -98,6 +97,6 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
 
 export default User;

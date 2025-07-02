@@ -3,19 +3,10 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const apiCall = async (endpoint, method = 'GET', data = null, token = null) => {
     const headers = {};
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    if (data) {
-        headers['Content-Type'] = 'application/json';
-    }
-
+    if (token) { headers['Authorization'] = `Bearer ${token}`; }
+    if (data) { headers['Content-Type'] = 'application/json'; }
     const config = { method, headers };
-
-    if (data) {
-        config.body = JSON.stringify(data);
-    }
+    if (data) { config.body = JSON.stringify(data); }
 
     console.log(`[API CALL] ${method} ${API_BASE_URL}${endpoint}`, {
         headers,

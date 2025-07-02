@@ -2,11 +2,11 @@
   "name": "blog-backend",
   "version": "1.0.0",
   "description": "Backend for the blog application",
-  "main": "server.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node server",
-    "dev": "nodemon server"
+    "start": "node src/server",
+    "dev": "nodemon src/server"
   },
   "keywords": [],
   "author": "",
