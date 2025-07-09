@@ -4,12 +4,12 @@ import clsx from 'clsx';
 import HeaderSkeleton from '../skeleton/component/HeaderSkeleton';
 import { useAuth } from '../context/AuthContext';
 
-export const Header = ({ title, icons = [], className, isLoading = false }) => {
+export const Header = ({ title, icons = [], customElements = [], className, isLoading = false }) => {
     const { logout } = useAuth();
     const navigate = useNavigate();
 
     if (isLoading) {
-        return <HeaderSkeleton />
+        return <HeaderSkeleton />;
     }
 
     const handleLogout = () => {
@@ -25,14 +25,17 @@ export const Header = ({ title, icons = [], className, isLoading = false }) => {
         <div
             className={clsx(
                 'w-full h-[70px] bg-gray-800/80 backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700',
-                className)} >
+                className
+            )}
+        >
             <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold transition-transform duration-300">
                 {title}
             </h1>
+
             <div className="flex items-center space-x-2 mr-[5px]">
-                {icons.map(({ icon: Icon, link }, index) => (
+                {/* Icon buttons */}
+                {icons.map(({ icon: Icon, link }, index) =>
                     Icon === LogOut ? (
-                        // Special handling for logout button
                         <div
                             key={index}
                             onClick={handleLogout}
@@ -41,14 +44,13 @@ export const Header = ({ title, icons = [], className, isLoading = false }) => {
                             <Icon className="text-white w-6 h-6 transform transition-transform duration-200 group-hover:scale-110" />
                         </div>
                     ) : (
-                        // Regular navigation for other icons
                         <Link to={link} key={index}>
                             <div
                                 className={clsx(
                                     `group p-2 rounded-full transition duration-200 cursor-pointer`,
                                     {
-                                        'hover:bg-red-500/50': Icon === Trash2 && title != "Your Deleted Posts",
-                                        'hover:bg-white/10': Icon !== Trash2
+                                        'hover:bg-red-500/50': Icon === Trash2 && title !== 'Your Deleted Posts',
+                                        'hover:bg-white/10': Icon !== Trash2,
                                     }
                                 )}
                             >
@@ -56,6 +58,11 @@ export const Header = ({ title, icons = [], className, isLoading = false }) => {
                             </div>
                         </Link>
                     )
+                )}
+
+                {/* Custom elements like DropdownMenu */}
+                {customElements.map((Element, i) => (
+                    <div key={`custom-${i}`}>{Element}</div>
                 ))}
             </div>
         </div>

@@ -16,9 +16,18 @@ import useAuth from '../hooks/useAuth';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal.jsx';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "../components/ui/dropdown-menu.jsx";
+import { useNavigate } from 'react-router';
 
 export const HomePage = () => {
-  const { user, token, setUser } = useAuth();
+  const { user, token, setUser, logout } = useAuth();
   const [selectedStat, setSelectedStat] = useState(null);
   const [isStatModalOpen, setIsStatModalOpen] = useState(false);
   const [isAllStatsOpen, setIsAllStatsOpen] = useState(false);
@@ -38,7 +47,7 @@ export const HomePage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
-
+  const navigate = useNavigate();
   const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
   const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
@@ -233,12 +242,36 @@ export const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
+
       <Header
         title="Home"
         icons={[
           { icon: HomeIcon, link: '/home' },
-          { icon: UserIcon, link: '/your-posts' },
           { icon: SettingsIcon, link: '/account-setting' },
+        ]}
+        customElements={[
+          <DropdownMenu key="user-dropdown">
+            <DropdownMenuTrigger asChild>
+              <button>
+                <UserIcon className="text-white hover:text-blue-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48 mr-6 mt-3">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate('/your-posts')}>
+                Your Posts
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/account-setting')}>
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                logout();
+                navigate('/login', { replace: true });
+              }} className="hover:bg-red-900">
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ]}
       />
 
