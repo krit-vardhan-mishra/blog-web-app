@@ -13,7 +13,8 @@ import EditPostModal from '../components/ui/modals/EditPostModal.jsx';
 import QuickStatsModal from '../components/ui/modals/QuickStatsModal.jsx';
 import SingleStatModal from '../components/ui/modals/SingleStatModal.jsx';
 import useAuth from '../hooks/useAuth';
-import * as blogService from '../api/blogService';
+import blogService from '../api/blogService';
+import userService from '../api/userService';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal.jsx';
 
 export const HomePage = () => {
@@ -99,11 +100,8 @@ export const HomePage = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/user/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (res.ok && data.user) {
+        const data = await userService.updateUserProfile();
+        if (data.user) {
           setUser(data.user);
         } else {
           console.warn("Failed to fetch valid user data:", data);
@@ -164,8 +162,8 @@ export const HomePage = () => {
   const handlePostDeleteSuccess = async (blogId) => {
     try {
       console.log("Soft deleting blog from HomePage with token:", token);
-      await blogService.deleteBlog(blogId, token); // This calls the soft delete API
-      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId)); // Remove from current view
+      await blogService.delete(blogId);
+      setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
       setNotificationMessage("Post moved to trash successfully!");
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
@@ -216,7 +214,7 @@ export const HomePage = () => {
     setIsLoading(true);
     try {
       const [blogsData] = await Promise.all([
-        blogService.fetchAllBlogs(token),
+        blogService.fetchAll(),
         delay
       ]);
       console.log("Fetched blogs:", blogsData);

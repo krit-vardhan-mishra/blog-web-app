@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import DeletedBlogsSkeleton from '../skeleton/pages/DeletedBlogsSkeleton';
 import PermanentDeleteDialog from '../components/ui/modals/PermanentDeleteDialog';
 import useAuth from '../hooks/useAuth';
-import * as blogService from '../api/blogService';
+import blogService from '../api/blogService';
 
 export const DeletedBlogs = () => {
   const { user, token } = useAuth();
@@ -42,7 +42,7 @@ export const DeletedBlogs = () => {
     setIsLoading(true);
     try {
       const [blogsData] = await Promise.all([
-        blogService.fetchDeletedBlogs(token), // Fetch only deleted blogs
+        blogService.fetchDeleted(),
         delay
       ]);
       const userDeletedBlogs = blogsData.filter(blog => blog.author?._id === user?.id && blog.isDeleted);
@@ -57,10 +57,10 @@ export const DeletedBlogs = () => {
 
   const handleRestore = async (id) => {
     try {
-      await blogService.restoreBlog(id, token);
+      await blogService.restore(id, token);
       setNotificationMessage('Post restored successfully.');
       setShowNotification(true);
-      fetchDeletedBlogsData(); // Re-fetch to update the list
+      fetchDeletedBlogsData();
     } catch (error) {
       console.error("Failed to restore blog:", error);
       setNotificationMessage("Failed to restore the post.");
@@ -85,7 +85,7 @@ export const DeletedBlogs = () => {
 
     if (confirmationDeleteId !== null) {
       try {
-        await blogService.permanentlyDeleteBlog(confirmationDeleteId, token);
+        await blogService.permanentlyDelete(confirmationDeleteId, token);
         setNotificationMessage('Blog deleted permanently.');
         setShowNotification(true);
         fetchDeletedBlogsData(); // Re-fetch to update the list

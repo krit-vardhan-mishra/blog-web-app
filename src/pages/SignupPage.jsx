@@ -2,8 +2,8 @@ import FeaturesSidebar from "../components/FeaturesSidebar";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from '../components/ui/button';
-import { register } from '../api/authService';
+import { Button } from '../components/ui/Button';
+import authService from '../api/authService';
 import { useNavigate } from 'react-router-dom';
 import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
 import FormGroup from "../components/form/FormGroup";
@@ -73,7 +73,7 @@ export const SignupPage = () => {
 
     try {
       setIsLoading(true);
-      const data = await register(
+      const data = await authService.register(
         formData.firstName,
         formData.lastName,
         formData.email,

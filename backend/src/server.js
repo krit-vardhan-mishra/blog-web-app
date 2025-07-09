@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 import User from './models/User.js';
 import jwt from 'jsonwebtoken';
 
-
 dotenv.config();
 await connectDB().then(() => console.log("Database connected")).catch(err => console.error("Database connection error:", err));
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import EditPostSkeleton from '../skeleton/component/EditPostSkeleton';
 import { Button } from '../components/ui/Button';
-import { updateBlog, fetchBlogById } from '../api/blogService';
+import blogService from '../api/blogService';
 
 export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTitle = "", content: initialContent = "", blogId, userId, token }) => {
 
@@ -26,7 +26,7 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
 
       try {
         setIsCheckingOwnership(true);
-        const blog = await fetchBlogById(blogId, token);
+        const blog = await blogService.fetchById(blogId);
         console.log("EditPost - Blog data:", blog);
         console.log("EditPost - Blog author:", blog.author);
         console.log("EditPost - Current user ID:", userId);
@@ -91,7 +91,7 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
     }
 
     try {
-      const response = await updateBlog(blogId, { title: title.trim(), content: content.trim() }, token);
+      const response = await blogService.update(blogId, { title: title.trim(), content: content.trim() });
 
       console.log("EditPost - Update response:", response);
       console.log("EditPost - Response type:", typeof response);

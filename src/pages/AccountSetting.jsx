@@ -8,8 +8,8 @@ import Footer from '../components/Footer';
 import AccountSettingSkeleton from '../skeleton/pages/AccountSettingSkeleton';
 import PasswordConfirmationDialog from '../components/ui/PasswordConfirmationDialog';
 import useAuth from '../hooks/useAuth';
-import { updateUserProfile } from '../api/userService';
-import { verifyPassword } from '../api/authService';
+import userService from '../api/userService';
+import authService from '../api/authService';
 
 export const AccountSetting = () => {
     const { user, token, setUser } = useAuth();
@@ -30,11 +30,10 @@ export const AccountSetting = () => {
         about: '',
     });
 
-    // Effect to load user data when component mounts or user/token changes
     useEffect(() => {
         document.title = 'Account Setting';
         const delay = new Promise((resolve) => setTimeout(resolve, 1500));
-        
+
         const loadUserData = async () => {
             if (user) {
                 const [firstName, ...lastNameParts] = user.name ? user.name.split(' ') : ['', ''];
@@ -43,7 +42,7 @@ export const AccountSetting = () => {
                     lastName: lastNameParts.join(' ') || '',
                     email: user.email || '',
                     age: user.age || '',
-                    about: user.about || '', // Ensure 'about' is initialized from user object
+                    about: user.about || '',
                 });
             }
             await delay;
@@ -51,20 +50,18 @@ export const AccountSetting = () => {
         };
 
         loadUserData();
-    }, [user]); // Depend on user object from context
+    }, [user]);
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
     };
 
-    // Use the new verifyPassword API call
     const validatePassword = async (password) => {
         try {
-            const success = await verifyPassword(password, token);
+            const success = await authService.verifyPassword(password);
             return success;
         } catch (error) {
             console.error("Password verification failed:", error);
-            // Specific error message for incorrect password from backend
             if (error.response && error.response.message === 'Incorrect password') {
                 setErrorMessage('Incorrect password. Please try again.');
             } else {
@@ -77,13 +74,13 @@ export const AccountSetting = () => {
     const handlePasswordConfirm = async (e) => {
         e.preventDefault();
         setErrorMessage('');
-        
+
         const isValidPassword = await validatePassword(confirmationPassword);
 
         if (isValidPassword) {
             setIsDialogOpen(false);
             setConfirmationPassword('');
-            
+
             const currentFormData = new FormData(formRef.current);
             const dataToUpdate = {
                 firstName: currentFormData.get('firstName'),
@@ -94,9 +91,9 @@ export const AccountSetting = () => {
             };
 
             try {
-                const response = await updateUserProfile(dataToUpdate, token);
+                const response = await userService.dataToUpdate(dataToUpdate, token);
                 if (response && response.user) {
-                    // Update user in context and localStorage
+
                     setUser(response.user);
                     localStorage.setItem('user', JSON.stringify(response.user));
 
@@ -195,7 +192,7 @@ export const AccountSetting = () => {
                             />
                         </motion.div>
                     </div>
-                    
+
                     {/* Age */}
                     <div className="grid grid-cols-4 gap-4 items-center">
                         <label
@@ -288,7 +285,7 @@ export const AccountSetting = () => {
             </div>
 
             {/* Password Confirmation Dialog */}
-            <PasswordConfirmationDialog 
+            <PasswordConfirmationDialog
                 isOpen={isDialogOpen}
                 onClose={() => {
                     setIsDialogOpen(false);

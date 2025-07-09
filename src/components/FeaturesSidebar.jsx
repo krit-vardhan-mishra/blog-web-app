@@ -3,8 +3,8 @@ import { PenLine, FileTextIcon, Trash, Users, ArrowRightCircle } from "lucide-re
 
 export const FeaturesSidebar = () => {
   return (
-    <div className="flex flex-col items-start justify-center p-10 w-1/2 overflow-y-auto">
-      <div className="flex flex-col items-start gap-6 w-full">
+    <div className="flex flex-col items-start justify-center p-4 sm:p-6 xl:p-10 w-full h-full xl:overflow-y-auto">
+      <div className="flex flex-col items-start gap-4 xl:gap-6 w-full">
         <CardBox 
           title={"Your space to write, express, and connect."} 
           icon={PenLine} 

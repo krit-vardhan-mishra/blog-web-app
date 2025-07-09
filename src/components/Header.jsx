@@ -1,12 +1,25 @@
 import { LogOut, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import HeaderSkeleton from '../skeleton/component/HeaderSkeleton';
+import { useAuth } from '../context/AuthContext';
 
 export const Header = ({ title, icons = [], className, isLoading = false }) => {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
     if (isLoading) {
         return <HeaderSkeleton />
     }
+
+    const handleLogout = () => {
+        try {
+            logout();
+            navigate('/login', { replace: true });
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
 
     return (
         <div
@@ -18,20 +31,31 @@ export const Header = ({ title, icons = [], className, isLoading = false }) => {
             </h1>
             <div className="flex items-center space-x-2 mr-[5px]">
                 {icons.map(({ icon: Icon, link }, index) => (
-                    <Link to={link} key={index}>
+                    Icon === LogOut ? (
+                        // Special handling for logout button
                         <div
-                            className={clsx(
-                                `group p-2 rounded-full transition duration-200 cursor-pointer`,
-                                {
-                                    'hover:bg-red-500/50': Icon === Trash2 && title != "Your Deleted Posts",
-                                    'hover:bg-red-500/80': Icon === LogOut,
-                                    'hover:bg-white/10': Icon !== Trash2 && Icon !== LogOut 
-                                }
-                            )}
+                            key={index}
+                            onClick={handleLogout}
+                            className="group p-2 rounded-full transition duration-200 cursor-pointer hover:bg-red-500/80"
                         >
                             <Icon className="text-white w-6 h-6 transform transition-transform duration-200 group-hover:scale-110" />
                         </div>
-                    </Link>
+                    ) : (
+                        // Regular navigation for other icons
+                        <Link to={link} key={index}>
+                            <div
+                                className={clsx(
+                                    `group p-2 rounded-full transition duration-200 cursor-pointer`,
+                                    {
+                                        'hover:bg-red-500/50': Icon === Trash2 && title != "Your Deleted Posts",
+                                        'hover:bg-white/10': Icon !== Trash2
+                                    }
+                                )}
+                            >
+                                <Icon className="text-white w-6 h-6 transform transition-transform duration-200 group-hover:scale-110" />
+                            </div>
+                        </Link>
+                    )
                 ))}
             </div>
         </div>

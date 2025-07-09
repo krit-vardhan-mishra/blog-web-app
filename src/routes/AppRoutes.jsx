@@ -4,6 +4,7 @@ import SignupPage from '../pages/SignupPage';
 import LoginPage from '../pages/LoginPage';
 import LandingPage from '../pages/LandingPage';
 import PrivateRoute from './PrivateRoute';
+import PublicRoute from './PublicRoute';
 import { HomePage } from '../pages/HomePage';
 import MyPosts from '../pages/MyPosts';
 import DeletedBlogs from '../pages/DeletedBlogs';
@@ -14,10 +15,12 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
       
-      {/* Protected Routes */}
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Route>
+      
       <Route element={<PrivateRoute />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/your-posts" element={<MyPosts />} />

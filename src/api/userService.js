@@ -1,17 +1,10 @@
-import apiCall from './apiService.js';
+import apiClient from './apiService.js';
 
-export const fetchAllUsers = async (token) => {
-    return apiCall('/users', 'GET', null, token);
+const userService = {
+  fetchAll: () => apiClient.get('/users'),
+  fetchById: (userId) => apiClient.get(`/users/${userId}`),
+  create: (userData) => apiClient.post('/users', userData),
+  updateProfile: (userData) => apiClient.put('/user/profile', userData),
 };
 
-export const fetchUserById = async (userId, token) => {
-    return apiCall(`/users/${userId}`, 'GET', null, token);
-};
-
-export const createUser = async (userData, token) => {
-    return apiCall('/users', 'POST', userData, token);
-};
-
-export const updateUserProfile = async (userData, token) => {
-    return apiCall('/user/profile', 'PUT', userData, token);
-};
+export default userService;

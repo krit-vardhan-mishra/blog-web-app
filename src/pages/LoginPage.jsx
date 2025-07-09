@@ -1,21 +1,22 @@
+// LoginPage.jsx
 import { useEffect, useState } from "react";
 import FeaturesSidebar from "../components/FeaturesSidebar";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
-import { login } from '../api/authService';
+// import authService from '../api/authService'; // No longer directly calling authService.login here
 import { useNavigate } from 'react-router-dom';
 import { LoginPageSkeleton } from "../skeleton/pages/LoginPageSkelton";
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext'; // Import useAuth directly
 
 export const LoginPage = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Manage form submission loading separately if needed
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(false);
-  const { loginUser } = useAuth();
+  // Use isAuthenticated from AuthContext
+  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth(); // Destructure isAuthenticated
   const [errors, setErrors] = useState({});
-
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -26,16 +27,25 @@ export const LoginPage = () => {
       const timer = setTimeout(() => {
         setErrors((prevErrors) => ({ ...prevErrors, form: "" }));
       }, 5000);
-
       return () => clearTimeout(timer);
     }
   }, [errors.form]);
 
   useEffect(() => {
     document.title = "Login - Blog App";
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+
+    // Only attempt redirection if auth is not currently loading
+    if (!isAuthLoading) {
+      if (isAuthenticated) { // Rely on isAuthenticated
+        navigate('/home', { replace: true });
+      } else {
+        // If not authenticated and not loading, then form is ready
+        setIsLoading(false); // Ensure form is not in a perpetual loading state
+      }
+    }
+    // No need for a separate timer for `isLoading` here related to initial load
+    // The skeleton should be shown based on `isAuthLoading` or `isLoading` from form submission
+  }, [isAuthenticated, isAuthLoading, navigate]); // Depend on isAuthenticated and isAuthLoading
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -63,150 +73,159 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
+    setIsLoading(true); // Set local loading for form submission
+    setErrors({});
+
     try {
-      setIsLoading(true);
-
-      console.log("Calling login with:", {
-        email: formData.email,
-        password: formData.password
-      });
-
-      const data = await login(formData.email, formData.password);
-      console.log("Login API response:", data);
-      loginUser(data, rememberMe);
-      console.log("navigating to /home");
-      navigate('/home');
+      // Use the login function from AuthContext
+      await login(formData.email, formData.password, rememberMe);
+      // Redirection is now handled by the useEffect based on isAuthenticated state
     } catch (err) {
-      setErrors({ form: err.message });
+      setErrors({ form: err.message || "Login failed. Please try again." });
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset local loading after submission attempt
     }
   };
 
-  if (isLoading) {
+  // Show loading skeleton while AuthContext is initializing or during form submission
+  if (isAuthLoading || isLoading) {
     return <LoginPageSkeleton />;
   }
 
+  // If already authenticated and not loading, navigate away
+  if (!isAuthLoading && isAuthenticated) {
+    return null; // Or a simple loading spinner if you prefer
+  }
+
   return (
-    <div className="flex h-screen bg-[#1C222A]">
-      <FeaturesSidebar />
+    <div className="min-h-screen bg-[#1C222A] flex flex-col xl:flex-row">
+      {/* Features Sidebar - Top on mobile/tablet, Left on desktop */}
+      <div className="xl:w-1/2 w-full xl:min-h-screen">
+        <FeaturesSidebar />
+      </div>
 
-      <div className="flex flex-col items-center justify-center w-1/2 bg-[#2A2E36]">
-        <p className="text-white text-3xl font-bold mb-8">
-          Welcome to Your Blog Space
-        </p>
-        <h1 className="text-white text-4xl font-bold mb-10">Login Here</h1>
+      {/* Login Form - Bottom on mobile/tablet, Right on desktop */}
+      <div className="flex flex-col items-center justify-center xl:w-1/2 w-full bg-[#2A2E36] px-4 py-8 xl:py-0">
+        <div className="w-full max-w-md xl:max-w-lg">
+          <p className="text-white text-2xl xl:text-3xl font-bold mb-6 xl:mb-8 text-center">
+            Welcome to Your Blog Space
+          </p>
+          <h1 className="text-white text-3xl xl:text-4xl font-bold mb-8 xl:mb-10 text-center">
+            Login Here
+          </h1>
 
-        <form className="w-3/4 space-y-6" onSubmit={handleSubmit}>
-          {/* Email Input */}
-          <div className="grid grid-cols-4 gap-4 items-center">
-            <label
-              className="col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
-              htmlFor="email"
-            >
-              <b>Email:</b>
-            </label>
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="col-span-3 w-full"
-            >
-              <input
-                type="email"
-                id="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                placeholder="Enter your email"
-                required
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
-            </motion.div>
-          </div>
-
-          {/* Password Input */}
-          <div className="grid grid-cols-4 gap-4 items-start">
-            <label
-              className="col-span-1 text-white transform transition-transform duration-200 hover:scale-110 pt-3"
-              htmlFor="password"
-            >
-              <b>Password:</b>
-            </label>
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="col-span-3 w-full"
-            >
-              <div className="relative w-full">
+          <form className="w-full space-y-6" onSubmit={handleSubmit}>
+            {/* Email Input */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
+                htmlFor="email"
+              >
+                <b>Email:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
                 <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  autoComplete="new-password"
-                  value={formData.password}
+                  type="email"
+                  id="email"
+                  autoComplete="email"
+                  value={formData.email}
                   onChange={handleChange}
-                  className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                  placeholder="Enter your password"
+                  className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                  placeholder="Enter your email"
                   required
                 />
-                <div
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-white" />
-                  )}
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Password Input */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110 xl:pt-3"
+                htmlFor="password"
+              >
+                <b>Password:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <div className="relative w-full">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <div
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    onClick={togglePasswordVisibility}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-white" />
+                    )}
+                  </div>
                 </div>
-              </div>
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-              )}
-            </motion.div>
-          </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+              </motion.div>
+            </div>
 
-          {/* Remember Me Checkbox */}
-          <div className="flex justify-center space-x-3">
-            <input
-              type="checkbox"
-              id="remember"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
-            />
-            <label htmlFor="remember" className="text-white">
-              <b>Remember Me</b>
-            </label>
-          </div>
+            {/* Remember Me Checkbox */}
+            <div className="flex justify-center space-x-3">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
+              />
+              <label htmlFor="remember" className="text-white">
+                <b>Remember Me</b>
+              </label>
+            </div>
 
-          {
-            errors.form && (
+            {errors.form && (
               <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
-            )
-          }
+            )}
 
-          {/* Login Button */}
-          <div className="flex justify-center mt-6">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white" type="submit">
-                Log in
-              </Button>
-            </motion.div>
-          </div>
-        </form>
+            {/* Login Button */}
+            <div className="flex justify-center mt-6">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                  type="submit"
+                  disabled={isLoading || isAuthLoading} // Disable if either is loading
+                >
+                  {(isLoading || isAuthLoading) ? "Logging in..." : "Log in"}
+                </Button>
+              </motion.div>
+            </div>
+          </form>
 
-        <p className="text-white mt-6">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-400 hover:underline">
-            Sign up
-          </a>
-        </p>
+          <p className="text-white mt-6 text-center">
+            Don't have an account?{" "}
+            <a href="/signup" className="text-blue-400 hover:underline">
+              Sign up
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

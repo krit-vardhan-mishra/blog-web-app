@@ -13,7 +13,7 @@ import EditPostModal from '../components/ui/modals/EditPostModal';
 import QuickStatsModal from '../components/ui/modals/QuickStatsModal';
 import SingleStatModal from '../components/ui/modals/SingleStatModal';
 import useAuth from '../hooks/useAuth';
-import * as blogService from '../api/blogService';
+import blogService from '../api/blogService';
 
 export const MyPosts = () => {
   const { user, token } = useAuth();
@@ -89,7 +89,7 @@ export const MyPosts = () => {
     setIsLoading(true);
     try {
       const [blogsData] = await Promise.all([
-        blogService.fetchAllBlogs(token),
+        blogService.fetchAll(token),
         delay
       ]);
       const userNonDeletedBlogs = blogsData.filter(blog => blog.author?._id === user?.id && !blog.isDeleted);
@@ -177,7 +177,7 @@ export const MyPosts = () => {
   const handlePostDeleteSuccess = async (blogId) => {
     try {
       console.log("Soft deleting blog with token:", token);
-      await blogService.deleteBlog(blogId, token);
+      await blogService.delete(blogId, token);
       setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
       setNotificationMessage("Post moved to trash successfully!");
       setShowNotificationBanner(true);

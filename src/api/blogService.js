@@ -1,58 +1,37 @@
-import apiCall from './apiService.js';
+import apiClient from './apiService.js';
 
-export const fetchAllBlogs = async (token) => {
-  const response = await apiCall('/blogs', 'GET', null, token);
-  const blogs = response.blogs || response;
-  return blogs.map((blog) => ({
-    ...blog,
-    _id: blog._id || blog.id,
-  }));
+const blogService = {
+  fetchAll: async () => {
+    const response = await apiClient.get('/blogs');
+    const blogs = response.blogs || response;
+    return blogs.map((blog) => ({
+      ...blog,
+      _id: blog._id || blog.id,
+    }));
+  },
+  
+  fetchById: (blogId) => apiClient.get(`/blogs/${blogId}`),
+  
+  create: (blogData) => apiClient.post('/blogs', blogData),
+  
+  update: (blogId, blogData) => apiClient.put(`/blogs/${blogId}`, blogData),
+  
+  delete: (blogId) => apiClient.delete(`/blogs/${blogId}`),
+  
+  permanentlyDelete: (blogId) => apiClient.delete(`/blogs/permanent/${blogId}`),
+  
+  restore: (blogId) => apiClient.post(`/blogs/restore/${blogId}`),
+  
+  incrementView: (blogId) => apiClient.post(`/blogs/increment-view/${blogId}`),
+  
+  fetchDeleted: async () => {
+    const response = await apiClient.get('/blogs/deleted');
+    const blogs = response.blogs || response;
+    return blogs.map((blog) => ({
+      ...blog,
+      _id: blog._id || blog.id,
+    }));
+  },
 };
 
-export const fetchBlogById = async (blogId, token) => {
-  return apiCall(`/blogs/${blogId}`, 'GET', null, token);
-};
-
-export const createBlog = async (blogData, token) => {
-  return apiCall('/blogs', 'POST', blogData, token);
-};
-
-export const updateBlog = async (blogId, blogData, token) => {
-  return apiCall(`/blogs/${blogId}`, 'PUT', blogData, token);
-};
-
-export const deleteBlog = async (blogId, token) => {
-  return apiCall(`/blogs/${blogId}`, 'DELETE', null, token);
-};
-
-export const permanentlyDeleteBlog = async (blogId, token) => {
-  return apiCall(`/blogs/permanent/${blogId}`, 'DELETE', null, token);
-};
-
-export const restoreBlog = async (blogId, token) => {
-  return apiCall(`/blogs/restore/${blogId}`, 'POST', null, token);
-};
-
-export const incrementBlogView = async (blogId, token) => {
-  const res = await fetch(`http://localhost:5000/api/blogs/increment-view/${blogId}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to increment view count');
-  }
-
-  return await res.json();
-};
-
-export const fetchDeletedBlogs = async (token) => {
-  const response = await apiCall('/blogs/deleted', 'GET', null, token);
-  const blogs = response.blogs || response;
-  return blogs.map((blog) => ({
-    ...blog,
-    _id: blog._id || blog.id,
-  }));
-};
+export default blogService;
