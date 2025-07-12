@@ -263,10 +263,17 @@ export const HomePage = () => {
               <DropdownMenuItem onClick={() => navigate('/account-setting')}>
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                logout();
-                navigate('/login', { replace: true });
-              }} className="hover:bg-red-900">
+              <DropdownMenuItem
+                onClick={() => {
+                  logout();
+                  navigate('/login', { replace: true });
+                }}
+                style={{
+                  '--hover-bg': '#7f1d1d',
+                  '--hover-text': '#ffffff'
+                }}
+                className="hover:bg-[--hover-bg] hover:text-[--hover-text] focus:bg-[--hover-bg] focus:text-[--hover-text]"
+              >
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

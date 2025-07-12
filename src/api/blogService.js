@@ -9,21 +9,17 @@ const blogService = {
       _id: blog._id || blog.id,
     }));
   },
-  
+
   fetchById: (blogId) => apiClient.get(`/blogs/${blogId}`),
-  
   create: (blogData) => apiClient.post('/blogs', blogData),
-  
   update: (blogId, blogData) => apiClient.put(`/blogs/${blogId}`, blogData),
-  
   delete: (blogId) => apiClient.delete(`/blogs/${blogId}`),
-  
   permanentlyDelete: (blogId) => apiClient.delete(`/blogs/permanent/${blogId}`),
-  
   restore: (blogId) => apiClient.post(`/blogs/restore/${blogId}`),
-  
-  incrementView: (blogId) => apiClient.post(`/blogs/increment-view/${blogId}`),
-  
+  incrementView: (blogId) => {
+    console.log('Calling incrementView with blogId:', blogId);
+    return apiClient.post(`/blogs/increment-view/${blogId}`);
+  },
   fetchDeleted: async () => {
     const response = await apiClient.get('/blogs/deleted');
     const blogs = response.blogs || response;

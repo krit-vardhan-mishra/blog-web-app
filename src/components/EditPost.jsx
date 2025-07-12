@@ -120,7 +120,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
         response: err.response
       });
       
-      // Handle specific error cases
       if (err.statusCode === 403 || err.status === 403) {
         onUpdateSuccess("You are not authorized to edit this blog");
       } else if (err.statusCode === 401 || err.status === 401) {

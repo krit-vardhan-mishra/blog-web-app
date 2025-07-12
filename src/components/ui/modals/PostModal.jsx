@@ -6,7 +6,7 @@ import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
-import * as blogService from '../../../api/blogService';
+import blogService from '../../../api/blogService';
 
 const PostModal = ({
   isOpen, onClose, title, content, author,
@@ -19,31 +19,33 @@ const PostModal = ({
   const hasIncrementedRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen && blogId && token && !hasIncrementedRef.current) {
-      hasIncrementedRef.current = true;
-      
-      const incrementView = async () => {
-        try {
-          const updatedBlogResponse = await blogService.incrementBlogView(blogId, token);
-          const newViews = updatedBlogResponse.blog.views;
-          setCurrentViews(newViews);
-          if (onViewIncrement) {
-            onViewIncrement(blogId, newViews);
-          }
-          hasIncrementedRef.current = true;
-        } catch (error) {
-          console.error("Failed to increment blog view:", error);
+  if (isOpen && blogId && token && !hasIncrementedRef.current) {
+    if (!blogService.incrementView) {
+      console.error('blogService.incrementView is not defined');
+      return;
+    }
+    hasIncrementedRef.current = true;
+
+    const incrementView = async () => {
+      try {
+        const updatedBlogResponse = await blogService.incrementView(blogId);
+        const newViews = updatedBlogResponse.views;
+        setCurrentViews(newViews);
+        if (onViewIncrement) {
+          onViewIncrement(blogId, newViews);
         }
-      };
-      incrementView();
-    }
+      } catch (error) {
+        console.error('Failed to increment blog view:', error);
+      }
+    };
+    incrementView();
+  }
 
-    if (!isOpen) {
-      hasIncrementedRef.current = false;
-    }
-  }, [isOpen, blogId, token]);
-
-
+  if (!isOpen) {
+    hasIncrementedRef.current = false;
+  }
+}, [isOpen, blogId, token]);
+  
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

@@ -15,17 +15,15 @@ const authService = {
     if (!email || !password) {
       throw new Error("Email and password are required");
     }
-    
+
     const response = await apiClient.post('/auth/login', { email, password });
-    
-    // Store token and user data
     if (response.token) {
       localStorage.setItem('token', response.token);
     }
     if (response.user) {
       localStorage.setItem('user', JSON.stringify(response.user));
     }
-    
+
     return response;
   },
 
