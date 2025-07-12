@@ -23,6 +23,7 @@
     "dotenv": "^16.6.0",
     "express": "^5.1.0",
     "framer-motion": "^12.18.1",
+    "googleapis": "^152.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.522.0",
     "mongoose": "^8.16.1",
