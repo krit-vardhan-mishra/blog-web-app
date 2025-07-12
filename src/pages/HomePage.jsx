@@ -225,7 +225,6 @@ export const HomePage = () => {
         blogService.fetchAll(),
         delay
       ]);
-      console.log("Fetched blogs:", blogsData);
       setAllBlogs(blogsData);
     } catch (error) {
       console.error("Failed to fetch blogs", error);

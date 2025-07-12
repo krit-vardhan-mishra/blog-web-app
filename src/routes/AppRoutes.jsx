@@ -10,6 +10,7 @@ import MyPosts from '../pages/MyPosts';
 import DeletedBlogs from '../pages/DeletedBlogs';
 import AccountSetting from '../pages/AccountSetting';
 import NotFound from '../pages/NotFound';
+import GoogleAuthHandler from '../context/GoogleAuthHandler';
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/google-auth" element={<GoogleAuthHandler />} />
       </Route>
       
       <Route element={<PrivateRoute />}>

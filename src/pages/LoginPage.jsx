@@ -12,7 +12,7 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(false);
-  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth(); 
+  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth();
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     email: "",
@@ -38,7 +38,7 @@ export const LoginPage = () => {
         setIsLoading(false);
       }
     }
-  }, [isAuthenticated, isAuthLoading, navigate]); 
+  }, [isAuthenticated, isAuthLoading, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -68,7 +68,7 @@ export const LoginPage = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsLoading(true); 
+    setIsLoading(true);
     setErrors({});
 
     try {
@@ -76,7 +76,7 @@ export const LoginPage = () => {
     } catch (err) {
       setErrors({ form: err.message || "Login failed. Please try again." });
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -207,6 +207,18 @@ export const LoginPage = () => {
               </motion.div>
             </div>
           </form>
+
+          {/* Google Sign-in Button */}
+          <div className="flex justify-center mt-4">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+              >
+                Sign in with Google
+              </Button>
+            </motion.div>
+          </div>
 
           <p className="text-white mt-6 text-center">
             Don't have an account?{" "}

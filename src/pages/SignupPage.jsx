@@ -94,111 +94,230 @@ export const SignupPage = () => {
   }
 
   return (
-    <div className="flex h-screen bg-[#1C222A]">
-      <FeaturesSidebar />
-      <div className="flex flex-col items-center justify-center w-1/2 bg-[#2A2E36]">
-        <p className="text-white text-3xl font-bold mb-8">Welcome to Your Blog Space</p>
-        <h1 className="text-white text-4xl font-bold mb-10">Sign up Here</h1>
+    <div className="min-h-screen bg-[#1C222A] flex flex-col xl:flex-row">
+      {/* Features Sidebar - Top on mobile/tablet, Left on desktop */}
+      <div className="xl:w-1/2 w-full xl:min-h-screen">
+        <FeaturesSidebar />
+      </div>
 
-        <form className="w-3/4 space-y-6" onSubmit={handleSubmit}>
-          {/* First Name */}
-          <FormGroup
-            id="firstName"
-            label="First Name:"
-            value={formData.firstName}
-            onChange={handleChange}
-            error={errors.firstName}
-          />
+      {/* Signup Form - Bottom on mobile/tablet, Right on desktop */}
+      <div className="flex flex-col items-center justify-center xl:w-1/2 w-full bg-[#2A2E36] px-4 py-8 xl:py-0">
+        <div className="w-full max-w-md xl:max-w-lg">
+          <p className="text-white text-2xl xl:text-3xl font-bold mb-6 xl:mb-8 text-center">
+            Welcome to Your Blog Space
+          </p>
+          <h1 className="text-white text-3xl xl:text-4xl font-bold mb-8 xl:mb-10 text-center">
+            Sign up Here
+          </h1>
 
-          {/* Last Name */}
-          <FormGroup
-            id="lastName"
-            label="Last Name:"
-            value={formData.lastName}
-            onChange={handleChange}
-            error={errors.lastName}
-          />
-
-          {/* Email */}
-          <FormGroup
-            id="email"
-            label="Email:"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-            type="email"
-          />
-
-          {/* Age */}
-          <FormGroup
-            id="age"
-            label="Age:"
-            value={formData.age}
-            onChange={handleChange}
-            error={errors.age}
-            type="number"
-            min="1"
-          />
-
-          {/* Password */}
-          <div className="grid grid-cols-4 gap-4 items-center">
-            <label htmlFor="password" className="col-span-1 text-white hover:scale-110 transition-transform duration-200">
-              <b>Password:</b>
-            </label>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="col-span-3 relative w-full">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
-                placeholder="Enter your password"
-                required
-              />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onClick={togglePasswordVisibility}>
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400 hover:text-white" />
+          <form className="w-full space-y-6" onSubmit={handleSubmit}>
+            {/* First Name */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
+                htmlFor="firstName"
+              >
+                <b>First Name:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <input
+                  type="text"
+                  id="firstName"
+                  autoComplete="given-name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                  placeholder="Enter your first name"
+                  required
+                />
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
                 )}
-              </div>
-            </motion.div>
-            {errors.password && (
-              <p className="col-span-4 text-red-500 text-sm mt-1 text-center">{errors.password}</p>
-            )}
-          </div>
+              </motion.div>
+            </div>
 
-          {/* Display server error */}
-          {errors.form && (
-            <p className="text-red-500 text-sm mt-1 text-center">{errors.form}</p>
-          )}
+            {/* Last Name */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
+                htmlFor="lastName"
+              >
+                <b>Last Name:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <input
+                  type="text"
+                  id="lastName"
+                  autoComplete="family-name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                  placeholder="Enter your last name"
+                  required
+                />
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                )}
+              </motion.div>
+            </div>
 
-          {/* Remember Me */}
-          <div className="flex justify-center space-x-3">
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} id="remember" className="h-5 w-5" />
-            <label htmlFor="remember" className="text-white"><b>Remember Me</b></label>
-          </div>
+            {/* Email */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
+                htmlFor="email"
+              >
+                <b>Email:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <input
+                  type="email"
+                  id="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                  placeholder="Enter your email"
+                  required
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+              </motion.div>
+            </div>
 
-          {
-            errors.form && (
+            {/* Age */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
+                htmlFor="age"
+              >
+                <b>Age:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <input
+                  type="number"
+                  id="age"
+                  min="1"
+                  value={formData.age}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                  placeholder="Enter your age"
+                  required
+                />
+                {errors.age && (
+                  <p className="text-red-500 text-sm mt-1">{errors.age}</p>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0">
+              <label
+                className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110 xl:pt-3"
+                htmlFor="password"
+              >
+                <b>Password:</b>
+              </label>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="xl:col-span-3 w-full"
+              >
+                <div className="relative w-full">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    autoComplete="new-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <div
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    onClick={togglePasswordVisibility}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-white" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-white" />
+                    )}
+                  </div>
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex justify-center space-x-3">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
+              />
+              <label htmlFor="remember" className="text-white">
+                <b>Remember Me</b>
+              </label>
+            </div>
+
+            {errors.form && (
               <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
-            )
-          }
+            )}
 
-          {/* Submit */}
-          <div className="flex justify-center mt-6">
+            {/* Signup Button */}
+            <div className="flex justify-center mt-6">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Signing up..." : "Sign up"}
+                </Button>
+              </motion.div>
+            </div>
+          </form>
+
+          <div className="flex justify-center mt-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-lg rounded-xl" type="submit">
-                Sign up
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+              >
+                Sign up with Google
               </Button>
             </motion.div>
           </div>
-        </form>
 
-        <p className="text-white mt-6">
-          Already have an account?{" "}
-          <a href="/login" className="text-blue-400 hover:underline">Log in</a>
-        </p>
+          <p className="text-white mt-6 text-center">
+            Already have an account?{" "}
+            <a href="/login" className="text-blue-400 hover:underline">
+              Log in
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
