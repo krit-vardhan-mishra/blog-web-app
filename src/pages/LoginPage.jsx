@@ -190,6 +190,28 @@ export const LoginPage = () => {
               </label>
             </div>
 
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
+                />
+                <label htmlFor="remember" className="text-white">
+                  <b>Remember Me</b>
+                </label>
+              </div>
+              <a
+                href="/forgot-password"
+                className="text-blue-400 hover:underline text-sm"
+              >
+                Forgot Password?
+              </a>
+            </div>
+
+
             {errors.form && (
               <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
             )}

@@ -108,7 +108,7 @@ export const HomePage = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const data = await userService.updateUserProfile();
+        const data = await userService.getCurrentUser();
         if (data.user) {
           setUser(data.user);
         } else {
@@ -263,8 +263,8 @@ export const HomePage = () => {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  logout();
+                onClick={async () => { // Make onClick handler async
+                  await logout(); // Await the logout call
                   navigate('/login', { replace: true });
                 }}
                 style={{

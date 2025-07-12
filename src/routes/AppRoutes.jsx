@@ -11,25 +11,29 @@ import DeletedBlogs from '../pages/DeletedBlogs';
 import AccountSetting from '../pages/AccountSetting';
 import NotFound from '../pages/NotFound';
 import GoogleAuthHandler from '../context/GoogleAuthHandler';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      
+
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/google-auth" element={<GoogleAuthHandler />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
-      
+
       <Route element={<PrivateRoute />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/your-posts" element={<MyPosts />} />
         <Route path="/deleted" element={<DeletedBlogs />} />
         <Route path="/account-setting" element={<AccountSetting />} />
       </Route>
-      
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

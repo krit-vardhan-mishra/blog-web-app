@@ -84,10 +84,10 @@ export const AccountSetting = () => {
             const currentFormData = new FormData(formRef.current);
             const dataToUpdate = {
                 firstName: currentFormData.get('firstName'),
-                lastName: currentFormData.get('lastName'),
                 email: currentFormData.get('email'),
                 age: currentFormData.get('age'),
                 about: currentFormData.get('about'),
+                ...(lastName && {lastName}),
             };
 
             try {
@@ -188,7 +188,6 @@ export const AccountSetting = () => {
                                 onChange={handleChange}
                                 className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                                 placeholder="Enter your updated last name"
-                                required
                             />
                         </motion.div>
                     </div>

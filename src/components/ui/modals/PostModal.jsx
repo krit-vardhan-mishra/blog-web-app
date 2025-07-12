@@ -21,7 +21,6 @@ const PostModal = ({
   useEffect(() => {
   if (isOpen && blogId && token && !hasIncrementedRef.current) {
     if (!blogService.incrementView) {
-      console.error('blogService.incrementView is not defined');
       return;
     }
     hasIncrementedRef.current = true;

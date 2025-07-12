@@ -69,12 +69,18 @@ export const AuthProvider = ({ children }) => {
     setUser(user);
   };
 
-  const logout = () => {
-    authService.logout();
-    clearAuthData();
+  const logout = async () => { // Made async
+    try {
+      await authService.logout(); // Await the server-side logout
+    } catch (error) {
+      console.error("Error during server-side logout:", error);
+      // You might want to show a notification to the user here
+    } finally {
+      clearAuthData(); // Always clear client-side data regardless of server-side success
+    }
   };
 
-   const clearAuthData = () => {
+  const clearAuthData = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem('token');
@@ -83,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
-  const logoutUser = () => {
+  const logoutUser = () => { // This function is redundant if `logout` is used, but kept as is for now.
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem('token');
