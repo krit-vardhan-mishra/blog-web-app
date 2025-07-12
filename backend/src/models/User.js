@@ -33,7 +33,6 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Virtual for blogs
 userSchema.virtual('blogs', {
   ref: 'Blog',
   localField: '_id',
@@ -41,7 +40,6 @@ userSchema.virtual('blogs', {
   justOne: false
 });
 
-// Methods
 userSchema.methods = {
   comparePassword: async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -60,7 +58,6 @@ userSchema.methods = {
   }
 };
 
-// Static methods
 userSchema.statics = {
   async getUsersWithBlogs() {
     return this.find().populate('blogs').exec();

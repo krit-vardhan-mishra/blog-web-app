@@ -31,7 +31,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
         console.log("EditPost - Blog author:", blog.author);
         console.log("EditPost - Current user ID:", userId);
         
-        // Handle author comparison more robustly
         let authorId;
         if (typeof blog.author === 'object' && blog.author._id) {
           authorId = blog.author._id;
@@ -72,7 +71,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
   const postEditedBlog = async (e) => {
     e.preventDefault();
 
-    // Check if user is authorized to edit
     if (!isAuthor) {
       onUpdateSuccess("You are not authorized to edit this blog");
       return;
@@ -97,22 +95,18 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
       console.log("EditPost - Response type:", typeof response);
       console.log("EditPost - Response keys:", response ? Object.keys(response) : 'null');
 
-      // More flexible response checking
       if (response) {
-        // Check for various success indicators
         if (response.success === true || 
             response.updated === true || 
             response.status === 'success' ||
             response.message?.toLowerCase().includes('success') ||
             response.message?.toLowerCase().includes('updated') ||
             (response.status >= 200 && response.status < 300) ||
-            // If response has the updated blog data, it's likely successful
             (response.title && response.content)) {
           onUpdateSuccess("Blog Updated Successfully!");
         } else {
-          // Log the actual response to understand its structure
           console.warn("EditPost - Unexpected response format:", response);
-          onUpdateSuccess("Blog Updated Successfully!"); // Assume success if no error was thrown
+          onUpdateSuccess("Blog Updated Successfully!"); 
         }
       } else {
         throw new Error("No response received from server");
@@ -136,8 +130,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
       } else if (err.statusCode === 400 || err.status === 400) {
         onUpdateSuccess("Invalid blog data provided");
       } else {
-        // If the database is actually updating but we're getting here,
-        // it might be a response parsing issue
         onUpdateSuccess(err.message || "Update may have failed - please refresh to check");
       }
     }
@@ -147,7 +139,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
     return <EditPostSkeleton />
   }
 
-  // Don't render the form if user is not the author
   if (!isAuthor) {
     return (
       <div className="text-white text-center p-8">

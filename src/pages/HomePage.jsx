@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
 } from "../components/ui/dropdown-menu.jsx";
 import { useNavigate } from 'react-router';
 

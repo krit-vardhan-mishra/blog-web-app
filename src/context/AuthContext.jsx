@@ -1,4 +1,3 @@
-// AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authService from '../api/authService';
 
@@ -7,14 +6,13 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true); // Renamed 'loading' for clarity
-
-  // Define isAuthenticated here, derived from user and token
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  
   const isAuthenticated = !!user && !!token;
 
   useEffect(() => {
     const initializeAuth = () => {
-      setIsAuthLoading(true); // Set loading to true at the start of initialization
+      setIsAuthLoading(true);
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const userJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
       const user = userJSON ? JSON.parse(userJSON) : null;
@@ -23,40 +21,39 @@ export const AuthProvider = ({ children }) => {
         setToken(token);
         setUser(user);
       }
-      setIsAuthLoading(false); // Set loading to false after initialization
+      setIsAuthLoading(false); 
     };
 
     initializeAuth();
   }, []);
 
-  const login = async (email, password, rememberMe) => { // Add rememberMe here
-    setIsAuthLoading(true); // Set loading to true when login starts
+  const login = async (email, password, rememberMe) => {
+    setIsAuthLoading(true);
     try {
       const response = await authService.login(email, password);
-      // Pass rememberMe to loginUser
       loginUser({ token: response.token, user: response.user }, rememberMe);
-      return response; // Return response for LoginPage to handle
+      return response; 
     } catch (error) {
-      setUser(null); // Clear user/token on error
+      setUser(null);
       setToken(null);
       throw error;
     } finally {
-      setIsAuthLoading(false); // Set loading to false when login finishes
+      setIsAuthLoading(false);
     }
   };
 
   const register = async (firstName, lastName, email, password, age) => {
-    setIsAuthLoading(true); // Set loading to true when register starts
+    setIsAuthLoading(true);
     try {
       const response = await authService.register(firstName, lastName, email, password, age);
       loginUser({ token: response.token, user: response.user });
-      return response; // Return response
+      return response;
     } catch (error) {
-      setUser(null); // Clear user/token on error
+      setUser(null);
       setToken(null);
       throw error;
     } finally {
-      setIsAuthLoading(false); // Set loading to false when register finishes
+      setIsAuthLoading(false);
     }
   };
 
@@ -92,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     setUser(null);
-    setToken(null); // Ensure token is also cleared
+    setToken(null);
   };
 
 

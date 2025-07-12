@@ -2,7 +2,6 @@ import express from 'express';
 
 const router = express.Router();
 
-// Endpoint to verify user's password
 router.post('/api/auth/verify-password', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -29,7 +28,6 @@ router.post('/api/auth/verify-password', authenticateToken, async (req, res) => 
   }
 });
 
-// Auth Routes
 router.post('/api/auth/register', async (req, res) => {
   try {
     const { firstName, lastName, email, password, age } = req.body;
@@ -60,5 +58,3 @@ router.post('/api/auth/register', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-

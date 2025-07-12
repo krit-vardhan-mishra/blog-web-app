@@ -43,7 +43,6 @@ const StaticInfoModal = ({ activeCard, onClose }) => {
             className="relative w-full max-w-lg p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Move the CardBox into a relative container with the X button */}
             <div className="relative">
               <button 
                 onClick={onClose} 

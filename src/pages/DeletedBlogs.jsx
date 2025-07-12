@@ -68,7 +68,6 @@ export const DeletedBlogs = () => {
     }
   };
 
-  // Trigger dialog for permanent delete
   const handleDelete = (id) => {
     setConfirmationDeleteId(id);
     setIsDialogOpen(true);
@@ -79,7 +78,6 @@ export const DeletedBlogs = () => {
     }, 800);
   };
 
-  // Confirm permanent deletion
   const handleDeletionConfirm = async (e) => {
     e.preventDefault();
 
@@ -88,7 +86,7 @@ export const DeletedBlogs = () => {
         await blogService.permanentlyDelete(confirmationDeleteId, token);
         setNotificationMessage('Blog deleted permanently.');
         setShowNotification(true);
-        fetchDeletedBlogsData(); // Re-fetch to update the list
+        fetchDeletedBlogsData(); 
       } catch (error) {
         console.error("Failed to permanently delete blog:", error);
         setNotificationMessage("Failed to permanently delete the post.");

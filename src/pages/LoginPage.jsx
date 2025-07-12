@@ -1,21 +1,18 @@
-// LoginPage.jsx
 import { useEffect, useState } from "react";
 import FeaturesSidebar from "../components/FeaturesSidebar";
 import { Button } from "../components/ui/Button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
-// import authService from '../api/authService'; // No longer directly calling authService.login here
 import { useNavigate } from 'react-router-dom';
 import { LoginPageSkeleton } from "../skeleton/pages/LoginPageSkelton";
-import { useAuth } from '../context/AuthContext'; // Import useAuth directly
+import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
-  const [isLoading, setIsLoading] = useState(false); // Manage form submission loading separately if needed
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(false);
-  // Use isAuthenticated from AuthContext
-  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth(); // Destructure isAuthenticated
+  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth(); 
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     email: "",
@@ -34,18 +31,14 @@ export const LoginPage = () => {
   useEffect(() => {
     document.title = "Login - Blog App";
 
-    // Only attempt redirection if auth is not currently loading
     if (!isAuthLoading) {
-      if (isAuthenticated) { // Rely on isAuthenticated
+      if (isAuthenticated) {
         navigate('/home', { replace: true });
       } else {
-        // If not authenticated and not loading, then form is ready
-        setIsLoading(false); // Ensure form is not in a perpetual loading state
+        setIsLoading(false);
       }
     }
-    // No need for a separate timer for `isLoading` here related to initial load
-    // The skeleton should be shown based on `isAuthLoading` or `isLoading` from form submission
-  }, [isAuthenticated, isAuthLoading, navigate]); // Depend on isAuthenticated and isAuthLoading
+  }, [isAuthenticated, isAuthLoading, navigate]); 
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -75,28 +68,24 @@ export const LoginPage = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsLoading(true); // Set local loading for form submission
+    setIsLoading(true); 
     setErrors({});
 
     try {
-      // Use the login function from AuthContext
       await login(formData.email, formData.password, rememberMe);
-      // Redirection is now handled by the useEffect based on isAuthenticated state
     } catch (err) {
       setErrors({ form: err.message || "Login failed. Please try again." });
     } finally {
-      setIsLoading(false); // Reset local loading after submission attempt
+      setIsLoading(false); 
     }
   };
 
-  // Show loading skeleton while AuthContext is initializing or during form submission
   if (isAuthLoading || isLoading) {
     return <LoginPageSkeleton />;
   }
 
-  // If already authenticated and not loading, navigate away
   if (!isAuthLoading && isAuthenticated) {
-    return null; // Or a simple loading spinner if you prefer
+    return null;
   }
 
   return (
@@ -211,7 +200,7 @@ export const LoginPage = () => {
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                   type="submit"
-                  disabled={isLoading || isAuthLoading} // Disable if either is loading
+                  disabled={isLoading || isAuthLoading}
                 >
                   {(isLoading || isAuthLoading) ? "Logging in..." : "Log in"}
                 </Button>
