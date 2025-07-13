@@ -9,8 +9,8 @@ const PublicRoute = ({ redirectPath = '/home' }) => {
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }
-  
-  return !isAuthenticated ? <Outlet /> : <Navigate to="/home" replace />;
+
+  return !isAuthenticated ? <Outlet /> : <Navigate to={redirectPath} replace />;
 };
 
 export default PublicRoute;

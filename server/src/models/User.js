@@ -3,29 +3,68 @@ import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   name: {
-    type: String, required: true, trim: true
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 2,
+    maxlength: 50
   },
   email: {
-    type: String, required: true, unique: true, trim: true, lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please fill a valid email address'
+    ]
   },
   password: {
-    type: String, required: true, minlength: 8, select: false
+    type: String,
+    required: true,
+    minlength: 8,
+    select: false
   },
   age: {
-    type: Number, default: 1, min: [0, 'Age cannot be negative']
+    type: Number,
+    default: 1,
+    min: [13, 'You must be at least 13 years old'],
+    max: [120, 'Please enter a valid age']
   },
   about: {
-    type: String, trim: true, default: ''
+    type: String,
+    trim: true,
+    default: '',
+    maxlength: 500
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0,
+    select: false
+  },
+  blockExpires: {
+    type: Date,
+    default: null,
+    select: false
+  },
+  lastLogin: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true,
-  toObject: { virtuals: true },
   toJSON: {
     virtuals: true,
-    transform: function (doc, ret) {
+    transform(doc, ret) {
       delete ret.password;
       delete ret.__v;
+      delete ret.loginAttempts;
+      delete ret.blockExpires;
       ret.id = ret._id;
       delete ret._id;
       return ret;
@@ -41,20 +80,16 @@ userSchema.virtual('blogs', {
 });
 
 userSchema.methods = {
-  comparePassword: async function (candidatePassword) {
+  async comparePassword(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
   },
 
   canPostBlog() {
-    return this.age >= 10;
+    return this.age >= 13;
   },
 
-  toJSON() {
-    const obj = this.toObject();
-    obj.id = obj._id;
-    delete obj._id;
-    delete obj.__v;
-    return obj;
+  isAccountLocked() {
+    return this.blockExpires && this.blockExpires > Date.now();
   }
 };
 
@@ -83,17 +118,21 @@ userSchema.statics = {
 };
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  if (this.isModified('password')) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+      return next(error);
+    }
   }
+
+  if (this.isModified('loginAttempts')) {
+    this.lastLogin = new Date();
+  }
+
+  next();
 });
 
 const User = mongoose.model('User', userSchema);
-
 export default User;

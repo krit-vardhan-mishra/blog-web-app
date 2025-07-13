@@ -1,36 +1,96 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import OTP from '../models/OTP.js';
+import sendOTPEmail from '../utils/sendOTPEmail.js';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+
+const otpRateLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 15 * 60,
+});
 
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password)
-      return res.status(400).json({ message: 'Email and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user)
-      return res.status(404).json({ message: 'User not found, please check details or sign up' });
+    const user = await User.findOne({ email }).select('+password +loginAttempts +blockExpires');
+
+    if (user?.blockExpires && user.blockExpires > Date.now()) {
+      return res.status(429).json({
+        success: false,
+        message: `Account temporarily locked. Try again after ${Math.ceil((user.blockExpires - Date.now()) / 60000)} minutes`
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found. Please check details or sign up'
+      });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Email not verified. Please verify your email before logging in.'
+      });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch)
-      return res.status(401).json({ message: 'Invalid password' });
+    if (!isMatch) {
+      user.loginAttempts += 1;
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      if (user.loginAttempts >= 5) {
+        user.blockExpires = Date.now() + 30 * 60 * 1000;
+        await user.save();
+
+        return res.status(429).json({
+          success: false,
+          message: 'Too many failed attempts. Account locked for 30 minutes.'
+        });
+      }
+
+      await user.save();
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid password'
+      });
+    }
+
+    user.loginAttempts = 0;
+    user.blockExpires = undefined;
+    await user.save();
+
+    const token = jwt.sign({
+      id: user._id,
+      email: user.email
+    }, process.env.JWT_SECRET, {
+      expiresIn: '24h'
+    });
 
     res.json({
+      success: true,
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        age: user.age,
-        about: user.about,
-      },
+        age: user.age
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 };
 
@@ -38,28 +98,152 @@ export const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, age } = req.body;
 
-    if (!email || !password || !firstName || !lastName || !age)
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!email || !password || !firstName || !lastName || !age) {
+      return res.status(422).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(409).json({ message: 'User already exists, please login' });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'User already exists. Please login instead.'
+      });
+    }
+
+    try {
+      await otpRateLimiter.consume(email);
+    } catch (rateLimiterRes) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many OTP requests. Please try again later.'
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await OTP.create({ email, otp, type: 'signup' });
+    await sendOTPEmail(email, otp, 'signup');
 
     const user = await User.create({
       name: `${firstName} ${lastName}`,
       email,
       password,
       age: parseInt(age),
+      isVerified: false
     });
-
-    const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({
-      user: { id: user._id, name: user.name, email: user.email, age: user.age },
-      token,
+      success: true,
+      message: 'OTP sent to your email',
+      email
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+export const verifySignup = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const otpRecord = await OTP.findOneAndDelete({
+      email,
+      otp,
+      type: 'signup',
+      createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) } // 5 minutes expiry
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP'
+      });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      { isVerified: true },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const token = jwt.sign({
+      id: user._id,
+      email: user.email
+    }, process.env.JWT_SECRET, {
+      expiresIn: '24h'
+    });
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age
+      }
+    });
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+export const resendOTP = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+
+    if (!['signup', 'reset'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP type'
+      });
+    }
+
+    try {
+      await otpRateLimiter.consume(`${email}:${type}`);
+    } catch (rateLimiterRes) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many OTP requests. Please try again later.'
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await OTP.findOneAndUpdate(
+      { email, type },
+      { otp, createdAt: new Date() },
+      { upsert: true }
+    );
+
+    await sendOTPEmail(email, otp, type);
+
+    res.json({
+      success: true,
+      message: 'OTP resent successfully'
+    });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 };
 
@@ -68,20 +252,38 @@ export const verifyPassword = async (req, res) => {
     const userId = req.user.id;
     const { password } = req.body;
 
-    if (!password)
-      return res.status(400).json({ message: 'Password is required' });
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required'
+      });
+    }
 
     const user = await User.findById(userId).select('+password');
-    if (!user)
-      return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch)
-      return res.status(401).json({ message: 'Incorrect password' });
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Incorrect password'
+      });
+    }
 
-    res.status(200).json({ success: true, message: 'Password verified' });
+    res.status(200).json({
+      success: true,
+      message: 'Password verified'
+    });
   } catch (error) {
     console.error('Password verification error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
   }
 };

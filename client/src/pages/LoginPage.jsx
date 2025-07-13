@@ -177,21 +177,8 @@ export const LoginPage = () => {
             </div>
 
             {/* Remember Me Checkbox */}
-            <div className="flex justify-center space-x-3">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
-              />
-              <label htmlFor="remember" className="text-white">
-                <b>Remember Me</b>
-              </label>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+            <div className="flex justify-center">
+              <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   id="remember"
@@ -203,6 +190,10 @@ export const LoginPage = () => {
                   <b>Remember Me</b>
                 </label>
               </div>
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="flex justify-center">
               <a
                 href="/forgot-password"
                 className="text-blue-400 hover:underline text-sm"
@@ -211,9 +202,19 @@ export const LoginPage = () => {
               </a>
             </div>
 
-
             {errors.form && (
               <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
+            )}
+
+            {errors.form?.includes('Email not verified') && (
+              <div className="text-center mt-2">
+                <button
+                  onClick={() => navigate('/resend-verification', { state: { email: formData.email } })}
+                  className="text-blue-400 hover:underline"
+                >
+                  Resend verification email
+                </button>
+              </div>
             )}
 
             {/* Login Button */}

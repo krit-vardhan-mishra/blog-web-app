@@ -60,72 +60,103 @@ export async function getUsersWithoutBlogs() {
   }
 }
 
-export async function updateUserProfile(req, res){
+const MAX_DB_TIMEOUT = 10000; // 10 seconds
+
+export async function getCurrentUserProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID not available from token.'
+      });
+    }
+
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database operation timed out')), MAX_DB_TIMEOUT
+      ));
+
+    // Create the database query promise
+    const userPromise = User.findById(userId)
+      .select('-password -__v -loginAttempts -blockExpires')
+      .lean();
+
+    // Race the promises
+    const user = await Promise.race([userPromise, timeoutPromise]);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    console.error('❌ Get current user profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message.includes('timed out')
+        ? 'Database operation timed out'
+        : error.message
+    });
+  }
+}
+
+export async function updateUserProfile(req, res) {
   try {
     const userId = req.user.id;
     const { firstName, lastName, email, age, about } = req.body;
 
     if (!userId) {
-      return res.status(400).json({ message: 'User ID not found in token.' });
+      return res.status(400).json({
+        message: 'User ID not found in token.'
+      });
     }
 
     const updateData = {};
-    if (firstName !== undefined || lastName !== undefined) {
-      const currentUser = await UserService.getUserById(userId);
+    if (firstName || lastName) {
+      const currentUser = await User.findById(userId);
       let currentFirstName = currentUser?.name?.split(' ')[0] || '';
       let currentLastName = currentUser?.name?.split(' ').slice(1).join(' ') || '';
 
-      if (firstName !== undefined) {
-        currentFirstName = firstName;
-      }
-      if (lastName !== undefined) {
-        currentLastName = lastName;
-      }
-      updateData.name = `${currentFirstName} ${currentLastName}`.trim();
+      updateData.name = [
+        firstName !== undefined ? firstName : currentFirstName,
+        lastName !== undefined ? lastName : currentLastName
+      ].join(' ').trim();
     }
 
-    if (email !== undefined) {
-      updateData.email = email;
-    }
-    if (age !== undefined) {
-      updateData.age = parseInt(age);
-    }
-    if (about !== undefined) {
-      updateData.about = about;
-    }
+    if (email !== undefined) updateData.email = email;
+    if (age !== undefined) updateData.age = parseInt(age);
+    if (about !== undefined) updateData.about = about;
 
-    const updatedUser = await UserService.updateUser(userId, updateData);
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password -__v');
 
-    if (updatedUser) {
-      res.json({
-        message: 'Profile updated successfully!',
-        user: {
-          id: updatedUser._id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          age: updatedUser.age,
-          about: updatedUser.about,
-        },
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: 'User not found or update failed.'
       });
-    } else {
-      res.status(404).json({ message: 'User not found or update failed.' });
     }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully!',
+      user: updatedUser
+    });
   } catch (error) {
     console.error('Profile update error:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export async function getCurrentUserProfile(req, res) {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    res.status(200).json({ user: user.toJSON() });
-  } catch (error) {
-    console.error('Get current user profile error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 }

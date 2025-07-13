@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 20000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,10 +16,6 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(`[API CALL] ${config.method.toUpperCase()} ${config.url}`, {
-      headers: config.headers,
-      data: config.data,
-    });
     return config;
   },
   (error) => Promise.reject(error)
@@ -28,19 +24,22 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('⏳ Request timeout:', error.config.url);
+      return Promise.reject(new Error(`Request timed out after ${error.config.timeout}ms`));
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }
-    
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    const customError = new Error(errorMessage);
-    customError.statusCode = error.response?.status;
-    customError.response = error.response?.data;
-    
-    return Promise.reject(customError);
+
+    const errorMessage = error.response?.data?.message || 
+                       error.message || 
+                       'An unexpected error occurred';
+    return Promise.reject(new Error(errorMessage));
   }
 );
 

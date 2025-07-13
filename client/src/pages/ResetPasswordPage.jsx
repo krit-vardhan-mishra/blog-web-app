@@ -109,7 +109,7 @@ export const ResetPasswordPage = () => {
     setIsLoading(true);
     try {
       await passwordResetService.sendResetOTP(email);
-      setResendTimer(60); // 60 seconds cooldown
+      setResendTimer(60);
       setFormData({ ...formData, otp: '' });
       setOtpVerified(false);
     } catch (error) {

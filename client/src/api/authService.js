@@ -1,7 +1,4 @@
-import axios from 'axios';
 import apiClient from './apiService.js';
-
-const API_BASE_URL = 'http://localhost:5000/api';
 
 const authService = {
   register: async (firstName, lastName, email, password, age) => {
@@ -12,6 +9,14 @@ const authService = {
       password,
       age: parseInt(age),
     });
+  },
+
+  verifySignup: async (email, otp) => {
+    return apiClient.post('/auth/verify-signup', { email, otp });
+  },
+
+  resendOTP: async (email, type) => {
+    return apiClient.post('/auth/resend-otp', { email, type });
   },
 
   login: async (email, password) => {
@@ -41,71 +46,29 @@ const authService = {
   },
 
   verifyPassword: (password) => apiClient.post('/auth/verify-password', { password }),
+  changePassword: async (currentPassword, newPassword, token) => {
+    try {
+      const response = await apiClient.post(
+        '/auth/change-password',
+        { currentPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.message || 'Failed to change password';
+    }
+  }
 };
 
 const passwordResetService = {
-  sendResetOTP: async (email) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send OTP');
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  verifyResetOTP: async (email, otp) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify-reset-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, otp }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Invalid OTP');
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  resetPassword: async (email, otp, newPassword) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, otp, newPassword }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to reset password');
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  },
+  sendResetOTP: (email) => apiClient.post('/auth/forgot-password', { email }),
+  verifyResetOTP: (email, otp) => apiClient.post('/auth/verify-reset-otp', { email, otp }),
+  resetPassword: (email, otp, newPassword) =>
+    apiClient.post('/auth/reset-password', { email, otp, newPassword })
 };
 
 export default authService;

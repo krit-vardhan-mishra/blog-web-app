@@ -6,7 +6,6 @@ import { Button } from '../components/ui/Button';
 import authService from '../api/authService';
 import { useNavigate } from 'react-router-dom';
 import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
-import FormGroup from "../components/form/FormGroup";
 import { useAuth } from '../context/AuthContext';
 
 export const SignupPage = () => {
@@ -81,7 +80,7 @@ export const SignupPage = () => {
         parseInt(formData.age)
       );
       loginUser(data, rememberMe);
-      navigate('/home', { state: { from: '/signup' } });
+      navigate('/verify-signup', { state: { email: formData.email } });
     } catch (err) {
       setErrors({ form: err.message });
     } finally {

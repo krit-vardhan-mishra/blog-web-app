@@ -10,14 +10,9 @@ export const forgotPassword = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await OTP.create({ email, otp, type: 'reset' });
+    await sendOTPEmail(email, otp, 'reset');
 
-    await OTP.create({
-      email,
-      otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000) // expires in 5 mins
-    });
-
-    await sendOTPEmail(email, otp);
     res.json({ message: 'OTP sent successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -27,15 +22,16 @@ export const forgotPassword = async (req, res) => {
 export const verifyResetOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
-
     const otpRecord = await OTP.findOne({
       email,
       otp,
-      expiresAt: { $gt: new Date() }
+      type: 'reset',
+      createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) }
     });
 
-    if (!otpRecord)
+    if (!otpRecord) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
 
     res.json({ message: 'OTP verified successfully' });
   } catch (error) {

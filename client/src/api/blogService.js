@@ -17,7 +17,6 @@ const blogService = {
   permanentlyDelete: (blogId) => apiClient.delete(`/blogs/permanent/${blogId}`),
   restore: (blogId) => apiClient.post(`/blogs/restore/${blogId}`),
   incrementView: (blogId) => {
-    console.log('Calling incrementView with blogId:', blogId);
     return apiClient.post(`/blogs/increment-view/${blogId}`);
   },
   fetchDeleted: async () => {
