@@ -23,7 +23,18 @@
   animation: bounce-in 0.4s ease-out; 
 }
 
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
 
+.heartbeat {
+  animation: heartbeat 1.3s infinite ease-in-out;
+}
 
 @layer base {
   :root {
