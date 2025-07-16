@@ -37,7 +37,7 @@ export const ForgotPasswordPage = () => {
     try {
       await passwordResetService.sendResetOTP(email);
       setIsOTPSent(true);
-      navigate('/reset-password', { state: { email } });
+      navigate('/verify-otp', { state: { email } });
     } catch (error) {
       setErrors({ form: error.message });
     } finally {

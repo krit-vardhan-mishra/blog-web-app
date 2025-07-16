@@ -1,21 +1,19 @@
 import Blog from '../models/Blog.js';
 import mongoose from 'mongoose';
 
-const isValidObjectId = (id) => {
-  return mongoose.Types.ObjectId.isValid(id);
-};
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 export const getBlogByIdWithAuthor = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     if (!isValidObjectId(id)) {
       return res.status(400).json({ message: 'Invalid blog ID format' });
     }
 
-    const blog = await Blog.findOne({ 
-      _id: id, 
-      isDeleted: false 
+    const blog = await Blog.findOne({
+      _id: id,
+      isDeleted: false
     }).populate('author', 'name email');
 
     if (!blog) {
@@ -34,7 +32,7 @@ export const getNonDeletedBlogs = async (req, res) => {
     const blogs = await Blog.find({ isDeleted: false })
       .populate('author', 'name email')
       .sort({ createdAt: -1 });
-    
+
     res.json(blogs);
   } catch (error) {
     console.error('Error fetching blogs:', error);
@@ -45,14 +43,14 @@ export const getNonDeletedBlogs = async (req, res) => {
 export const getAllDeletedBlogsByUser = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    const deletedBlogs = await Blog.find({ 
-      author: userId, 
-      isDeleted: true 
+    const deletedBlogs = await Blog.find({
+      author: userId,
+      isDeleted: true
     }).populate('author', 'name email').sort({ updatedAt: -1 });
 
     res.json(deletedBlogs);
@@ -106,7 +104,7 @@ export const updateBlog = async (req, res) => {
     }
 
     const blog = await Blog.findOne({ _id: id, isDeleted: false });
-    
+
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found' });
     }
@@ -121,10 +119,10 @@ export const updateBlog = async (req, res) => {
       { new: true }
     ).populate('author', 'name email');
 
-    res.json({ 
-      success: true, 
-      message: 'Blog updated successfully', 
-      blog: updatedBlog 
+    res.json({
+      success: true,
+      message: 'Blog updated successfully',
+      blog: updatedBlog
     });
   } catch (error) {
     console.error('Error updating blog:', error);
@@ -142,7 +140,7 @@ export const safeDeleteBlog = async (req, res) => {
     }
 
     const blog = await Blog.findOne({ _id: id, isDeleted: false });
-    
+
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found' });
     }
@@ -171,7 +169,7 @@ export const permanentlyDeleteBlog = async (req, res) => {
     }
 
     const blog = await Blog.findOne({ _id: id, isDeleted: true });
-    
+
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found in trash' });
     }
@@ -199,7 +197,7 @@ export const restoreDeletedBlog = async (req, res) => {
     }
 
     const blog = await Blog.findOne({ _id: id, isDeleted: true });
-    
+
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found in trash' });
     }
@@ -213,9 +211,9 @@ export const restoreDeletedBlog = async (req, res) => {
 
     const restoredBlog = await Blog.findById(id).populate('author', 'name email');
 
-    res.json({ 
-      message: 'Blog restored successfully', 
-      blog: restoredBlog 
+    res.json({
+      message: 'Blog restored successfully',
+      blog: restoredBlog
     });
   } catch (error) {
     console.error('Error restoring blog:', error);
@@ -246,4 +244,8 @@ export const incrementBlogView = async (req, res) => {
     console.error('Error incrementing blog view:', error);
     res.status(500).json({ message: 'Server error while incrementing view' });
   }
+};
+
+export const deleteUserAllBlogs = async (userId) => {
+  await Blog.deleteMany({ author: userId });
 };

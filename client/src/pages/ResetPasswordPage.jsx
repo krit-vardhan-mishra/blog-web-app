@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, Eye, EyeOff, Shield } from 'lucide-react';
+import { passwordResetService } from '../api/authService';
+import { ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const ResetPasswordPage = () => {
   const [formData, setFormData] = useState({
-    otp: '',
     newPassword: '',
     confirmPassword: '',
   });
@@ -14,27 +14,21 @@ export const ResetPasswordPage = () => {
   const [errors, setErrors] = useState({});
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
   
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
+  const otp = location.state?.otp;
+  const verified = location.state?.verified;
 
   useEffect(() => {
     document.title = "Reset Password - Blog App";
     
-    if (!email) {
+    if (!email || !otp || !verified) {
       navigate('/forgot-password');
       return;
     }
-
-    // Start resend timer
-    if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [email, navigate, resendTimer]);
+  }, [email, otp, verified, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -44,74 +38,37 @@ export const ResetPasswordPage = () => {
     const newErrors = {};
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/;
 
-    if (!formData.otp) newErrors.otp = "OTP is required";
-    else if (formData.otp.length !== 6) newErrors.otp = "OTP must be 6 digits";
-
-    if (!formData.newPassword) newErrors.newPassword = "New password is required";
-    else if (!passwordRegex.test(formData.newPassword))
+    if (!formData.newPassword) {
+      newErrors.newPassword = "New password is required";
+    } else if (!passwordRegex.test(formData.newPassword)) {
       newErrors.newPassword = "Password must be 8+ chars, include 1 capital letter & 1 symbol";
+    }
 
-    if (!formData.confirmPassword) newErrors.confirmPassword = "Confirm password is required";
-    else if (formData.newPassword !== formData.confirmPassword)
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirm password is required";
+    } else if (formData.newPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleVerifyOTP = async () => {
-    if (!formData.otp) {
-      setErrors({ otp: "OTP is required" });
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      await passwordResetService.verifyResetOTP(email, formData.otp);
-      setOtpVerified(true);
-    } catch (error) {
-      setErrors({ otp: error.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!otpVerified) {
-      await handleVerifyOTP();
-      return;
-    }
-
     if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      await passwordResetService.resetPassword(email, formData.otp, formData.newPassword);
+      await passwordResetService.resetPassword(email, otp, formData.newPassword);
       navigate('/login', { 
         state: { 
           message: 'Password reset successful! Please login with your new password.' 
         } 
       });
-    } catch (error) {
-      setErrors({ form: error.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    setIsLoading(true);
-    try {
-      await passwordResetService.sendResetOTP(email);
-      setResendTimer(60);
-      setFormData({ ...formData, otp: '' });
-      setOtpVerified(false);
     } catch (error) {
       setErrors({ form: error.message });
     } finally {
@@ -130,7 +87,7 @@ export const ResetPasswordPage = () => {
         >
           <div className="flex items-center mb-6">
             <button
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => navigate('/verify-otp', { state: { email } })}
               className="text-white hover:text-blue-400 transition-colors mr-4"
             >
               <ArrowLeft className="h-6 w-6" />
@@ -139,56 +96,16 @@ export const ResetPasswordPage = () => {
           </div>
 
           <div className="flex justify-center mb-6">
-            <div className={`p-4 rounded-full ${otpVerified ? 'bg-green-500' : 'bg-blue-500'}`}>
-              <Shield className="h-8 w-8 text-white" />
+            <div className="p-4 rounded-full bg-green-500">
+              <CheckCircle className="h-8 w-8 text-white" />
             </div>
           </div>
 
-          <p className="text-gray-300 text-center mb-6">
-            Enter the OTP sent to <strong>{email}</strong> and your new password.
+          <p className="text-gray-300 text-center mb-8">
+            Code verified successfully! Now create your new password for <strong>{email}</strong>.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* OTP Input */}
-            <div>
-              <label htmlFor="otp" className="block text-white font-semibold mb-2">
-                OTP Code {otpVerified && <span className="text-green-400">✓ Verified</span>}
-              </label>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <input
-                  type="text"
-                  id="otp"
-                  value={formData.otp}
-                  onChange={handleChange}
-                  maxLength="6"
-                  className={`w-full p-3 bg-[#1C222A] text-white border rounded-lg focus:outline-none transition duration-200 ${
-                    otpVerified 
-                      ? 'border-green-500 focus:border-green-500' 
-                      : 'border-gray-600 focus:border-blue-500 hover:border-white hover:border-2'
-                  }`}
-                  placeholder="Enter 6-digit OTP"
-                  disabled={otpVerified}
-                  required
-                />
-              </motion.div>
-              {errors.otp && (
-                <p className="text-red-500 text-sm mt-1">{errors.otp}</p>
-              )}
-              
-              {!otpVerified && (
-                <div className="mt-2 flex justify-between items-center">
-                  <button
-                    type="button"
-                    onClick={handleResendOTP}
-                    disabled={resendTimer > 0 || isLoading}
-                    className="text-blue-400 hover:underline text-sm disabled:text-gray-500"
-                  >
-                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* New Password Input */}
             <div>
               <label htmlFor="newPassword" className="block text-white font-semibold mb-2">
@@ -267,10 +184,7 @@ export const ResetPasswordPage = () => {
                 disabled={isLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold"
               >
-                {isLoading 
-                  ? (otpVerified ? 'Resetting Password...' : 'Verifying OTP...') 
-                  : (otpVerified ? 'Reset Password' : 'Verify OTP')
-                }
+                {isLoading ? 'Resetting Password...' : 'Reset Password'}
               </Button>
             </motion.div>
           </form>

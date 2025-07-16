@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { deleteUserAllBlogs } from './blogController.js';
 
 export async function createUser(reqBody) {
   const { name, age } = reqBody;
@@ -60,7 +61,7 @@ export async function getUsersWithoutBlogs() {
   }
 }
 
-const MAX_DB_TIMEOUT = 10000; // 10 seconds
+const MAX_DB_TIMEOUT = 10000;
 
 export async function getCurrentUserProfile(req, res) {
   try {
@@ -73,17 +74,14 @@ export async function getCurrentUserProfile(req, res) {
       });
     }
 
-    // Create a timeout promise
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Database operation timed out')), MAX_DB_TIMEOUT
-      ));
+      setTimeout(() => reject(new Error('Database operation timed out')), MAX_DB_TIMEOUT)
+    );
 
-    // Create the database query promise
     const userPromise = User.findById(userId)
       .select('-password -__v -loginAttempts -blockExpires')
       .lean();
 
-    // Race the promises
     const user = await Promise.race([userPromise, timeoutPromise]);
 
     if (!user) {
@@ -158,5 +156,22 @@ export async function updateUserProfile(req, res) {
       success: false,
       message: error.message
     });
+  }
+}
+
+export async function deleteUserById(userId) {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return { success: false, message: "User not found." };
+    }
+
+    await User.findByIdAndDelete(userId);
+    await deleteUserAllBlogs(userId);
+
+    return { success: true, user: user.toJSON() };
+  } catch (error) {
+    return { success: false, message: error.message };
   }
 }

@@ -1,25 +1,21 @@
 import nodemailer from 'nodemailer';
-import { google } from 'googleapis';
 import { otpRateLimiter } from '../middleware/rateLimiter.js';
 
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
-const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
+const SENDER_PASSWORD = process.env.SENDER_PASSWORD;
 
-console.log('=== EMAIL SERVICE CONFIGURATION ===');
-console.log('CLIENT_ID:', CLIENT_ID ? 'SET' : 'MISSING');
-console.log('CLIENT_SECRET:', CLIENT_SECRET ? 'SET' : 'MISSING');
-console.log('REFRESH_TOKEN:', REFRESH_TOKEN ? 'SET' : 'MISSING');
-console.log('SENDER_EMAIL:', SENDER_EMAIL ? 'SET' : 'MISSING');
-
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-);
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: SENDER_EMAIL,
+      pass: SENDER_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+};
 
 const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
   try {
@@ -29,131 +25,127 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
     console.log('Type:', type);
     console.log('IP:', ipAddress);
 
-    // Check rate limit
+    if (!SENDER_EMAIL || !SENDER_PASSWORD) {
+      throw new Error('Missing email configuration. Please set SENDER_EMAIL and SENDER_PASSWORD in .env file');
+    }
+
     console.log('🔍 Checking rate limit...');
     try {
       await otpRateLimiter.consume(`${toEmail}:${type}`);
-      console.log('✅ Rate limit check passed');
     } catch (rateLimitError) {
-      console.log('❌ Rate limit exceeded');
       throw new Error('Too many OTP requests. Please wait before trying again.');
     }
 
-    // Get fresh access token
-    console.log('🔑 Getting OAuth2 access token...');
-    let accessTokenResponse;
-    try {
-      accessTokenResponse = await oAuth2Client.getAccessToken();
-      console.log('✅ Access token obtained');
-    } catch (oauthError) {
-      console.error('❌ OAuth2 error:', oauthError);
-      throw new Error('Failed to authenticate with email service. Please check OAuth2 configuration.');
-    }
+    const transporter = createTransporter();
 
-    const { token } = accessTokenResponse;
-    if (!token) {
-      throw new Error('Failed to get OAuth2 access token');
-    }
-
-    console.log('📧 Creating email transporter...');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: SENDER_EMAIL,
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        refreshToken: REFRESH_TOKEN,
-        accessToken: token,
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    // Verify transporter
-    console.log('🔍 Verifying email transporter...');
     try {
       await transporter.verify();
-      console.log('✅ Email transporter verified');
     } catch (verifyError) {
-      console.error('❌ Email transporter verification failed:', verifyError);
-      throw new Error('Email service configuration error');
+      throw new Error('Email service configuration error. Please check your email credentials.');
     }
 
     const emailConfig = {
       signup: {
         subject: 'Verify Your Email Address',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Email Verification</h2>
-            <p>Your verification code is:</p>
-            <div style="background: #f3f4f6; padding: 10px; border-radius: 5px; display: inline-block;">
-              <strong style="font-size: 18px;">${otp}</strong>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">Email Verification</h1>
             </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <hr>
-            <p style="color: #6b7280; font-size: 12px;">Request IP: ${ipAddress}</p>
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+              <h2 style="color: #2563eb; margin-bottom: 20px;">Welcome to SecureApp!</h2>
+              <p style="color: #495057; font-size: 16px; line-height: 1.6;">
+                Thank you for signing up. Please use the following verification code to complete your registration:
+              </p>
+              <div style="background: #2563eb; color: white; padding: 15px 25px; border-radius: 8px; display: inline-block; margin: 20px 0; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
+                ${otp}
+              </div>
+              <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
+                ⏰ This code will expire in 5 minutes.
+              </p>
+              <p style="color: #6c757d; font-size: 14px;">
+                If you didn't request this verification, please ignore this email.
+              </p>
+              <hr style="border: none; border-top: 1px solid #dee2e6; margin: 25px 0;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                📍 Request IP: ${ipAddress}<br>
+                🕒 Sent at: ${new Date().toLocaleString()}
+              </p>
+            </div>
           </div>
         `
       },
       reset: {
         subject: 'Password Reset Request',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Password Reset</h2>
-            <p>We received a request to reset your password. Your OTP is:</p>
-            <div style="background: #f3f4f6; padding: 10px; border-radius: 5px; display: inline-block;">
-              <strong style="font-size: 18px;">${otp}</strong>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">Password Reset</h1>
             </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this, please secure your account immediately.</p>
-            <hr>
-            <p style="color: #6b7280; font-size: 12px;">Request IP: ${ipAddress}</p>
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+              <h2 style="color: #dc3545; margin-bottom: 20px;">Reset Your Password</h2>
+              <p style="color: #495057; font-size: 16px; line-height: 1.6;">
+                We received a request to reset your password. Use the following OTP to proceed:
+              </p>
+              <div style="background: #dc3545; color: white; padding: 15px 25px; border-radius: 8px; display: inline-block; margin: 20px 0; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
+                ${otp}
+              </div>
+              <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
+                ⏰ This code will expire in 5 minutes.
+              </p>
+              <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
+                <p style="color: #856404; font-size: 14px; margin: 0;">
+                  ⚠️ <strong>Security Notice:</strong> If you didn't request this password reset, please secure your account immediately and contact support.
+                </p>
+              </div>
+              <hr style="border: none; border-top: 1px solid #dee2e6; margin: 25px 0;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                📍 Request IP: ${ipAddress}<br>
+                🕒 Sent at: ${new Date().toLocaleString()}
+              </p>
+            </div>
           </div>
         `
       }
     };
 
     const mailOptions = {
-      from: `"SecureApp" <${SENDER_EMAIL}>`,
+      from: `"Blog-Web-App" <${SENDER_EMAIL}>`,
       to: toEmail,
       subject: emailConfig[type].subject,
       html: emailConfig[type].html
     };
 
-    console.log('📤 Sending email...');
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', result.messageId);
 
-    return true;
+    return {
+      success: true,
+      messageId: result.messageId,
+      response: result.response
+    };
+
   } catch (error) {
-    console.error('❌ SEND EMAIL ERROR:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack
-    });
-
-    // Provide more specific error messages
-    if (error.code === 'EAUTH') {
-      throw new Error('Email authentication failed. Please check OAuth2 credentials.');
+    if (error.code === 'EAUTH' || error.responseCode === 535) {
+      throw new Error('Email authentication failed. Please check your email credentials and ensure you\'re using an App Password.');
     }
 
-    if (error.message && error.message.includes('invalid_grant')) {
-      throw new Error('OAuth2 token expired. Please refresh your Gmail credentials.');
+    if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT') {
+      throw new Error('Failed to connect to email service. Please check your internet connection.');
+    }
+
+    if (error.code === 'EMESSAGE' || error.responseCode === 550) {
+      throw new Error('Email rejected by recipient server. Please check the recipient email address.');
     }
 
     if (error.message && error.message.includes('rate limit')) {
-      throw error; // Pass through rate limit errors
+      throw error;
     }
 
-    if (error.message && error.message.includes('OAuth2')) {
-      throw error; // Pass through OAuth2 errors
+    if (error.message && error.message.includes('Missing email configuration')) {
+      throw error;
     }
 
-    throw new Error('Failed to send OTP. Please try again later.');
+    throw new Error(`Failed to send OTP email: ${error.message || 'Unknown error occurred'}`);
   }
 };
 

@@ -13,6 +13,7 @@ import NotFound from '../pages/NotFound';
 import GoogleAuthHandler from '../context/GoogleAuthHandler';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
+import VerifyOTPPage from '../pages/VerifyOTPPage';
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const AppRoutes = () => {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/google-auth" element={<GoogleAuthHandler />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
