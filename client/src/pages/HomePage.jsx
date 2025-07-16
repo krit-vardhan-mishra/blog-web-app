@@ -486,6 +486,7 @@ export const HomePage = () => {
           setIsConfirmOpen(false);
           setSelectedBlogId(null);
         }}
+        content={"Are you sure you want to delete this post?"}
         onConfirm={async () => {
           try {
             setIsConfirmOpen(false);

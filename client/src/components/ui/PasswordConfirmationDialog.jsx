@@ -11,7 +11,9 @@ const PasswordConfirmationDialog = ({
   setPassword,
   showPassword,
   togglePasswordVisibility,
+  title = "Confirm Password",
   errorMessage,
+  additionalContent,
 }) => {
   if (!isOpen) return null;
 
@@ -34,7 +36,7 @@ const PasswordConfirmationDialog = ({
         >
           <X className="h-5 w-5" />
         </button>
-        <h2 className="text-white text-lg font-bold mb-4">Confirm Password</h2>
+        <h2 className="text-white text-lg font-bold mb-4">{title}</h2>
         <form onSubmit={onSubmit}>
           <div className="relative mb-4">
             <input
@@ -56,6 +58,9 @@ const PasswordConfirmationDialog = ({
               )}
             </div>
           </div>
+
+          { additionalContent }
+
           {errorMessage && (
             <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
           )}

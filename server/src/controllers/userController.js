@@ -159,19 +159,34 @@ export async function updateUserProfile(req, res) {
   }
 }
 
-export async function deleteUserById(userId) {
+export async function deleteUserById(req, res) {
   try {
+    const userId = req.params.id;
+    const { deleteBlogs } = req.body;
+
     const user = await User.findById(userId);
 
     if (!user) {
-      return { success: false, message: "User not found." };
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+
+    if (deleteBlogs) {
+      await deleteUserAllBlogs(userId);
     }
 
     await User.findByIdAndDelete(userId);
-    await deleteUserAllBlogs(userId);
 
-    return { success: true, user: user.toJSON() };
+    res.json({
+      success: true,
+      message: "Account deleted successfully"
+    });
   } catch (error) {
-    return { success: false, message: error.message };
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 }

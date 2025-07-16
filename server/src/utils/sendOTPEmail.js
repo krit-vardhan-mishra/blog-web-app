@@ -19,17 +19,9 @@ const createTransporter = () => {
 
 const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
   try {
-    console.log('=== SENDING OTP EMAIL ===');
-    console.log('To:', toEmail);
-    console.log('OTP:', otp);
-    console.log('Type:', type);
-    console.log('IP:', ipAddress);
-
     if (!SENDER_EMAIL || !SENDER_PASSWORD) {
       throw new Error('Missing email configuration. Please set SENDER_EMAIL and SENDER_PASSWORD in .env file');
     }
-
-    console.log('🔍 Checking rate limit...');
     try {
       await otpRateLimiter.consume(`${toEmail}:${type}`);
     } catch (rateLimitError) {

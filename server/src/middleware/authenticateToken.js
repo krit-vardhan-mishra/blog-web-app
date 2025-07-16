@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js'; 
 
 const authenticateToken = async (req, res, next) => {
-  console.log('Auth middleware: Request received.');
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -16,7 +15,6 @@ const authenticateToken = async (req, res, next) => {
       console.error('Auth middleware: Token verification failed:', err.message);
       return res.sendStatus(403);
     }
-    console.log('Auth middleware: Token verified. User ID:', user.id);
 
     try {
         const foundUser = await User.findById(user.id);

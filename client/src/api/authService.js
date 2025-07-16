@@ -45,7 +45,16 @@ const authService = {
     return user ? JSON.parse(user) : null;
   },
 
-  verifyPassword: (password) => apiClient.post('/auth/verify-password', { password }),
+  verifyPassword: async (password) => {
+    try {
+      const response = await apiClient.post('/auth/verify-password', { password });
+      return response.success;
+    } catch (error) {
+      console.error('Password verification error:', error);
+      throw error;
+    }
+  },
+
   changePassword: async (currentPassword, newPassword, token) => {
     try {
       const response = await apiClient.post(
@@ -69,6 +78,21 @@ const passwordResetService = {
   verifyResetOTP: (email, otp) => apiClient.post('/auth/verify-reset-otp', { email, otp }),
   resetPassword: (email, otp, newPassword) =>
     apiClient.post('/auth/reset-password', { email, otp, newPassword })
+};
+
+export const setPassword = async (newPassword) => {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch('/api/auth/set-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ newPassword })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Failed to set password');
+  return data;
 };
 
 export default authService;

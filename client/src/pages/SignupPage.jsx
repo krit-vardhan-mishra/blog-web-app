@@ -4,9 +4,11 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from '../components/ui/Button';
 import authService from '../api/authService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +17,7 @@ export const SignupPage = () => {
   const { loginUser } = useAuth();
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -23,6 +26,37 @@ export const SignupPage = () => {
     password: '',
     age: '',
   });
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      let errorMessage = 'Google sign-up failed. Please try again.';
+
+      switch (error) {
+        case 'auth_failed':
+          errorMessage = 'Google authentication failed. Please try again.';
+          break;
+        case 'no_user':
+          errorMessage = 'Could not retrieve user information from Google.';
+          break;
+        case 'token_generation_failed':
+          errorMessage = 'Failed to create your session. Please try again.';
+          break;
+        default:
+          errorMessage = 'Google sign-up failed. Please try again.';
+      }
+
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (errors.form) {
@@ -86,6 +120,15 @@ export const SignupPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignup = () => {
+    console.debug('Initiating Google signup...');
+    // Clear any previous error from URL
+    navigate('/signup', { replace: true });
+    const googleAuthUrl = 'http://localhost:5000/api/auth/google';
+    console.debug('Redirecting to Google auth URL:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   };
 
   if (isLoading) {
@@ -303,7 +346,7 @@ export const SignupPage = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+                onClick={handleGoogleSignup}
               >
                 Sign up with Google
               </Button>

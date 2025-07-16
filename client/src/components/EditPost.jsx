@@ -48,7 +48,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
           match: authorId.toString() === userId.toString()
         });
         
-        // Compare as strings to ensure proper comparison
         if (authorId.toString() === userId.toString()) {
           console.log("EditPost - User is authorized to edit");
           setIsAuthor(true);

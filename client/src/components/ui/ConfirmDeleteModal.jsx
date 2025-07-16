@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ConfirmDeleteModal = ({ isOpen, onConfirm, onCancel }) => {
+const ConfirmDeleteModal = ({ isOpen, onConfirm, onCancel, content }) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -20,7 +20,7 @@ const ConfirmDeleteModal = ({ isOpen, onConfirm, onCancel }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p className="text-gray-300 mb-6">Are you sure you want to delete this post?</p>
+            <p className="text-gray-300 mb-6">{content}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={onCancel}

@@ -23,6 +23,19 @@ export const VerifySignupPage = () => {
     }
   }, [email, navigate, resendTimer]);
 
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+
+    if (storedToken) {
+      setToken(storedToken);
+    }
+
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!otp) {

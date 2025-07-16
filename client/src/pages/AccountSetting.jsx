@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { HomeIcon, Eye, EyeOff, X, Lock } from 'lucide-react';
+import { HomeIcon, Eye, EyeOff, X, Lock, TrashIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import NotifyBanner from '../components/ui/NotifyBanner';
@@ -10,20 +11,28 @@ import PasswordConfirmationDialog from '../components/ui/PasswordConfirmationDia
 import useAuth from '../hooks/useAuth';
 import userService from '../api/userService';
 import authService from '../api/authService';
+import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
 
 export const AccountSetting = () => {
-    const { user, token, setUser } = useAuth();
+    const { user, token, setUser, logout } = useAuth();
+    const navigate = useNavigate();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeletePasswordDialogOpen, setIsDeletePasswordDialogOpen] = useState(false);
     const [confirmationPassword, setConfirmationPassword] = useState('');
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteBlogsChoice, setDeleteBlogsChoice] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showDeletePassword, setShowDeletePassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState('');
+    const [notificationType, setNotificationType] = useState('info');
     const formRef = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // New state for password change
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
@@ -65,6 +74,16 @@ export const AccountSetting = () => {
         setShowPassword((prev) => !prev);
     };
 
+    const toggleDeletePasswordVisibility = () => {
+        setShowDeletePassword((prev) => !prev);
+    };
+
+    const showNotificationWithType = (message, type = 'info') => {
+        setNotificationMessage(message);
+        setNotificationType(type);
+        setShowNotification(true);
+    };
+
     const validatePassword = async (password) => {
         try {
             const success = await authService.verifyPassword(password);
@@ -80,12 +99,66 @@ export const AccountSetting = () => {
         }
     };
 
-    // New password change handler
+    const validateDeletePassword = async (password) => {
+        try {
+            const response = await authService.verifyPassword(password);
+            return response;
+        } catch (error) {
+            console.error("Password verification failed:", error);
+            if (error.message === 'Incorrect password') {
+                setDeleteErrorMessage('Incorrect password. Please try again.');
+            } else {
+                setDeleteErrorMessage('Failed to verify password. Please try again later.');
+            }
+            return false;
+        }
+    };
+
+    const handleDeleteAccount = () => {
+        setIsDeleteModalOpen(false);
+        setIsDeletePasswordDialogOpen(true);
+    };
+
+    const handleDeleteConfirmation = async (e) => {
+        e.preventDefault();
+        setDeleteErrorMessage('');
+
+        const isValidPassword = await validateDeletePassword(deletePassword);
+
+        if (isValidPassword) {
+            try {
+                console.log('Attempting to delete account with:', {
+                    userId: user.id,
+                    deleteBlogs: deleteBlogsChoice,
+                    token: token
+                });
+
+                const response = await userService.deleteAccount(user.id, deleteBlogsChoice, token);
+
+                if (response.success) {
+                    showNotificationWithType('Account deleted successfully', 'success');
+
+                    setTimeout(() => {
+                        logout();
+                        navigate('/login');
+                    }, 2000);
+                } else {
+                    showNotificationWithType(response.message || 'Failed to delete account', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showNotificationWithType('Error deleting account: ' + (error.message || 'Please try again.'), 'error');
+            } finally {
+                setIsDeletePasswordDialogOpen(false);
+                setDeletePassword('');
+            }
+        }
+    };
+
     const handlePasswordChange = async (e) => {
         e.preventDefault();
         setPasswordErrors({});
 
-        // Validate passwords
         const errors = {};
         if (!passwordForm.currentPassword) errors.currentPassword = 'Current password is required';
         if (!passwordForm.newPassword) errors.newPassword = 'New password is required';
@@ -107,8 +180,7 @@ export const AccountSetting = () => {
             );
 
             if (response.success) {
-                setNotificationMessage('Password changed successfully!');
-                setShowNotification(true);
+                showNotificationWithType('Password changed successfully!', 'success');
                 setIsPasswordDialogOpen(false);
                 setPasswordForm({
                     currentPassword: '',
@@ -116,13 +188,11 @@ export const AccountSetting = () => {
                     confirmNewPassword: ''
                 });
             } else {
-                setNotificationMessage(response.message || 'Failed to change password');
-                setShowNotification(true);
+                showNotificationWithType(response.message || 'Failed to change password', 'error');
             }
         } catch (error) {
             console.error('Error changing password:', error);
-            setNotificationMessage(error.message || 'Failed to change password');
-            setShowNotification(true);
+            showNotificationWithType(error.message || 'Failed to change password', 'error');
         }
     };
 
@@ -142,25 +212,21 @@ export const AccountSetting = () => {
                 email: currentFormData.get('email'),
                 age: currentFormData.get('age'),
                 about: currentFormData.get('about'),
-                ...(lastName && {lastName}),
+                ...(formData.lastName && { lastName: formData.lastName }),
             };
 
             try {
-                const response = await userService.updateProfile(dataToUpdate, token);
+                const response = await userService.updateProfile(dataToUpdate);
                 if (response && response.user) {
                     setUser(response.user);
                     localStorage.setItem('user', JSON.stringify(response.user));
-
-                    setNotificationMessage('Profile updated successfully!');
-                    setShowNotification(true);
+                    showNotificationWithType('Profile updated successfully!', 'success');
                 } else {
-                    setNotificationMessage('Failed to update profile: ' + (response.message || 'Unknown error'));
-                    setShowNotification(true);
+                    showNotificationWithType('Failed to update profile: ' + (response.message || 'Unknown error'), 'error');
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);
-                setNotificationMessage('Error updating profile: ' + (error.message || 'Please try again.'));
-                setShowNotification(true);
+                showNotificationWithType('Error updating profile: ' + (error.message || 'Please try again.'), 'error');
             }
         }
     };
@@ -178,7 +244,6 @@ export const AccountSetting = () => {
         }));
     };
 
-    // New password form change handler
     const handlePasswordFormChange = (e) => {
         const { name, value } = e.target;
         setPasswordForm(prev => ({
@@ -207,7 +272,7 @@ export const AccountSetting = () => {
                         className="bg-[#2A2E36] p-6 rounded-lg shadow-lg"
                     >
                         <h2 className="text-white text-xl font-bold mb-6">Profile Settings</h2>
-                        
+
                         {/* First Name */}
                         <div className="grid grid-cols-4 gap-4 items-center mb-4">
                             <label className="col-span-1 text-white font-bold" htmlFor="firstName">
@@ -307,7 +372,7 @@ export const AccountSetting = () => {
                                     Change Password
                                 </Button>
                             </motion.div>
-                            
+
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Button
                                     type="submit"
@@ -318,8 +383,69 @@ export const AccountSetting = () => {
                             </motion.div>
                         </div>
                     </form>
+
+                    {/* Delete Account Section */}
+                    <div className="bg-[#2A2E36] p-6 rounded-lg shadow-lg">
+                        <h2 className="text-white text-xl font-bold mb-4">Danger Zone</h2>
+                        <p className="text-gray-300 mb-4">
+                            Once you delete your account, there is no going back. Please be certain.
+                        </p>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            >
+                                <TrashIcon className="mr-2 h-4 w-4" />
+                                Delete Your Account
+                            </Button>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
+
+            {/* Confirm Delete Modal */}
+            <ConfirmDeleteModal
+                isOpen={isDeleteModalOpen}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteAccount}
+                content="Are you sure you want to delete your account? This action cannot be undone."
+            />
+
+            {/* Delete Account Password Confirmation Dialog */}
+            <PasswordConfirmationDialog
+                isOpen={isDeletePasswordDialogOpen}
+                onClose={() => {
+                    setIsDeletePasswordDialogOpen(false);
+                    setDeletePassword('');
+                    setDeleteErrorMessage('');
+                }}
+                onSubmit={handleDeleteConfirmation}
+                password={deletePassword}
+                setPassword={setDeletePassword}
+                togglePasswordVisibility={toggleDeletePasswordVisibility}
+                errorMessage={deleteErrorMessage}
+                showPassword={showDeletePassword}
+                title="Confirm Account Deletion"
+                additionalContent={
+                    <div className="mb-4">
+                        <label className="flex items-center text-white">
+                            <input
+                                type="checkbox"
+                                checked={deleteBlogsChoice}
+                                onChange={(e) => setDeleteBlogsChoice(e.target.checked)}
+                                className="mr-2"
+                            />
+                            Also delete all my blogs
+                        </label>
+                        <p className="text-gray-400 text-sm mt-1">
+                            {deleteBlogsChoice
+                                ? "Your blogs will be permanently deleted"
+                                : "Your blogs will remain accessible to others"
+                            }
+                        </p>
+                    </div>
+                }
+            />
 
             {/* Profile Update Password Confirmation Dialog */}
             <PasswordConfirmationDialog
@@ -335,7 +461,7 @@ export const AccountSetting = () => {
                 togglePasswordVisibility={togglePasswordVisibility}
                 errorMessage={errorMessage}
                 showPassword={showPassword}
-                title="Confirm Password to Update Profile"
+                title="Confirm Password"
             />
 
             {/* Change Password Dialog */}
@@ -344,7 +470,7 @@ export const AccountSetting = () => {
                     <div className="bg-[#2A2E36] p-6 rounded-lg shadow-xl w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-white text-xl font-bold">Change Password</h3>
-                            <button 
+                            <button
                                 onClick={() => setIsPasswordDialogOpen(false)}
                                 className="text-gray-400 hover:text-white"
                             >
@@ -444,6 +570,7 @@ export const AccountSetting = () => {
             {showNotification && (
                 <NotifyBanner
                     message={notificationMessage}
+                    type={notificationType}
                     duration={3000}
                     onClose={() => setShowNotification(false)}
                 />

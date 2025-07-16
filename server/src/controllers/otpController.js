@@ -89,9 +89,6 @@ export const forgotPassword = async (req, res) => {
 
 export const verifyResetOtp = async (req, res) => {
   try {
-    console.log('=== VERIFY RESET OTP REQUEST ===');
-    console.log('Request body:', req.body);
-
     const { email, otp } = req.body;
 
     if (!email || !otp) {
@@ -155,9 +152,6 @@ export const verifyResetOtp = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    console.log('=== RESET PASSWORD REQUEST ===');
-    console.log('Request body:', { email: req.body.email, otp: req.body.otp });
-
     const { email, otp, newPassword } = req.body;
 
     if (!email || !otp || !newPassword) {

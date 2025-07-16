@@ -39,6 +39,7 @@
     "react-router-dom": "^7.6.3",
     "react-simple-typewriter": "^5.0.1",
     "react-slick": "^0.30.3",
+    "react-toastify": "^11.0.5",
     "simplebar": "^6.3.1",
     "simplebar-react": "^3.3.1",
     "slick-carousel": "^1.8.1",

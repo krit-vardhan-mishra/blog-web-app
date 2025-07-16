@@ -10,6 +10,9 @@ import './config/passport.js';
 import cron from 'node-cron';
 import User from './models/User.js';
 import OTP from './models/OTP.js';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import passport from 'passport';
 
 dotenv.config();
 const app = express();
@@ -22,6 +25,9 @@ await connectDB()
   .catch(err => console.error("Database connection error:", err));
 
 initMiddleware(app);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 cron.schedule('0 0 * * *', async () => {
   await OTP.deleteMany({ 
@@ -38,6 +44,25 @@ app.use("/api/users", usersRoutes);
 app.use("/api/blogs", blogsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", otpRoutes);
+
+app.use((err, _, res, _) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+app.use((err, _, res, _) => {
+  console.error('Global error handler:', err);
+  
+  if (err.oauthError) {
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_${err.oauthError.code}`);
+  }
+
+  res.status(500).json({ 
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

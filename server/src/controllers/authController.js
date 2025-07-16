@@ -122,9 +122,10 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await OTP.create({ email, otp, type: 'signup' });
-    await sendOTPEmail(email, otp, 'signup');
+    await OTP.create({ email, otp, type: 'signup', ipAddress });
+    await sendOTPEmail(email, otp, 'signup', ipAddress);
 
     const user = await User.create({
       name: `${firstName} ${lastName}`,
@@ -136,7 +137,7 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'OTP sent to your email',
+      message: user + 'OTP sent to your email',
       email
     });
   } catch (error) {
@@ -285,5 +286,83 @@ export const verifyPassword = async (req, res) => {
       success: false,
       message: 'Internal server error'
     });
+  }
+};
+
+export const setPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters.' });
+    }
+
+    req.user.password = newPassword;
+    await req.user.save();
+    res.json({ success: true, message: 'Password set successfully.' });
+  } catch (err) {
+    console.error('Set-password error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select('+password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const googleAuthCallback = (req, res) => {
+  console.debug('Google auth callback processing...');
+
+  if (req.query.error) {
+    console.error('Google OAuth error:', req.query.error);
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
+  }
+
+  if (!req.user) {
+    console.error('No user returned from Google auth');
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=no_user`);
+  }
+
+  try {
+    const token = jwt.sign({
+      id: req.user._id,
+      email: req.user.email
+    }, process.env.JWT_SECRET, {
+      expiresIn: '24h'
+    });
+
+    const userData = {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      authMethod: req.user.authMethod
+    };
+
+    const redirectUrl = `${process.env.CLIENT_URL}/google-auth?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`;
+    console.debug('Redirecting to:', redirectUrl);
+
+    return res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Google auth callback error:', error);
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=token_generation_failed`);
   }
 };
