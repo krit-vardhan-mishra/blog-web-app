@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { loginUser, registerUser, verifySignup, resendOTP, verifyPassword } from '../controllers/authController.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import authenticateToken from '../middleware/authenticateToken.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 

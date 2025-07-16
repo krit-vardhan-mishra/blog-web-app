@@ -35,18 +35,5 @@ const OTPSchema = new mongoose.Schema({
 
 OTPSchema.index({ email: 1, type: 1, createdAt: 1 });
 
-OTPSchema.pre('save', async function(next) {
-  const existing = await this.constructor.findOne({
-    email: this.email,
-    type: this.type,
-    createdAt: { $gt: new Date(Date.now() - 300000) }
-  });
-  
-  if (existing) {
-    throw new Error('An active OTP already exists for this email');
-  }
-  next();
-});
-
 const OTP = mongoose.model('OTP', OTPSchema);
 export default OTP;

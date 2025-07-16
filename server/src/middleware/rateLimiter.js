@@ -4,7 +4,7 @@ export const rateLimiter = (windowMs, max) => {
   const rateLimiter = new RateLimiterMemory({
     points: max,
     duration: windowMs / 1000,
-    blockDuration: 60 * 15 
+    blockDuration: 60 * 15
   });
 
   return async (req, res, next) => {
@@ -23,6 +23,12 @@ export const rateLimiter = (windowMs, max) => {
 
 export const otpRateLimiter = new RateLimiterMemory({
   points: 3, 
-  duration: 15 * 60, 
-  blockDuration: 60 * 60 
+  duration: 15 * 60,
+  blockDuration: 60 * 60
+});
+
+export const forgotPasswordLimiter = new RateLimiterMemory({
+  points: 5,
+  duration: 60 * 60,
+  blockDuration: 60 * 60
 });

@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { otpRateLimiter } from '../middleware/rateLimiter.js';
-import OTP from '../models/OTP.js';
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -9,20 +8,54 @@ const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
 const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
 
+console.log('=== EMAIL SERVICE CONFIGURATION ===');
+console.log('CLIENT_ID:', CLIENT_ID ? 'SET' : 'MISSING');
+console.log('CLIENT_SECRET:', CLIENT_SECRET ? 'SET' : 'MISSING');
+console.log('REFRESH_TOKEN:', REFRESH_TOKEN ? 'SET' : 'MISSING');
+console.log('SENDER_EMAIL:', SENDER_EMAIL ? 'SET' : 'MISSING');
+
 const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID, 
-  CLIENT_SECRET, 
+  CLIENT_ID,
+  CLIENT_SECRET,
   REDIRECT_URI
 );
 oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
 const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
   try {
+    console.log('=== SENDING OTP EMAIL ===');
+    console.log('To:', toEmail);
+    console.log('OTP:', otp);
+    console.log('Type:', type);
+    console.log('IP:', ipAddress);
+
     // Check rate limit
-    await otpRateLimiter.consume(`${toEmail}:${type}`);
+    console.log('🔍 Checking rate limit...');
+    try {
+      await otpRateLimiter.consume(`${toEmail}:${type}`);
+      console.log('✅ Rate limit check passed');
+    } catch (rateLimitError) {
+      console.log('❌ Rate limit exceeded');
+      throw new Error('Too many OTP requests. Please wait before trying again.');
+    }
 
-    const accessToken = await oAuth2Client.getAccessToken();
+    // Get fresh access token
+    console.log('🔑 Getting OAuth2 access token...');
+    let accessTokenResponse;
+    try {
+      accessTokenResponse = await oAuth2Client.getAccessToken();
+      console.log('✅ Access token obtained');
+    } catch (oauthError) {
+      console.error('❌ OAuth2 error:', oauthError);
+      throw new Error('Failed to authenticate with email service. Please check OAuth2 configuration.');
+    }
 
+    const { token } = accessTokenResponse;
+    if (!token) {
+      throw new Error('Failed to get OAuth2 access token');
+    }
+
+    console.log('📧 Creating email transporter...');
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -31,9 +64,22 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
         clientId: CLIENT_ID,
         clientSecret: CLIENT_SECRET,
         refreshToken: REFRESH_TOKEN,
-        accessToken: accessToken.token,
+        accessToken: token,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
+
+    // Verify transporter
+    console.log('🔍 Verifying email transporter...');
+    try {
+      await transporter.verify();
+      console.log('✅ Email transporter verified');
+    } catch (verifyError) {
+      console.error('❌ Email transporter verification failed:', verifyError);
+      throw new Error('Email service configuration error');
+    }
 
     const emailConfig = {
       signup: {
@@ -77,22 +123,37 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
       html: emailConfig[type].html
     };
 
-    await transporter.sendMail(mailOptions);
-
-    await OTP.create({
-      email: toEmail,
-      otp,
-      type,
-      ipAddress
-    });
+    console.log('📤 Sending email...');
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', result.messageId);
 
     return true;
   } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    } else {
-      throw new Error('Failed to send OTP. Please try again later.');
+    console.error('❌ SEND EMAIL ERROR:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+
+    // Provide more specific error messages
+    if (error.code === 'EAUTH') {
+      throw new Error('Email authentication failed. Please check OAuth2 credentials.');
     }
+
+    if (error.message && error.message.includes('invalid_grant')) {
+      throw new Error('OAuth2 token expired. Please refresh your Gmail credentials.');
+    }
+
+    if (error.message && error.message.includes('rate limit')) {
+      throw error; // Pass through rate limit errors
+    }
+
+    if (error.message && error.message.includes('OAuth2')) {
+      throw error; // Pass through OAuth2 errors
+    }
+
+    throw new Error('Failed to send OTP. Please try again later.');
   }
 };
 
