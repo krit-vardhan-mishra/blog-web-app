@@ -249,3 +249,23 @@ export const incrementBlogView = async (req, res) => {
 export const deleteUserAllBlogs = async (userId) => {
   await Blog.deleteMany({ author: userId });
 };
+
+export const getUserBlogs = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const blogs = await Blog.find({ 
+      author: userId, 
+      isDeleted: false 
+    }).populate('author', 'name email').sort({ createdAt: -1 });
+
+    res.json(blogs);
+  } catch (error) {
+    console.error('Error fetching user blogs:', error);
+    res.status(500).json({ message: 'Server error while fetching user blogs' });
+  }
+};

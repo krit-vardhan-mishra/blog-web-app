@@ -30,7 +30,7 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    if (!user.isVerified) {
+    if (!user.isEmailVerified) {
       return res.status(400).json({
         success: false,
         message: 'Please verify your email first before resetting password'

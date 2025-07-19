@@ -38,7 +38,11 @@ const userSchema = new mongoose.Schema({
     default: '',
     maxlength: 500
   },
-  isVerified: {
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+   isAccountVerified: {
     type: Boolean,
     default: false
   },

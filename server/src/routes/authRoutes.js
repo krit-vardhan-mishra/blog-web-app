@@ -9,7 +9,7 @@ import authenticateToken from '../middleware/authenticateToken.js';
 
 const router = express.Router();
 
-console.debug('Initializing auth routes...'); // Debug statement
+console.debug('Initializing auth routes...');
 
 const authLimiter = rateLimiter(15 * 60 * 1000, 5);
 
@@ -20,7 +20,6 @@ router.post('/verify-signup', authLimiter, verifySignup);
 router.post('/resend-otp', authLimiter, resendOTP);
 router.post('/verify-password', authenticateToken, verifyPassword);
 router.post('/change-password', authenticateToken, changePassword);
-
 
 router.get('/google',
   (req, res, next) => {
@@ -54,6 +53,6 @@ router.get('/google/callback',
   googleAuthCallback
 );
 
-console.debug('Auth routes initialized successfully'); // Debug statement
+console.debug('Auth routes initialized successfully');
 
 export default router;

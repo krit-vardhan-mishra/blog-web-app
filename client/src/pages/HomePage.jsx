@@ -169,7 +169,6 @@ export const HomePage = () => {
 
   const handlePostDeleteSuccess = async (blogId) => {
     try {
-      console.log("Soft deleting blog from HomePage with token:", token);
       await blogService.delete(blogId);
       setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
       setNotificationMessage("Post moved to trash successfully!");
@@ -186,6 +185,7 @@ export const HomePage = () => {
     setSelectedBlogForModal(blogData);
     setIsPostModalOpen(true);
   };
+
 
   const handleClosePostModal = () => {
     setIsPostModalOpen(false);
@@ -312,19 +312,36 @@ export const HomePage = () => {
               <div>
                 <p className="text-sm font-medium text-green-400 mb-1">About</p>
                 <div className="text-sm leading-relaxed whitespace-pre-line mt-3">
-                  {user.about
-                    .split('\n')
-                    .map((line, index) => (
-                      <p key={index} className="whitespace-pre-line">
-                        <span className="text-green-400">&gt; </span>
-                        {line}
-                      </p>
-                    ))}
+                  {user.about.split('\n').map((line, index) => (
+                    <p key={index} className="about-line mb-2">
+                      <span className="text-green-400 font-mono mr-2">&gt;</span>
+                      {line
+                        .split(/(?<=[\u0900-\u097F])(?=[^\u0900-\u097F])|(?<=[^\u0900-\u097F])(?=[\u0900-\u097F])/g)
+                        .map((part, idx) => {
+                          const isDevanagari = /[\u0900-\u097F]/.test(part);
+                          const isEmpty = part.trim() === '';
+
+                          if (isEmpty) return <span key={idx}>{part}</span>;
+
+                          return (
+                            <span
+                              key={idx}
+                              className={`hover-word ${isDevanagari ? 'devanagari-text' : 'english-text'}`}
+                              style={{
+                                marginRight: '0.2em',
+                                display: 'inline-block'
+                              }}
+                            >
+                              {part}
+                            </span>
+                          );
+                        })}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
           )}
-
         </motion.div>
 
         {/* Welcome Message */}
@@ -386,16 +403,14 @@ export const HomePage = () => {
             {allBlogs.map((blog) => (
               <PostDetails
                 key={blog._id || blog.id}
-                blogId={blog._id || blog.id}
-                title={blog.title}
-                content={blog.content}
+                blog={blog}
                 author={blog.author}
                 userId={user?.id}
                 token={token}
                 onEdit={() => handleEditPost(blog)}
                 onDelete={() => handleDeleteClick(blog.id || blog._id)}
                 onOpenModal={handleOpenPostModal}
-                initialViews={blog.views}
+                onViewIncrement={handleViewIncrement}
               />
             ))}
           </div>
@@ -447,18 +462,15 @@ export const HomePage = () => {
         <PostModal
           isOpen={isPostModalOpen}
           onClose={handleClosePostModal}
-          title={selectedBlogForModal.title}
-          content={selectedBlogForModal.content}
-          author={selectedBlogForModal.author}
-          blogId={selectedBlogForModal.blogId || selectedBlogForModal.id}
+          blog={selectedBlogForModal}
           userId={user?.id}
           token={token}
           onEdit={() => handleEditPost(selectedBlogForModal)}
           onDelete={() => {
-            handleDeleteClick(selectedBlogForModal.id || selectedBlogForModal._id);
+            const blogId = selectedBlogForModal.id || selectedBlogForModal._id;
+            handleDeleteClick(blogId);
             handleClosePostModal();
           }}
-          initialViews={selectedBlogForModal.initialViews}
           onViewIncrement={handleViewIncrement}
         />
       )}
@@ -483,6 +495,10 @@ export const HomePage = () => {
       <ConfirmDeleteModal
         isOpen={isConfirmOpen}
         onClose={() => {
+          setIsConfirmOpen(false);
+          setSelectedBlogId(null);
+        }}
+        onCancel={() => {
           setIsConfirmOpen(false);
           setSelectedBlogId(null);
         }}

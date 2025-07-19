@@ -1,66 +1,78 @@
 import { useState } from "react";
 import { CreatePostSkeleton } from "../skeleton/component/CreatePostSkeleton";
 import useAuth from "../hooks/useAuth";
+import blogService from "../api/blogService";
 
 export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const { user, token } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const postBlog = async (e) => {
     e.preventDefault();
     setError(null);
-    console.log("User from useAuth:", user, "Token:", token);
+    setIsCreating(true);
 
+    console.log("🔐 User from useAuth:", user ? user.name : 'No user', "Token exists:", !!token);
+
+    // Validation
     if (!title.trim() || !content.trim()) {
       setError("Title and content are required.");
+      setIsCreating(false);
       return;
     }
 
     if (!token) {
       setError("Authentication required. Please log in again.");
+      setIsCreating(false);
       return;
     }
 
-    console.log("Attempting to create post with:", { title, content });
+    if (!user?.id) {
+      setError("User information not available. Please refresh and try again.");
+      setIsCreating(false);
+      return;
+    }
+
+    console.log("📝 Attempting to create post with:", { title: title.trim(), content: content.trim() });
 
     try {
-      const response = await fetch('http://localhost:5000/api/blogs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ title, content }),
+      // Use the blogService instead of direct fetch
+      const response = await blogService.create({
+        title: title.trim(),
+        content: content.trim()
       });
 
-      let data;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = { message: await response.text() };
-      }
+      console.log("✅ Blog created successfully:", response);
 
-      if (!response.ok) {
-        if (response.status === 401 && data.expired) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-          throw new Error('Session expired. Please log in again.');
-        }
-        throw new Error(data.message || 'Failed to create blog');
-      }
-
+      // Call success callback
       if (onPostSuccess) {
         onPostSuccess("Blog Uploaded Successfully!");
       }
+
+      // Reset form
       setTitle("");
       setContent("");
+      setError(null);
+
     } catch (err) {
-      console.error("Error creating blog:", err.message);
-      setError(err.message);
+      console.error("❌ Error creating blog:", err.message);
+      
+      // Handle specific error types
+      if (err.message.includes('expired') || err.message.includes('Session expired')) {
+        setError('Your session has expired. Please log in again.');
+        // The apiService interceptor should handle redirect
+      } else if (err.message.includes('Access denied') || err.message.includes('Forbidden')) {
+        setError('Access denied. Please check your permissions.');
+      } else if (err.message.includes('Network Error') || err.message.includes('timeout')) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'Failed to create blog. Please try again.');
+      }
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -71,10 +83,16 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   return (
     <div className="text-white">
       <h2 className="text-lg font-bold mb-4">Create New Post</h2>
-      {error && <p id="post-error" className="text-red-500 mb-4">{error}</p>}
+      
+      {error && (
+        <div id="post-error" className="bg-red-900/50 border border-red-500 text-red-300 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={postBlog}>
         <div className="mb-4">
-          <label htmlFor="post-title" className="block mb-2">
+          <label htmlFor="post-title" className="block mb-2 font-medium">
             Title
           </label>
           <input
@@ -86,10 +104,12 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             aria-describedby={error ? "post-error" : undefined}
+            disabled={isCreating}
           />
         </div>
+
         <div className="mb-4">
-          <label htmlFor="post-content" className="block mb-2">
+          <label htmlFor="post-content" className="block mb-2 font-medium">
             Content
           </label>
           <textarea
@@ -101,14 +121,17 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             aria-describedby={error ? "post-error" : undefined}
+            disabled={isCreating}
           />
         </div>
+
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          disabled={isCreating || !title.trim() || !content.trim()}
+          className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
           aria-label="Submit post"
         >
-          Post
+          {isCreating ? "Creating..." : "Post"}
         </button>
       </form>
     </div>

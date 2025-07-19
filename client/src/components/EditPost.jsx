@@ -10,16 +10,12 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
   const [isAuthor, setIsAuthor] = useState(false);
   const [isCheckingOwnership, setIsCheckingOwnership] = useState(true);
 
-  console.log("EditPost props - userId:", userId);
-  console.log("EditPost props - blogId:", blogId);
-
   useEffect(() => {
     setTitle(initialTitle);
     setContent(initialContent);
 
     const checkOwnership = async () => {
       if (!blogId || !userId || !token) {
-        console.log("Missing required props:", { blogId, userId: !!userId, token: !!token });
         setIsCheckingOwnership(false);
         return;
       }
@@ -27,9 +23,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
       try {
         setIsCheckingOwnership(true);
         const blog = await blogService.fetchById(blogId);
-        console.log("EditPost - Blog data:", blog);
-        console.log("EditPost - Blog author:", blog.author);
-        console.log("EditPost - Current user ID:", userId);
         
         let authorId;
         if (typeof blog.author === 'object' && blog.author._id) {
@@ -41,18 +34,11 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
           onUpdateSuccess("Error: Invalid blog author data");
           return;
         }
-
-        console.log("EditPost - Final comparison:", {
-          authorId: authorId.toString(),
-          userId: userId.toString(),
-          match: authorId.toString() === userId.toString()
-        });
         
         if (authorId.toString() === userId.toString()) {
-          console.log("EditPost - User is authorized to edit");
           setIsAuthor(true);
         } else {
-          console.log("EditPost - User is NOT authorized to edit");
+          console.error("EditPost - User is NOT authorized to edit");
           setIsAuthor(false);
           onUpdateSuccess("You can only edit your own blogs");
         }
@@ -75,7 +61,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
       return;
     }
 
-    console.log("EditPost - Submitting update:", { blogId, userId, token: !!token });
     if (!blogId) {
       console.error("blogId is undefined");
       onUpdateSuccess("Failed to update blog: Blog ID is missing");
@@ -89,10 +74,6 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
 
     try {
       const response = await blogService.update(blogId, { title: title.trim(), content: content.trim() });
-
-      console.log("EditPost - Update response:", response);
-      console.log("EditPost - Response type:", typeof response);
-      console.log("EditPost - Response keys:", response ? Object.keys(response) : 'null');
 
       if (response) {
         if (response.success === true || 

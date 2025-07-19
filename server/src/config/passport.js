@@ -5,8 +5,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.debug('Initializing passport Google strategy...');
-
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -15,10 +13,7 @@ passport.use(new GoogleStrategy({
     passReqToCallback: true
   },
   async (req, accessToken, refreshToken, profile, done) => {
-    try {
-      console.debug('Google profile received:', profile);
-      
-      // Verify email exists
+    try {      
       if (!profile.emails || !profile.emails[0]) {
         throw new Error('No email found in Google profile');
       }
@@ -31,7 +26,7 @@ passport.use(new GoogleStrategy({
         user = await User.create({
           name: profile.displayName,
           email,
-          isVerified: true,
+          isEmailVerified: true,
           authMethod: 'google'
         });
         console.debug('New user created via Google OAuth:', user);
@@ -67,5 +62,3 @@ passport.deserializeUser(async (obj, done) => {
     done(err);
   }
 });
-
-console.debug('Passport Google strategy initialized successfully');

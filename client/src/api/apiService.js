@@ -10,6 +10,7 @@ const apiClient = axios.create({
   },
 });
 
+// Request interceptor to add token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,27 +19,46 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('❌ Request interceptor error:', error.message);
+    return Promise.reject(error);
+  }
 );
 
+// Response interceptor with safe error handling
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    return response.data;
+  },
   (error) => {
+    console.error('❌ API Error:', error.message);
+
     if (error.code === 'ECONNABORTED') {
-      console.error('⏳ Request timeout:', error.config.url);
       return Promise.reject(new Error(`Request timed out after ${error.config.timeout}ms`));
     }
 
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
-    const errorMessage = error.response?.data?.message || 
-                       error.message || 
-                       'An unexpected error occurred';
+    if (error.response?.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      return Promise.reject(new Error('Access denied. Please check your permissions.'));
+    }
+
+    const errorMessage = error.response?.data?.message ||
+                         error.message ||
+                         'An unexpected error occurred';
+
     return Promise.reject(new Error(errorMessage));
   }
 );

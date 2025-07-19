@@ -1,77 +1,83 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Eye } from 'lucide-react';
+import React, { useState, useEffect, useRef, useId } from 'react';
+import { X, Eye, UserIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PostModalSkeleton from '../../../skeleton/component/ui/PostModalSkeleton';
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import blogService from '../../../api/blogService';
+import { NavLink } from 'react-router';
+import { formatDate } from '../../../utils/utilityFunctions';
 
 const PostModal = ({
-  isOpen, onClose, title, content, author,
-  isLoading = false, onEdit, onDelete,
-  userId, blogId, token,
-  initialViews = 0, onViewIncrement
+  isOpen,
+  onClose,
+  blog,
+  token,
+  userId,
+  onEdit,
+  onDelete,
+  onViewIncrement
 }) => {
+  const { title, content, author, views, _id, id, createdAt } = blog || {};
+  const blogId = id || _id;
+
+  const name = author?.name || ' Unknown';
+  const email = author?.email || '';
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentViews, setCurrentViews] = useState(initialViews);
+  const [currentViews, setCurrentViews] = useState(views);
   const hasIncrementedRef = useRef(false);
 
   useEffect(() => {
-  if (isOpen && blogId && token && !hasIncrementedRef.current) {
-    if (!blogService.incrementView) {
-      return;
-    }
-    hasIncrementedRef.current = true;
+    if (isOpen && blogId && token && !hasIncrementedRef.current) {
+      if (!blogService.incrementView) return;
 
-    const incrementView = async () => {
-      try {
-        const updatedBlogResponse = await blogService.incrementView(blogId);
-        const newViews = updatedBlogResponse.views;
-        setCurrentViews(newViews);
-        if (onViewIncrement) {
-          onViewIncrement(blogId, newViews);
+      hasIncrementedRef.current = true;
+
+      const incrementView = async () => {
+        try {
+          const updatedBlogResponse = await blogService.incrementView(blogId);
+          const newViews = updatedBlogResponse.views;
+          setCurrentViews(newViews);
+
+          if (onViewIncrement) {
+            onViewIncrement(blogId, newViews);
+          }
+        } catch (error) {
+          console.error('Failed to increment blog view:', error);
         }
-      } catch (error) {
-        console.error('Failed to increment blog view:', error);
-      }
-    };
-    incrementView();
-  }
+      };
 
-  if (!isOpen) {
-    hasIncrementedRef.current = false;
-  }
-}, [isOpen, blogId, token]);
-  
+      incrementView();
+    }
+
+    if (!isOpen) {
+      hasIncrementedRef.current = false;
+    }
+  }, [isOpen, blogId, token]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => { document.body.style.overflow = 'auto'; };
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, [isOpen]);
 
-  if (isLoading) {
-    return <PostModalSkeleton />;
-  }
-
-  const handleEdit = () => {
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-  };
+  const handleEdit = () => setIsEditModalOpen(true);
+  const handleCloseEditModal = () => setIsEditModalOpen(false);
 
   const handleUpdateSuccess = (message) => {
     console.log(message);
     setIsEditModalOpen(false);
   };
 
-  const isAuthor = author?._id === userId;
+  const isAuthor = userId && author?._id === userId;
 
   return (
     <AnimatePresence>
@@ -92,7 +98,11 @@ const PostModal = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
-              <h2 className="text-2xl font-bold text-white pr-10">{title}</h2>
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-bold text-white pr-10">{title}</h2>
+                <span className="text-sm text-blue-300 mt-1">{formatDate(createdAt)}</span>
+              </div>
+
               <button
                 onClick={onClose}
                 className="p-2 rounded-full bg-gray-700 hover:bg-red-600 hover:scale-110 text-white transition-colors duration-200"
@@ -102,7 +112,7 @@ const PostModal = ({
               </button>
             </div>
 
-            <div className="mb-6 min-h-[640px]">
+            <div className="mb-6 min-h-[600px]">
               <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)', flexGrow: 1, overflowY: 'auto' }} className="px-4 py-3">
                 <div className="text-gray-300 whitespace-pre-line">
                   {content}
@@ -110,15 +120,17 @@ const PostModal = ({
               </SimpleBar>
             </div>
 
-            <div className="p-4 border-t border-gray-700 flex justify-between items-center text-base text-gray-400">
+            <div className="p-4 border-t border-gray-700 flex justify-between items-center text-base text-gray-400 min-h-[80px]">
               <div className="flex flex-col">
-                <span>Author: {author?.name || 'Unknown'}</span>
+                <NavLink to={`/user/${author?._id || author?.id}`} className="flex flex-row pb-2 items-center hover:text-blue-400 transition-colors duration-200">
+                  <UserIcon className="mr-2" />
+                  Author: {name || 'Unknown'}
+                </NavLink>
                 {author?.email && (
-                  <span className="text-xs text-gray-500">{author.email}</span>
+                  <span className="text-sm text-gray-500">{email}</span>
                 )}
               </div>
 
-              {/* Display current views inside the modal */}
               <div className="flex items-center text-blue-400">
                 <Eye size={16} className="mr-1" />
                 <span>{currentViews} Views</span>
@@ -138,7 +150,7 @@ const PostModal = ({
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete();
+                      onDelete?.();
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition duration-200"
                   >
@@ -150,8 +162,10 @@ const PostModal = ({
           </motion.div>
         </motion.div>
       )}
+
       {isEditModalOpen && (
         <EditPostModal
+          key={`edit-${blogId}`}
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           onUpdateSuccess={handleUpdateSuccess}

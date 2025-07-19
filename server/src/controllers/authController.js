@@ -36,7 +36,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (!user.isVerified) {
+    if (!user.isEmailVerified) {
       return res.status(403).json({
         success: false,
         message: 'Email not verified. Please verify your email before logging in.'
@@ -72,7 +72,7 @@ export const loginUser = async (req, res) => {
       id: user._id,
       email: user.email
     }, process.env.JWT_SECRET, {
-      expiresIn: '24h'
+      expiresIn: '7d'
     });
 
     res.json({
@@ -132,7 +132,7 @@ export const registerUser = async (req, res) => {
       email,
       password,
       age: parseInt(age),
-      isVerified: false
+      isEmailVerified: false
     });
 
     res.status(201).json({
@@ -169,7 +169,7 @@ export const verifySignup = async (req, res) => {
 
     const user = await User.findOneAndUpdate(
       { email },
-      { isVerified: true },
+      { isEmailVerified: true },
       { new: true }
     );
 
@@ -184,7 +184,7 @@ export const verifySignup = async (req, res) => {
       id: user._id,
       email: user.email
     }, process.env.JWT_SECRET, {
-      expiresIn: '24h'
+      expiresIn: '7d'
     });
 
     res.json({
@@ -347,7 +347,7 @@ export const googleAuthCallback = (req, res) => {
       id: req.user._id,
       email: req.user.email
     }, process.env.JWT_SECRET, {
-      expiresIn: '24h'
+      expiresIn: '7d'
     });
 
     const userData = {

@@ -45,12 +45,12 @@ app.use("/api/blogs", blogsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", otpRoutes);
 
-app.use((err, _, res, _) => {
+app.use((err, _, res, req) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.use((err, _, res, _) => {
+app.use((err, _, res, req) => {
   console.error('Global error handler:', err);
   
   if (err.oauthError) {
