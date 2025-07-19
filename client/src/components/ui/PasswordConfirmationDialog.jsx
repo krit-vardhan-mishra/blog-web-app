@@ -11,7 +11,7 @@ const PasswordConfirmationDialog = ({
   setPassword,
   showPassword,
   togglePasswordVisibility,
-  title = "Confirm Password",
+  title = 'Confirm Password',
   errorMessage,
   additionalContent,
 }) => {
@@ -59,7 +59,7 @@ const PasswordConfirmationDialog = ({
             </div>
           </div>
 
-          { additionalContent }
+          {additionalContent}
 
           {errorMessage && (
             <p className="text-red-500 text-sm mb-4">{errorMessage}</p>

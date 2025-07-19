@@ -4,9 +4,16 @@ import NotifyBanner from './ui/NotifyBanner';
 import { motion } from 'framer-motion';
 import DeletedPostSkeleton from '../skeleton/component/DeletedPostSkeleton';
 
-export const DeletedPost = ({ title, content, author, onRestore, onDelete, isLoading = false }) => {
+export const DeletedPost = ({
+  title,
+  content,
+  author,
+  onRestore,
+  onDelete,
+  isLoading = false,
+}) => {
   if (isLoading) {
-    return <DeletedPostSkeleton />
+    return <DeletedPostSkeleton />;
   }
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
@@ -30,12 +37,10 @@ export const DeletedPost = ({ title, content, author, onRestore, onDelete, isLoa
       onDelete();
     }
   };
-  
+
   return (
     <div className="pt-7 pr-7 pl-7 p-5 bg-[#1a1d23] rounded-lg shadow-lg">
-      {showNotificationBanner && (
-        <NotifyBanner message={notificationMessage} />
-      )}
+      {showNotificationBanner && <NotifyBanner message={notificationMessage} />}
 
       <motion.div
         whileHover={{ scale: 1.03 }}

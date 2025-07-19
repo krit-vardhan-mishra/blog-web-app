@@ -13,15 +13,15 @@ export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Forgot Password - Blog App";
+    document.title = 'Forgot Password - Blog App';
   }, []);
 
   const validateEmail = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const newErrors = {};
 
-    if (!email) newErrors.email = "Email is required";
-    else if (!emailRegex.test(email)) newErrors.email = "Invalid email format";
+    if (!email) newErrors.email = 'Email is required';
+    else if (!emailRegex.test(email)) newErrors.email = 'Invalid email format';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -71,15 +71,22 @@ export const ForgotPasswordPage = () => {
           </div>
 
           <p className="text-gray-300 text-center mb-6">
-            Enter your email address and we'll send you an OTP to reset your password.
+            Enter your email address and we'll send you an OTP to reset your
+            password.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-white font-semibold mb-2">
+              <label
+                htmlFor="email"
+                className="block text-white font-semibold mb-2"
+              >
                 Email Address
               </label>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <input
                   type="email"
                   id="email"

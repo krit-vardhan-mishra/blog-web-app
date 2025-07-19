@@ -21,7 +21,7 @@ const authService = {
 
   login: async (email, password) => {
     if (!email || !password) {
-      throw new Error("Email and password are required");
+      throw new Error('Email and password are required');
     }
 
     const response = await apiClient.post('/auth/login', { email, password });
@@ -47,7 +47,9 @@ const authService = {
 
   verifyPassword: async (password) => {
     try {
-      const response = await apiClient.post('/auth/verify-password', { password });
+      const response = await apiClient.post('/auth/verify-password', {
+        password,
+      });
       return response.success;
     } catch (error) {
       console.error('Password verification error:', error);
@@ -62,22 +64,23 @@ const authService = {
         { currentPassword, newPassword },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       return response.data;
     } catch (error) {
       throw error.response?.data?.message || 'Failed to change password';
     }
-  }
+  },
 };
 
 const passwordResetService = {
   sendResetOTP: (email) => apiClient.post('/auth/forgot-password', { email }),
-  verifyResetOTP: (email, otp) => apiClient.post('/auth/verify-reset-otp', { email, otp }),
+  verifyResetOTP: (email, otp) =>
+    apiClient.post('/auth/verify-reset-otp', { email, otp }),
   resetPassword: (email, otp, newPassword) =>
-    apiClient.post('/auth/reset-password', { email, otp, newPassword })
+    apiClient.post('/auth/reset-password', { email, otp, newPassword }),
 };
 
 export const setPassword = async (newPassword) => {
@@ -86,9 +89,9 @@ export const setPassword = async (newPassword) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ newPassword })
+    body: JSON.stringify({ newPassword }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Failed to set password');

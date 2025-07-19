@@ -46,20 +46,20 @@ const QuickStatsModal = ({ isOpen, onClose, stats = [], onStatClick }) => {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     onClose();
-                    onStatClick({ title, count, subtitle }); 
+                    onStatClick({ title, count, subtitle });
                   }}
                   className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
                 >
                   <h3 className="text-white font-semibold mb-2">{title}</h3>
-                  <div className={`text-2xl font-bold ${colorMap[title] || 'text-gray-300'}`}>
+                  <div
+                    className={`text-2xl font-bold ${colorMap[title] || 'text-gray-300'}`}
+                  >
                     {title === 'Last Updated' && count && count !== 'Never' ? (
                       <div className="whitespace-pre-line leading-tight">
                         {count}
                       </div>
                     ) : (
-                      <div>
-                        {count || count === 0 ? count : '-'}
-                      </div>
+                      <div>{count || count === 0 ? count : '-'}</div>
                     )}
                   </div>
                   <p className="text-gray-400 text-sm mt-2">{subtitle}</p>

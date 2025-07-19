@@ -19,35 +19,42 @@ import { ToastContainer } from 'react-toastify';
 import VerifySignupPage from '../pages/VerifySignupPage';
 import UserDetail from '../pages/UserDetail';
 import BlogDetail from '../pages/BlogDetail';
+import Footer from '../components/Footer';
 
 const AppRoutes = () => {
   return (
     <>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
 
-        <Route element={<PublicRoute />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/google-auth" element={<GoogleAuthHandler />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/verify-otp" element={<VerifyOTPPage />} />
-          <Route path="/verify-signup" element={<VerifySignupPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/set-password" element={<SetPasswordPage />} />
-        </Route>
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/google-auth" element={<GoogleAuthHandler />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/verify-otp" element={<VerifyOTPPage />} />
+              <Route path="/verify-signup" element={<VerifySignupPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/set-password" element={<SetPasswordPage />} />
+            </Route>
 
-        <Route element={<PrivateRoute />}>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/user/:userId" element={<UserDetail />} />
-          <Route path="/blog/:blogId" element={<BlogDetail />} />
-          <Route path="/your-posts" element={<MyPosts />} />
-          <Route path="/deleted" element={<DeletedBlogs />} />
-          <Route path="/account-setting" element={<AccountSetting />} />
-        </Route>
+            <Route element={<PrivateRoute />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/user/:userId" element={<UserDetail />} />
+              <Route path="/blog/:blogId" element={<BlogDetail />} />
+              <Route path="/your-posts" element={<MyPosts />} />
+              <Route path="/deleted" element={<DeletedBlogs />} />
+              <Route path="/account-setting" element={<AccountSetting />} />
+            </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
+
       <ToastContainer
         position="top-center"
         autoClose={5000}

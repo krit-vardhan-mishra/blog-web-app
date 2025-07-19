@@ -97,16 +97,23 @@ export const VerifySignupPage = () => {
           </div>
 
           <p className="text-gray-300 text-center mb-6">
-            Enter the OTP sent to <strong>{email}</strong> to verify your account.
+            Enter the OTP sent to <strong>{email}</strong> to verify your
+            account.
           </p>
 
           {/* OTP Verification Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="otp" className="block text-white font-semibold mb-2">
+              <label
+                htmlFor="otp"
+                className="block text-white font-semibold mb-2"
+              >
                 OTP Code
               </label>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <input
                   type="text"
                   id="otp"
@@ -130,7 +137,9 @@ export const VerifySignupPage = () => {
                   disabled={resendTimer > 0 || isLoading}
                   className="text-blue-400 hover:underline text-sm disabled:text-gray-500"
                 >
-                  {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                  {resendTimer > 0
+                    ? `Resend OTP in ${resendTimer}s`
+                    : 'Resend OTP'}
                 </button>
               </div>
             </div>

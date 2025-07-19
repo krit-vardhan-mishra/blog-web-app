@@ -1,11 +1,11 @@
-import FeaturesSidebar from "../components/FeaturesSidebar";
-import { useEffect, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import { motion } from "framer-motion";
+import FeaturesSidebar from '../components/FeaturesSidebar';
+import { useEffect, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import authService from '../api/authService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SignupPageSkeleton } from "../skeleton/pages/SignupPageSkeleton";
+import { SignupPageSkeleton } from '../skeleton/pages/SignupPageSkeleton';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -47,7 +47,7 @@ export const SignupPage = () => {
       }
 
       toast.error(errorMessage, {
-        position: "top-center",
+        position: 'top-center',
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
@@ -61,7 +61,7 @@ export const SignupPage = () => {
   useEffect(() => {
     if (errors.form) {
       const timer = setTimeout(() => {
-        setErrors((prevErrors) => ({ ...prevErrors, form: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, form: '' }));
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -69,7 +69,7 @@ export const SignupPage = () => {
   }, [errors.form]);
 
   useEffect(() => {
-    document.title = "Signup - Blog App";
+    document.title = 'Signup - Blog App';
     const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -87,15 +87,19 @@ export const SignupPage = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/;
 
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!emailRegex.test(formData.email)) newErrors.email = "Invalid email format";
-    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.firstName.trim())
+      newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!emailRegex.test(formData.email))
+      newErrors.email = 'Invalid email format';
+    if (!formData.password) newErrors.password = 'Password is required';
     else if (!passwordRegex.test(formData.password))
-      newErrors.password = "Password must be 8+ chars, include 1 capital letter & 1 symbol";
-    if (!formData.age) newErrors.age = "Age is required";
-    else if (isNaN(formData.age) || formData.age <= 0) newErrors.age = "Age must be a positive number";
+      newErrors.password =
+        'Password must be 8+ chars, include 1 capital letter & 1 symbol';
+    if (!formData.age) newErrors.age = 'Age is required';
+    else if (isNaN(formData.age) || formData.age <= 0)
+      newErrors.age = 'Age must be a positive number';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -177,7 +181,9 @@ export const SignupPage = () => {
                   required
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.firstName}
+                  </p>
                 )}
               </motion.div>
             </div>
@@ -284,7 +290,7 @@ export const SignupPage = () => {
               >
                 <div className="relative w-full">
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     id="password"
                     autoComplete="new-password"
                     value={formData.password}
@@ -325,18 +331,23 @@ export const SignupPage = () => {
             </div>
 
             {errors.form && (
-              <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
+              <p className="text-red-500 text-sm mt-1 mb-2 text-center">
+                {errors.form}
+              </p>
             )}
 
             {/* Signup Button */}
             <div className="flex justify-center mt-6">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                   type="submit"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing up..." : "Sign up"}
+                  {isLoading ? 'Signing up...' : 'Sign up'}
                 </Button>
               </motion.div>
             </div>
@@ -354,7 +365,7 @@ export const SignupPage = () => {
           </div>
 
           <p className="text-white mt-6 text-center">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <a href="/login" className="text-blue-400 hover:underline">
               Log in
             </a>

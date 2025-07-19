@@ -2,7 +2,16 @@ import { X } from 'lucide-react';
 import EditPost from '../../EditPost';
 import ModalWrapper from './ModalWrapper';
 
-const EditPostModal = ({ isOpen, onClose, onUpdateSuccess, title, content, blogId, userId, token }) => {
+const EditPostModal = ({
+  isOpen,
+  onClose,
+  onUpdateSuccess,
+  title,
+  content,
+  blogId,
+  userId,
+  token,
+}) => {
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <button
@@ -11,7 +20,14 @@ const EditPostModal = ({ isOpen, onClose, onUpdateSuccess, title, content, blogI
       >
         <X className="h-5 w-5 m-5" />
       </button>
-      <EditPost onUpdateSuccess={onUpdateSuccess} title={title} content={content} blogId={blogId} userId={userId} token={token} />
+      <EditPost
+        onUpdateSuccess={onUpdateSuccess}
+        title={title}
+        content={content}
+        blogId={blogId}
+        userId={userId}
+        token={token}
+      />
     </ModalWrapper>
   );
 };

@@ -14,7 +14,7 @@ export const ResetPasswordPage = () => {
   const [errors, setErrors] = useState({});
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
@@ -22,8 +22,8 @@ export const ResetPasswordPage = () => {
   const verified = location.state?.verified;
 
   useEffect(() => {
-    document.title = "Reset Password - Blog App";
-    
+    document.title = 'Reset Password - Blog App';
+
     if (!email || !otp || !verified) {
       navigate('/forgot-password');
       return;
@@ -39,15 +39,16 @@ export const ResetPasswordPage = () => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/;
 
     if (!formData.newPassword) {
-      newErrors.newPassword = "New password is required";
+      newErrors.newPassword = 'New password is required';
     } else if (!passwordRegex.test(formData.newPassword)) {
-      newErrors.newPassword = "Password must be 8+ chars, include 1 capital letter & 1 symbol";
+      newErrors.newPassword =
+        'Password must be 8+ chars, include 1 capital letter & 1 symbol';
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Confirm password is required";
+      newErrors.confirmPassword = 'Confirm password is required';
     } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     setErrors(newErrors);
@@ -56,18 +57,23 @@ export const ResetPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      await passwordResetService.resetPassword(email, otp, formData.newPassword);
-      navigate('/login', { 
-        state: { 
-          message: 'Password reset successful! Please login with your new password.' 
-        } 
+      await passwordResetService.resetPassword(
+        email,
+        otp,
+        formData.newPassword
+      );
+      navigate('/login', {
+        state: {
+          message:
+            'Password reset successful! Please login with your new password.',
+        },
       });
     } catch (error) {
       setErrors({ form: error.message });
@@ -102,19 +108,26 @@ export const ResetPasswordPage = () => {
           </div>
 
           <p className="text-gray-300 text-center mb-8">
-            Code verified successfully! Now create your new password for <strong>{email}</strong>.
+            Code verified successfully! Now create your new password for{' '}
+            <strong>{email}</strong>.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* New Password Input */}
             <div>
-              <label htmlFor="newPassword" className="block text-white font-semibold mb-2">
+              <label
+                htmlFor="newPassword"
+                className="block text-white font-semibold mb-2"
+              >
                 New Password
               </label>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <div className="relative">
                   <input
-                    type={showNewPassword ? "text" : "password"}
+                    type={showNewPassword ? 'text' : 'password'}
                     id="newPassword"
                     value={formData.newPassword}
                     onChange={handleChange}
@@ -136,19 +149,27 @@ export const ResetPasswordPage = () => {
                 </div>
               </motion.div>
               {errors.newPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.newPassword}
+                </p>
               )}
             </div>
 
             {/* Confirm Password Input */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-white font-semibold mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-white font-semibold mb-2"
+              >
                 Confirm Password
               </label>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <div className="relative">
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -170,7 +191,9 @@ export const ResetPasswordPage = () => {
                 </div>
               </motion.div>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 

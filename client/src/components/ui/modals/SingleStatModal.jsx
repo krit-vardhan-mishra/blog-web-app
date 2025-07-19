@@ -9,9 +9,12 @@ const colorMap = {
 };
 
 const infoMessages = {
-  'Your Blogs': 'This shows the number of blog posts you’ve published. Create more to grow your content library.',
-  'Total Views': 'This shows the total number of times your blogs have been viewed. More views mean more reach!',
-  'Last Updated': 'This shows when you last created, edited, or deleted a blog post.'
+  'Your Blogs':
+    'This shows the number of blog posts you’ve published. Create more to grow your content library.',
+  'Total Views':
+    'This shows the total number of times your blogs have been viewed. More views mean more reach!',
+  'Last Updated':
+    'This shows when you last created, edited, or deleted a blog post.',
 };
 
 const SingleStatModal = ({ stat, isOpen, onClose }) => {
@@ -42,8 +45,12 @@ const SingleStatModal = ({ stat, isOpen, onClose }) => {
 
           <h2 className="text-white text-2xl font-bold mb-4">{stat.title}</h2>
 
-          <div className={`text-4xl font-extrabold ${colorMap[stat.title] || 'text-gray-300'}`}>
-            {stat.title === 'Last Updated' && stat.count && stat.count !== 'Never' ? (
+          <div
+            className={`text-4xl font-extrabold ${colorMap[stat.title] || 'text-gray-300'}`}
+          >
+            {stat.title === 'Last Updated' &&
+            stat.count &&
+            stat.count !== 'Never' ? (
               <div className="whitespace-pre-line leading-tight text-center">
                 {stat.count}
               </div>

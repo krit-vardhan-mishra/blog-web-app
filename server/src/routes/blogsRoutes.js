@@ -30,6 +30,7 @@ router.use((error, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? error.message : undefined
   });
 });
+
 router.get('/user/:userId', authenticateToken, getUserBlogs);
 router.get('/', authenticateToken, getNonDeletedBlogs);
 router.get('/deleted', authenticateToken, getAllDeletedBlogsByUser);

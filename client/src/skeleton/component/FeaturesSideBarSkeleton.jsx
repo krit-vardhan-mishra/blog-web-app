@@ -1,4 +1,4 @@
-import { CardBoxSkeleton } from "./ui/CardBoxSkeleton";
+import { CardBoxSkeleton } from './ui/CardBoxSkeleton';
 
 export const FeaturesSidebarSkeleton = () => {
   return (

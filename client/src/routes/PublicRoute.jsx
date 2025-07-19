@@ -5,7 +5,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PublicRoute = ({ redirectPath = '/home' }) => {
   const { isAuthenticated, isAuthLoading } = useAuth();
-  
+
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }

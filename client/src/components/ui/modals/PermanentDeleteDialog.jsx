@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { Button } from "../../ui/Button";
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
+import { Button } from '../../ui/Button';
 import PermanentDeleteDialogSkeleton from '../../../skeleton/component/ui/PermanentDeleteDialogSkeleton';
 
 const PermanentDeleteDialog = ({ isOpen, isLoading, onClose, onConfirm }) => {
@@ -25,10 +25,7 @@ const PermanentDeleteDialog = ({ isOpen, isLoading, onClose, onConfirm }) => {
                 className="bg-[#1C222A] p-6 rounded-lg shadow-lg w-full max-w-sm relative"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={onClose}
-                  className="absolute top-2 right-2"
-                >
+                <button onClick={onClose} className="absolute top-2 right-2">
                   <X className="h-5 w-5 m-5 text-red-700 hover:text-red-500" />
                 </button>
                 <h2 className="text-white text-lg font-bold mb-4">

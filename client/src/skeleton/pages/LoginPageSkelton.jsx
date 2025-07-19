@@ -1,4 +1,4 @@
-import { FeaturesSidebarSkeleton } from "../component/FeaturesSideBarSkeleton";
+import { FeaturesSidebarSkeleton } from '../component/FeaturesSideBarSkeleton';
 
 export const LoginPageSkeleton = () => {
   return (

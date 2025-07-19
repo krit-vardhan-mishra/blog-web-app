@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '../components/ui/Button'; 
-import { passwordResetService } from '../api/authService'; 
+import { Button } from '../components/ui/Button';
+import { passwordResetService } from '../api/authService';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -20,7 +20,7 @@ export const VerifyOTPPage = () => {
   const CORRECT_OTP = '123456';
 
   useEffect(() => {
-    document.title = "Verify Code - Blog App";
+    document.title = 'Verify Code - Blog App';
 
     if (!email) {
       navigate('/forgot-password');
@@ -34,13 +34,13 @@ export const VerifyOTPPage = () => {
 
     if (lockoutTimer > 0) {
       const timer = setTimeout(() => setLockoutTimer(lockoutTimer - 1), 1000);
-      return () => clearTimeout(timer); 
+      return () => clearTimeout(timer);
     } else if (otpStatus === 'locked' && lockoutTimer === 0) {
       setOtpStatus('idle');
       setAttemptsLeft(3);
-      setError(''); 
+      setError('');
     }
-  }, [email, navigate, resendTimer, lockoutTimer, otpStatus]); 
+  }, [email, navigate, resendTimer, lockoutTimer, otpStatus]);
 
   const handleInputChange = (index, value) => {
     if (value.length > 1) return;
@@ -77,12 +77,12 @@ export const VerifyOTPPage = () => {
   };
 
   const handlePaste = (e) => {
-    e.preventDefault(); 
-    const pastedData = e.clipboardData.getData('text').slice(0, 6); 
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6);
 
     const newOtpInputs = [...otpInputs];
     for (let i = 0; i < 6; i++) {
-      newOtpInputs[i] = pastedData[i] || ''; 
+      newOtpInputs[i] = pastedData[i] || '';
     }
     setOtpInputs(newOtpInputs);
 
@@ -93,7 +93,7 @@ export const VerifyOTPPage = () => {
 
     const fullOtp = newOtpInputs.join('');
     if (fullOtp.length === 6) {
-      handleFullOtpEntered(fullOtp)
+      handleFullOtpEntered(fullOtp);
     }
   };
 
@@ -108,13 +108,13 @@ export const VerifyOTPPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
     const otp = otpInputs.join('');
 
     if (otp.length !== 6) {
       setError('Please enter the complete 6-digit code');
-      setOtpStatus('incorrect'); 
+      setOtpStatus('incorrect');
       return;
     }
 
@@ -123,7 +123,7 @@ export const VerifyOTPPage = () => {
       return;
     }
 
-    setIsLoading(true); 
+    setIsLoading(true);
     setError('');
 
     try {
@@ -135,23 +135,27 @@ export const VerifyOTPPage = () => {
         state: {
           email: email,
           otp: otp,
-          verified: true
-        }
+          verified: true,
+        },
       });
     } catch (error) {
-      setOtpStatus('incorrect'); 
-      setAttemptsLeft(prev => prev - 1);
+      setOtpStatus('incorrect');
+      setAttemptsLeft((prev) => prev - 1);
 
-      const newAttemptsLeft = attemptsLeft - 1; 
+      const newAttemptsLeft = attemptsLeft - 1;
 
       if (newAttemptsLeft <= 0) {
         setOtpStatus('locked');
         setLockoutTimer(60);
-        setError(`Too many incorrect attempts. Please wait 60 seconds before trying again.`);
+        setError(
+          `Too many incorrect attempts. Please wait 60 seconds before trying again.`
+        );
       } else {
-        setError(error.message || 'An unexpected error occurred during verification.');
+        setError(
+          error.message || 'An unexpected error occurred during verification.'
+        );
       }
-      setOtpInputs(['', '', '', '', '', '']); 
+      setOtpInputs(['', '', '', '', '', '']);
     } finally {
       setIsLoading(false);
     }
@@ -160,16 +164,16 @@ export const VerifyOTPPage = () => {
   const handleResendOTP = async () => {
     setIsLoading(true);
     setError('');
-    setOtpStatus('idle'); 
+    setOtpStatus('idle');
 
     try {
       await passwordResetService.sendResetOTP(email);
-      setResendTimer(60); 
+      setResendTimer(60);
       setOtpInputs(['', '', '', '', '', '']);
       setAttemptsLeft(3);
-      setError('New OTP sent! Please check your email.'); 
+      setError('New OTP sent! Please check your email.');
     } catch (error) {
-      setError(error.message || 'Failed to resend OTP.'); 
+      setError(error.message || 'Failed to resend OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -194,10 +198,10 @@ export const VerifyOTPPage = () => {
   const getBorderColorHex = (index) => {
     const borderColorClass = getBorderColorClass(index);
     if (borderColorClass.includes('green')) return '#22C55E';
-    if (borderColorClass.includes('red')) return '#EF4444';  
-    if (borderColorClass.includes('gray-500')) return '#6B7280'; 
-    if (borderColorClass.includes('blue')) return '#3B82F6';  
-    return '#4B5563'; 
+    if (borderColorClass.includes('red')) return '#EF4444';
+    if (borderColorClass.includes('gray-500')) return '#6B7280';
+    if (borderColorClass.includes('blue')) return '#3B82F6';
+    return '#4B5563';
   };
 
   return (
@@ -226,7 +230,8 @@ export const VerifyOTPPage = () => {
           </div>
 
           <p className="text-gray-300 text-center mb-2">
-            We've sent a verification code to <strong>{email}</strong>. Enter the code below to continue.
+            We've sent a verification code to <strong>{email}</strong>. Enter
+            the code below to continue.
           </p>
 
           <p className="text-gray-400 text-center text-sm mb-8">
@@ -262,9 +267,13 @@ export const VerifyOTPPage = () => {
               {error && (
                 <p className="text-red-500 text-sm text-center mb-4">
                   {error}
-                  {otpStatus !== 'locked' && attemptsLeft < 3 && attemptsLeft > 0 && (
-                    <span className="ml-2">({attemptsLeft} attempts left)</span>
-                  )}
+                  {otpStatus !== 'locked' &&
+                    attemptsLeft < 3 &&
+                    attemptsLeft > 0 && (
+                      <span className="ml-2">
+                        ({attemptsLeft} attempts left)
+                      </span>
+                    )}
                 </p>
               )}
               {otpStatus === 'locked' && (
@@ -291,7 +300,9 @@ export const VerifyOTPPage = () => {
               disabled={resendTimer > 0 || isLoading || otpStatus === 'locked'}
               className="text-purple-400 hover:underline disabled:text-gray-500 font-semibold"
             >
-              {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Code'}
+              {resendTimer > 0
+                ? `Resend Code in ${resendTimer}s`
+                : 'Resend Code'}
             </button>
           </div>
 

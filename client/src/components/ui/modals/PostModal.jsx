@@ -8,6 +8,7 @@ import 'simplebar-react/dist/simplebar.min.css';
 import blogService from '../../../api/blogService';
 import { NavLink } from 'react-router';
 import { formatDate } from '../../../utils/utilityFunctions';
+import { parseEmojisEnhanced } from '../../../utils/emojiParser';
 
 const PostModal = ({
   isOpen,
@@ -17,7 +18,7 @@ const PostModal = ({
   userId,
   onEdit,
   onDelete,
-  onViewIncrement
+  onViewIncrement,
 }) => {
   const { title, content, author, views, _id, id, createdAt } = blog || {};
   const blogId = id || _id;
@@ -100,7 +101,9 @@ const PostModal = ({
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
               <div className="flex flex-col">
                 <h2 className="text-2xl font-bold text-white pr-10">{title}</h2>
-                <span className="text-sm text-blue-300 mt-1">{formatDate(createdAt)}</span>
+                <span className="text-sm text-blue-300 mt-1">
+                  {formatDate(createdAt)}
+                </span>
               </div>
 
               <button
@@ -113,16 +116,27 @@ const PostModal = ({
             </div>
 
             <div className="mb-6 min-h-[600px]">
-              <SimpleBar style={{ maxHeight: 'calc(100vh - 300px)', flexGrow: 1, overflowY: 'auto' }} className="px-4 py-3">
-                <div className="text-gray-300 whitespace-pre-line">
-                  {content}
-                </div>
+              <SimpleBar
+                style={{
+                  maxHeight: 'calc(100vh - 300px)',
+                  flexGrow: 1,
+                  overflowY: 'auto',
+                }}
+                className="px-4 py-3"
+              >
+                <div
+                  className="text-gray-300 whitespace-pre-line"
+                  dangerouslySetInnerHTML={{ __html: parseEmojisEnhanced(content) }}
+                />
               </SimpleBar>
             </div>
 
             <div className="p-4 border-t border-gray-700 flex justify-between items-center text-base text-gray-400 min-h-[80px]">
               <div className="flex flex-col">
-                <NavLink to={`/user/${author?._id || author?.id}`} className="flex flex-row pb-2 items-center hover:text-blue-400 transition-colors duration-200">
+                <NavLink
+                  to={`/user/${author?._id || author?.id}`}
+                  className="flex flex-row pb-2 items-center hover:text-blue-400 transition-colors duration-200"
+                >
                   <UserIcon className="mr-2" />
                   Author: {name || 'Unknown'}
                 </NavLink>

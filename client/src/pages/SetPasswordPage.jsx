@@ -32,13 +32,13 @@ export const SetPasswordPage = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
     try {
-      await passwordResetService.setPassword(password);  // new API call
-      navigate('/dashboard');  // or wherever
+      await passwordResetService.setPassword(password); // new API call
+      navigate('/dashboard'); // or wherever
     } catch (err) {
       setErrors({ form: err.message });
     } finally {
@@ -49,33 +49,45 @@ export const SetPasswordPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#1C222A] px-4">
       <div className="bg-[#2A2E36] p-8 rounded-lg shadow-xl w-full max-w-sm">
-        <h1 className="text-white text-2xl font-bold mb-6 text-center">Choose a Password</h1>
+        <h1 className="text-white text-2xl font-bold mb-6 text-center">
+          Choose a Password
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-white font-semibold block mb-1">Password</label>
+            <label className="text-white font-semibold block mb-1">
+              Password
+            </label>
             <motion.input
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-[#1C222A] text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
           <div>
-            <label className="text-white font-semibold block mb-1">Confirm Password</label>
+            <label className="text-white font-semibold block mb-1">
+              Confirm Password
+            </label>
             <motion.input
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="password"
               value={confirm}
-              onChange={e => setConfirm(e.target.value)}
+              onChange={(e) => setConfirm(e.target.value)}
               className="w-full p-3 bg-[#1C222A] text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
             />
-            {errors.confirm && <p className="text-red-500 text-sm mt-1">{errors.confirm}</p>}
+            {errors.confirm && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirm}</p>
+            )}
           </div>
-          {errors.form && <p className="text-red-500 text-center">{errors.form}</p>}
+          {errors.form && (
+            <p className="text-red-500 text-center">{errors.form}</p>
+          )}
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               type="submit"

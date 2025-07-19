@@ -24,8 +24,8 @@ const PostModalSkeleton = ({ isOpen, onClose }) => {
           >
             <div className="relative bg-[#1C222A] rounded-lg shadow-2xl">
               {/* Close Button */}
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 bg-[#2A2E36] rounded-full p-2 shadow-md transition-colors duration-200"
               >
                 <X className="h-5 w-5" />

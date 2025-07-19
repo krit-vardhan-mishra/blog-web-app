@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import Header from '../components/Header.jsx';
 import { HomeIcon, UserIcon, SettingsIcon, Plus, Info } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
-import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
+import { getTimeBasedGreeting, getCurrentDateTime, } from '../utils/utilityFunctions.js';
 import { motion } from 'framer-motion';
 import PostDetails from '../components/PostDetails.jsx';
 import PostModal from '../components/ui/modals/PostModal.jsx';
-import Footer from '../components/Footer.jsx';
 import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
 import CreatePostModal from '../components/ui/modals/CreatePostModal.jsx';
 import EditPostModal from '../components/ui/modals/EditPostModal.jsx';
@@ -22,7 +21,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-} from "../components/ui/dropdown-menu.jsx";
+} from '../components/ui/dropdown-menu.jsx';
 import { useNavigate } from 'react-router';
 
 export const HomePage = () => {
@@ -47,20 +46,27 @@ export const HomePage = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
   const navigate = useNavigate();
-  const userBlogs = allBlogs.filter(blog => blog.author?._id === user?.id);
+  const userBlogs = allBlogs.filter((blog) => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
-  const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
+  const totalViews = userBlogs.reduce(
+    (sum, blog) => sum + (Number(blog.views) || 0),
+    0
+  );
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
     { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
-    { title: 'Last Updated', count: lastUpdated || 'Never', subtitle: 'Recent activity' }
+    {
+      title: 'Last Updated',
+      count: lastUpdated || 'Never',
+      subtitle: 'Recent activity',
+    },
   ];
 
   const colorMap = {
     'Your Blogs': 'text-blue-400',
     'Total Views': 'text-green-400',
-    'Last Updated': 'text-purple-400'
+    'Last Updated': 'text-purple-400',
   };
 
   useEffect(() => {
@@ -78,7 +84,9 @@ export const HomePage = () => {
 
   useEffect(() => {
     setGreeting(getTimeBasedGreeting());
-    setDisplayedUserName(user?.name ? user.name.split(' ')[0] + '...' : 'Guest');
+    setDisplayedUserName(
+      user?.name ? user.name.split(' ')[0] + '...' : 'Guest'
+    );
     const interval = setInterval(() => {
       setCurrentTime(getCurrentDateTime());
     }, 1000);
@@ -87,13 +95,13 @@ export const HomePage = () => {
 
   useEffect(() => {
     if (isEditPostOpen) {
-      document.title = "Edit Post";
+      document.title = 'Edit Post';
     } else if (isCreatePostOpen) {
-      document.title = "Create Post";
+      document.title = 'Create Post';
     } else if (isPostModalOpen) {
-      document.title = selectedBlogForModal?.title || "View Post";
+      document.title = selectedBlogForModal?.title || 'View Post';
     } else {
-      document.title = "Home - Blog Web App";
+      document.title = 'Home - Blog Web App';
     }
   }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
@@ -112,10 +120,10 @@ export const HomePage = () => {
         if (data.user) {
           setUser(data.user);
         } else {
-          console.warn("Failed to fetch valid user data:", data);
+          console.warn('Failed to fetch valid user data:', data);
         }
       } catch (err) {
-        console.error("Failed to fetch user profile:", err.message);
+        console.error('Failed to fetch user profile:', err.message);
       }
     };
     if (token && (!user?.age || !user?.about)) {
@@ -171,12 +179,12 @@ export const HomePage = () => {
     try {
       await blogService.delete(blogId);
       setAllBlogs((prev) => prev.filter((b) => b._id !== blogId));
-      setNotificationMessage("Post moved to trash successfully!");
+      setNotificationMessage('Post moved to trash successfully!');
       setShowNotificationBanner(true);
       updateLastUpdatedTime();
     } catch (error) {
-      console.error("Failed to move blog to trash:", error);
-      setNotificationMessage("Failed to move the post to trash.");
+      console.error('Failed to move blog to trash:', error);
+      setNotificationMessage('Failed to move the post to trash.');
       setShowNotificationBanner(true);
     }
   };
@@ -186,16 +194,15 @@ export const HomePage = () => {
     setIsPostModalOpen(true);
   };
 
-
   const handleClosePostModal = () => {
     setIsPostModalOpen(false);
     setSelectedBlogForModal(null);
   };
 
   const handleViewIncrement = (blogId, newViews) => {
-    setAllBlogs(prevBlogs =>
-      prevBlogs.map(blog =>
-        (blog._id === blogId || blog.id === blogId)
+    setAllBlogs((prevBlogs) =>
+      prevBlogs.map((blog) =>
+        blog._id === blogId || blog.id === blogId
           ? { ...blog, views: newViews }
           : blog
       )
@@ -205,10 +212,14 @@ export const HomePage = () => {
   const updateLastUpdatedTime = () => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
-      hour: '2-digit', minute: '2-digit', hour12: true
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     });
     const dateString = now.toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
     const lastUpdatedString = `${timeString}\n${dateString}`;
     setLastUpdated(lastUpdatedString);
@@ -218,20 +229,45 @@ export const HomePage = () => {
   };
 
   const fetchAllBlogsData = async () => {
-    const delay = new Promise((resolve) => setTimeout(resolve, 1200));
     setIsLoading(true);
+    const start = Date.now();
     try {
-      const [blogsData] = await Promise.all([
-        blogService.fetchAll(),
-        delay
-      ]);
+      const blogsData = await blogService.fetchAll();
+      const duration = Date.now() - start;
+      const minDelay = 500;
+
+      if (duration < minDelay) {
+        await new Promise((res) => setTimeout(res, minDelay - duration));
+      }
+
       setAllBlogs(blogsData);
     } catch (error) {
-      console.error("Failed to fetch blogs", error);
+      console.error('Failed to fetch blogs', error);
       setAllBlogs([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
   };
 
   if (isLoading) {
@@ -240,12 +276,10 @@ export const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
-
       <Header
         title="Home"
         icons={[
           { icon: HomeIcon, link: '/home' },
-          { icon: SettingsIcon, link: '/account-setting' },
         ]}
         customElements={[
           <DropdownMenu key="user-dropdown">
@@ -269,79 +303,97 @@ export const HomePage = () => {
                 }}
                 style={{
                   '--hover-bg': '#7f1d1d',
-                  '--hover-text': '#ffffff'
+                  '--hover-text': '#ffffff',
                 }}
                 className="hover:bg-[--hover-bg] hover:text-[--hover-text] focus:bg-[--hover-bg] focus:text-[--hover-text]"
               >
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu>,
         ]}
       />
 
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <motion.main 
+        className="flex-grow max-w-6xl mx-auto px-6 py-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Greeting */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-[#2A2E36] rounded-lg p-6 shadow-lg mb-8"
+          variants={itemVariants}
+          className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 shadow-lg mb-8 border border-gray-700"
         >
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {greeting}, <span className="text-blue-400">{displayedUserName}</span>!
-          </h1>
+          <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                {greeting},{' '}
+                <span className="text-blue-400">{displayedUserName}</span>!
+              </h1>
 
-          <p className="text-gray-400 mb-4">{currentTime}</p>
+              <p className="text-gray-400 mb-4">{currentTime}</p>
 
-          <div className="flex items-center text-gray-300 mb-3">
-            <UserIcon size={20} className="mr-2 text-blue-400" />
-            <p>
-              {user?.name || 'Loading Name...'}
-              {user?.age && <span className="ml-2">( Age: {user?.age || 'N/A'} )</span>}
-            </p>
-          </div>
-
-          {/* About Section */}
-          {user?.about && (
-            <div className="flex items-start text-gray-300 bg-[#1A1C20] rounded-lg p-4 mt-4">
-              <div className="mr-2 mt-0.5 text-green-400 flex-shrink-0">
-                <Info size={20} />
-                <p className="text-green-400 font-mono text-sm ms-1 mt-3">&gt;</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-400 mb-1">About</p>
-                <div className="text-sm leading-relaxed whitespace-pre-line mt-3">
-                  {user.about.split('\n').map((line, index) => (
-                    <p key={index} className="about-line mb-2">
-                      <span className="text-green-400 font-mono mr-2">&gt;</span>
-                      {line
-                        .split(/(?<=[\u0900-\u097F])(?=[^\u0900-\u097F])|(?<=[^\u0900-\u097F])(?=[\u0900-\u097F])/g)
-                        .map((part, idx) => {
-                          const isDevanagari = /[\u0900-\u097F]/.test(part);
-                          const isEmpty = part.trim() === '';
-
-                          if (isEmpty) return <span key={idx}>{part}</span>;
-
-                          return (
-                            <span
-                              key={idx}
-                              className={`hover-word ${isDevanagari ? 'devanagari-text' : 'english-text'}`}
-                              style={{
-                                marginRight: '0.2em',
-                                display: 'inline-block'
-                              }}
-                            >
-                              {part}
-                            </span>
-                          );
-                        })}
-                    </p>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+                <div className="flex items-center space-x-2">
+                  <UserIcon size={16} className="text-blue-400" />
+                  <p>
+                    {user?.name || 'Loading Name...'}
+                    {user?.age && (
+                      <span className="ml-2">( Age: {user?.age || 'N/A'} )</span>
+                    )}
+                  </p>
                 </div>
               </div>
+
+              {/* About Section */}
+              {user?.about && (
+                <div className="flex items-start text-gray-300 bg-[#1A1C20] rounded-lg p-4 mt-4">
+                  <div className="mr-2 mt-0.5 text-green-400 flex-shrink-0">
+                    <Info size={20} />
+                    <p className="text-green-400 font-mono text-sm ms-1 mt-3">
+                      &gt;
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-green-400 mb-1">About</p>
+                    <div className="text-sm leading-relaxed whitespace-pre-line mt-3">
+                      {user.about.split('\n').map((line, index) => (
+                        <p key={index} className="about-line mb-2">
+                          <span className="text-green-400 font-mono mr-2">
+                            &gt;
+                          </span>
+                          {line
+                            .split(
+                              /(?<=[\u0900-\u097F])(?=[^\u0900-\u097F])|(?<=[^\u0900-\u097F])(?=[\u0900-\u097F])/g
+                            )
+                            .map((part, idx) => {
+                              const isDevanagari = /[\u0900-\u097F]/.test(part);
+                              const isEmpty = part.trim() === '';
+
+                              if (isEmpty) return <span key={idx}>{part}</span>;
+
+                              return (
+                                <span
+                                  key={idx}
+                                  className={`hover-word ${isDevanagari ? 'devanagari-text' : 'english-text'}`}
+                                  style={{
+                                    marginRight: '0.2em',
+                                    display: 'inline-block',
+                                  }}
+                                >
+                                  {part}
+                                </span>
+                              );
+                            })}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </motion.div>
 
         {/* Welcome Message */}
@@ -354,7 +406,10 @@ export const HomePage = () => {
         )}
 
         {/* Quick Stats Container */}
-        <div className="bg-[#323943] rounded-lg p-6 mb-6">
+        <motion.div 
+          variants={itemVariants}
+          className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 mb-6 border border-gray-700"
+        >
           {/* Header row with title and button */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-white">Your Stats</h2>
@@ -374,48 +429,49 @@ export const HomePage = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleStatClick(stat)}
-                className="bg-[#2A2E36] rounded-lg p-4 text-center hover:border-2 transition-all duration-100 cursor-pointer"
+                className="bg-gray-800/50 backdrop-blur-md rounded-lg p-4 text-center hover:border-2 hover:border-gray-600 transition-all duration-100 cursor-pointer border border-gray-700"
               >
                 <h3 className="text-white font-semibold mb-2">{stat.title}</h3>
-                <p className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'} whitespace-pre-line`}>
+                <p
+                  className={`text-2xl font-bold ${colorMap[stat.title] || 'text-gray-300'} whitespace-pre-line`}
+                >
                   {stat.count || stat.count === 0 ? stat.count : '-'}
                 </p>
                 <p className="text-gray-400 text-sm">{stat.subtitle}</p>
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* All Posts Section */}
-        <h2 className="text-2xl font-bold text-white mb-6">Recent Posts</h2>
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-bold text-white mb-6">Recent Posts</h2>
 
-        {allBlogs.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-gray-400 text-lg mt-10"
-          >
-            No blogs available yet.
-          </motion.div>
-
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allBlogs.map((blog) => (
-              <PostDetails
-                key={blog._id || blog.id}
-                blog={blog}
-                author={blog.author}
-                userId={user?.id}
-                token={token}
-                onEdit={() => handleEditPost(blog)}
-                onDelete={() => handleDeleteClick(blog.id || blog._id)}
-                onOpenModal={handleOpenPostModal}
-                onViewIncrement={handleViewIncrement}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+          {allBlogs.length === 0 ? (
+            <div className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700">
+              <div className="text-gray-400 text-lg">
+                No blogs available yet.
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {allBlogs.map((blog) => (
+                <PostDetails
+                  key={blog._id || blog.id}
+                  blog={blog}
+                  author={blog.author}
+                  userId={user?.id}
+                  token={token}
+                  onEdit={() => handleEditPost(blog)}
+                  onDelete={() => handleDeleteClick(blog.id || blog._id)}
+                  onOpenModal={handleOpenPostModal}
+                  onViewIncrement={handleViewIncrement}
+                />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </motion.main>
 
       {/* Floating Action Button */}
       <button
@@ -475,8 +531,6 @@ export const HomePage = () => {
         />
       )}
 
-      <Footer />
-
       {/* Notification Banners */}
       {showWelcomeBanner && (
         <NotifyBanner
@@ -502,13 +556,13 @@ export const HomePage = () => {
           setIsConfirmOpen(false);
           setSelectedBlogId(null);
         }}
-        content={"Are you sure you want to delete this post?"}
+        content={'Are you sure you want to delete this post?'}
         onConfirm={async () => {
           try {
             setIsConfirmOpen(false);
             await handlePostDeleteSuccess(selectedBlogId);
           } catch (error) {
-            console.error("Failed to delete blog:", error);
+            console.error('Failed to delete blog:', error);
           } finally {
             setSelectedBlogId(null);
           }

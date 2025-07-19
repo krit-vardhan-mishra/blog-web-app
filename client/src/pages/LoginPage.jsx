@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import FeaturesSidebar from "../components/FeaturesSidebar";
-import { Button } from "../components/ui/Button";
-import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from 'react';
+import FeaturesSidebar from '../components/FeaturesSidebar';
+import { Button } from '../components/ui/Button';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LoginPageSkeleton } from "../skeleton/pages/LoginPageSkelton";
+import { LoginPageSkeleton } from '../skeleton/pages/LoginPageSkelton';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
@@ -15,21 +15,21 @@ export const LoginPage = () => {
   const { login, user, token, isAuthLoading, isAuthenticated } = useAuth();
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    email: "",
-    password: ""
+    email: '',
+    password: '',
   });
 
   useEffect(() => {
     if (errors.form) {
       const timer = setTimeout(() => {
-        setErrors((prevErrors) => ({ ...prevErrors, form: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, form: '' }));
       }, 5000);
       return () => clearTimeout(timer);
     }
   }, [errors.form]);
 
   useEffect(() => {
-    document.title = "Login - Blog App";
+    document.title = 'Login - Blog App';
 
     if (!isAuthLoading) {
       if (isAuthenticated) {
@@ -53,12 +53,14 @@ export const LoginPage = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/;
 
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!emailRegex.test(formData.email)) newErrors.email = "Invalid email format";
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!emailRegex.test(formData.email))
+      newErrors.email = 'Invalid email format';
 
-    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.password) newErrors.password = 'Password is required';
     else if (!passwordRegex.test(formData.password))
-      newErrors.password = "Password must be 8+ chars, include 1 capital letter & 1 symbol";
+      newErrors.password =
+        'Password must be 8+ chars, include 1 capital letter & 1 symbol';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,7 +76,7 @@ export const LoginPage = () => {
     try {
       await login(formData.email, formData.password, rememberMe);
     } catch (err) {
-      setErrors({ form: err.message || "Login failed. Please try again." });
+      setErrors({ form: err.message || 'Login failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +152,7 @@ export const LoginPage = () => {
               >
                 <div className="relative w-full">
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     id="password"
                     autoComplete="current-password"
                     value={formData.password}
@@ -203,13 +205,19 @@ export const LoginPage = () => {
             </div>
 
             {errors.form && (
-              <p className="text-red-500 text-sm mt-1 mb-2 text-center">{errors.form}</p>
+              <p className="text-red-500 text-sm mt-1 mb-2 text-center">
+                {errors.form}
+              </p>
             )}
 
             {errors.form?.includes('Email not verified') && (
               <div className="text-center mt-2">
                 <button
-                  onClick={() => navigate('/resend-verification', { state: { email: formData.email } })}
+                  onClick={() =>
+                    navigate('/resend-verification', {
+                      state: { email: formData.email },
+                    })
+                  }
                   className="text-blue-400 hover:underline"
                 >
                   Resend verification email
@@ -219,13 +227,16 @@ export const LoginPage = () => {
 
             {/* Login Button */}
             <div className="flex justify-center mt-6">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                   type="submit"
                   disabled={isLoading || isAuthLoading}
                 >
-                  {(isLoading || isAuthLoading) ? "Logging in..." : "Log in"}
+                  {isLoading || isAuthLoading ? 'Logging in...' : 'Log in'}
                 </Button>
               </motion.div>
             </div>
@@ -236,7 +247,10 @@ export const LoginPage = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-                onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+                onClick={() =>
+                  (window.location.href =
+                    'http://localhost:5000/api/auth/google')
+                }
               >
                 Sign in with Google
               </Button>
@@ -244,7 +258,7 @@ export const LoginPage = () => {
           </div>
 
           <p className="text-white mt-6 text-center">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <a href="/signup" className="text-blue-400 hover:underline">
               Sign up
             </a>

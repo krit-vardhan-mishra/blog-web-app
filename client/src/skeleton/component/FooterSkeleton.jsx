@@ -14,7 +14,10 @@ export const FooterSkeleton = () => {
           <div className="h-6 bg-gray-700 rounded-lg mb-3 w-1/3"></div>
           <div className="space-y-2">
             {[...Array(4)].map((_, index) => (
-              <div key={index} className="h-4 bg-gray-700 rounded-lg w-2/3"></div>
+              <div
+                key={index}
+                className="h-4 bg-gray-700 rounded-lg w-2/3"
+              ></div>
             ))}
           </div>
         </div>

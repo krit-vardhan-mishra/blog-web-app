@@ -1,10 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import EditPostSkeleton from '../skeleton/component/EditPostSkeleton';
 import { Button } from '../components/ui/Button';
 import blogService from '../api/blogService';
 
-export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTitle = "", content: initialContent = "", blogId, userId, token }) => {
-
+export const EditPost = ({
+  onUpdateSuccess,
+  isLoading = false,
+  title: initialTitle = '',
+  content: initialContent = '',
+  blogId,
+  userId,
+  token,
+}) => {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [isAuthor, setIsAuthor] = useState(false);
@@ -23,33 +30,33 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
       try {
         setIsCheckingOwnership(true);
         const blog = await blogService.fetchById(blogId);
-        
+
         let authorId;
         if (typeof blog.author === 'object' && blog.author._id) {
           authorId = blog.author._id;
         } else if (typeof blog.author === 'string') {
           authorId = blog.author;
         } else {
-          console.error("Invalid author format:", blog.author);
-          onUpdateSuccess("Error: Invalid blog author data");
+          console.error('Invalid author format:', blog.author);
+          onUpdateSuccess('Error: Invalid blog author data');
           return;
         }
-        
+
         if (authorId.toString() === userId.toString()) {
           setIsAuthor(true);
         } else {
-          console.error("EditPost - User is NOT authorized to edit");
+          console.error('EditPost - User is NOT authorized to edit');
           setIsAuthor(false);
-          onUpdateSuccess("You can only edit your own blogs");
+          onUpdateSuccess('You can only edit your own blogs');
         }
       } catch (err) {
-        console.error("Error fetching blog:", err);
-        onUpdateSuccess("Error checking blog ownership");
+        console.error('Error fetching blog:', err);
+        onUpdateSuccess('Error checking blog ownership');
       } finally {
         setIsCheckingOwnership(false);
       }
     };
-    
+
     checkOwnership();
   }, [initialTitle, initialContent, blogId, userId, token, onUpdateSuccess]);
 
@@ -57,65 +64,72 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
     e.preventDefault();
 
     if (!isAuthor) {
-      onUpdateSuccess("You are not authorized to edit this blog");
+      onUpdateSuccess('You are not authorized to edit this blog');
       return;
     }
 
     if (!blogId) {
-      console.error("blogId is undefined");
-      onUpdateSuccess("Failed to update blog: Blog ID is missing");
+      console.error('blogId is undefined');
+      onUpdateSuccess('Failed to update blog: Blog ID is missing');
       return;
     }
 
     if (!title.trim() || !content.trim()) {
-      onUpdateSuccess("Title and content are required");
+      onUpdateSuccess('Title and content are required');
       return;
     }
 
     try {
-      const response = await blogService.update(blogId, { title: title.trim(), content: content.trim() });
+      const response = await blogService.update(blogId, {
+        title: title.trim(),
+        content: content.trim(),
+      });
 
       if (response) {
-        if (response.success === true || 
-            response.updated === true || 
-            response.status === 'success' ||
-            response.message?.toLowerCase().includes('success') ||
-            response.message?.toLowerCase().includes('updated') ||
-            (response.status >= 200 && response.status < 300) ||
-            (response.title && response.content)) {
-          onUpdateSuccess("Blog Updated Successfully!");
+        if (
+          response.success === true ||
+          response.updated === true ||
+          response.status === 'success' ||
+          response.message?.toLowerCase().includes('success') ||
+          response.message?.toLowerCase().includes('updated') ||
+          (response.status >= 200 && response.status < 300) ||
+          (response.title && response.content)
+        ) {
+          onUpdateSuccess('Blog Updated Successfully!');
         } else {
-          console.warn("EditPost - Unexpected response format:", response);
-          onUpdateSuccess("Blog Updated Successfully!"); 
+          console.warn('EditPost - Unexpected response format:', response);
+          onUpdateSuccess('Blog Updated Successfully!');
         }
       } else {
-        throw new Error("No response received from server");
+        throw new Error('No response received from server');
       }
     } catch (err) {
-      console.error("Update failed:", err);
-      console.error("Error details:", {
+      console.error('Update failed:', err);
+      console.error('Error details:', {
         message: err.message,
         statusCode: err.statusCode,
         status: err.status,
-        response: err.response
+        response: err.response,
       });
-      
+
       if (err.statusCode === 403 || err.status === 403) {
-        onUpdateSuccess("You are not authorized to edit this blog");
+        onUpdateSuccess('You are not authorized to edit this blog');
       } else if (err.statusCode === 401 || err.status === 401) {
-        onUpdateSuccess("Your session has expired. Please log in again.");
+        onUpdateSuccess('Your session has expired. Please log in again.');
       } else if (err.statusCode === 404 || err.status === 404) {
-        onUpdateSuccess("Blog not found");
+        onUpdateSuccess('Blog not found');
       } else if (err.statusCode === 400 || err.status === 400) {
-        onUpdateSuccess("Invalid blog data provided");
+        onUpdateSuccess('Invalid blog data provided');
       } else {
-        onUpdateSuccess(err.message || "Update may have failed - please refresh to check");
+        onUpdateSuccess(
+          err.message || 'Update may have failed - please refresh to check'
+        );
       }
     }
   };
 
   if (isLoading || isCheckingOwnership) {
-    return <EditPostSkeleton />
+    return <EditPostSkeleton />;
   }
 
   if (!isAuthor) {
@@ -142,7 +156,7 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
             type="text"
             className="w-full p-2 bg-[#1C222A] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             required
           />
         </div>
@@ -152,7 +166,7 @@ export const EditPost = ({ onUpdateSuccess, isLoading = false, title: initialTit
             rows={4}
             className="w-full p-2 bg-[#1C222A] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white resize-none"
             value={content}
-            onChange={e => setContent(e.target.value)}
+            onChange={(e) => setContent(e.target.value)}
             required
           ></textarea>
         </div>

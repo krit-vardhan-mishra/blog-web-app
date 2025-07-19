@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 
 export const PostDetailsSkeleton = () => {
   return (
-    <div className='pt-7 pr-7 pl-7 p-5 bg-[#1a1d23] rounded-lg shadow-lg'>
+    <div className="pt-7 pr-7 pl-7 p-5 bg-[#1a1d23] rounded-lg shadow-lg">
       <div className="bg-[#2A2E36] rounded-lg p-6">
         <div className="flex items-center justify-between mb-3">
           <div className="h-7 bg-gray-700 rounded-lg w-1/3"></div>

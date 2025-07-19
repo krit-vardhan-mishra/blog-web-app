@@ -29,7 +29,7 @@ const PermanentDeleteDialogSkeleton = () => {
         <div className="flex justify-end space-x-2">
           {/* Cancel button skeleton */}
           <div className="bg-gray-600 h-10 w-20 rounded-lg"></div>
-          
+
           {/* Delete button skeleton */}
           <div className="bg-red-500 h-10 w-20 rounded-lg"></div>
         </div>

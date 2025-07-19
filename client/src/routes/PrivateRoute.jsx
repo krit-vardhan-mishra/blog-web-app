@@ -5,11 +5,11 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PrivateRoute = () => {
   const { isAuthenticated, isAuthLoading } = useAuth();
-  
+
   if (isAuthLoading) {
     return <LoadingSpinner />;
   }
-  
+
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

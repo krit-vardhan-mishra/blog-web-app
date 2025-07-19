@@ -13,8 +13,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       setIsAuthLoading(true);
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const userJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
+      const token =
+        localStorage.getItem('token') || sessionStorage.getItem('token');
+      const userJSON =
+        localStorage.getItem('user') || sessionStorage.getItem('user');
       const user = userJSON ? JSON.parse(userJSON) : null;
 
       if (token && user) {
@@ -45,7 +47,13 @@ export const AuthProvider = ({ children }) => {
   const register = async (firstName, lastName, email, password, age) => {
     setIsAuthLoading(true);
     try {
-      const response = await authService.register(firstName, lastName, email, password, age);
+      const response = await authService.register(
+        firstName,
+        lastName,
+        email,
+        password,
+        age
+      );
       return response;
     } catch (error) {
       setUser(null);
@@ -72,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error("Error during server-side logout:", error);
+      console.error('Error during server-side logout:', error);
     } finally {
       clearAuthData();
     }
@@ -92,7 +100,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthLoading, isAuthenticated, login, register, logout, loginUser, setUser, logoutUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthLoading,
+        isAuthenticated,
+        login,
+        register,
+        logout,
+        loginUser,
+        setUser,
+        logoutUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

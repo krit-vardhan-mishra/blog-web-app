@@ -25,7 +25,10 @@ export const HomePageSkeleton = () => {
         {/* Quick Stats Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {[...Array(3)].map((_, index) => (
-            <div key={index} className="bg-[#2A2E36] rounded-lg p-4 text-center">
+            <div
+              key={index}
+              className="bg-[#2A2E36] rounded-lg p-4 text-center"
+            >
               <div className="h-5 bg-gray-700 rounded-lg mb-2 w-2/3 mx-auto"></div>
               <div className="h-8 bg-gray-700 rounded-lg mb-2 w-1/3 mx-auto"></div>
               <div className="h-4 bg-gray-700 rounded-lg w-1/2 mx-auto"></div>

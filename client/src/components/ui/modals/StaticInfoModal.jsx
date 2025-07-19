@@ -4,20 +4,24 @@ import CardBox from '../CardBox';
 
 const contentMap = {
   about: {
-    title: "About Us",
-    content: "BlogSphere is your platform to share, learn, and grow in the world of technology.",
+    title: 'About Us',
+    content:
+      'BlogSphere is your platform to share, learn, and grow in the world of technology.',
   },
   contact: {
-    title: "Contact",
-    content: "Reach us at contact@blogsphere.dev or via our socials listed below.",
+    title: 'Contact',
+    content:
+      'Reach us at contact@blogsphere.dev or via our socials listed below.',
   },
   privacy: {
-    title: "Privacy Policy",
-    content: "We respect your privacy and ensure your data is protected and never misused.",
+    title: 'Privacy Policy',
+    content:
+      'We respect your privacy and ensure your data is protected and never misused.',
   },
   terms: {
-    title: "Terms of Service",
-    content: "By using BlogSphere, you agree to our terms outlined here for your safety and ours.",
+    title: 'Terms of Service',
+    content:
+      'By using BlogSphere, you agree to our terms outlined here for your safety and ours.',
   },
 };
 
@@ -44,8 +48,8 @@ const StaticInfoModal = ({ activeCard, onClose }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="absolute top-2 right-2 text-red-600 hover:text-red-400 z-10"
               >
                 <X className="h-5 w-5 m-2" />

@@ -1,4 +1,4 @@
-export  const CardBoxSkeleton = () => {
+export const CardBoxSkeleton = () => {
   return (
     <div className="bg-[#2A2E36] text-white rounded-2xl py-4 px-6 shadow-lg p-6 w-full">
       <div className="flex items-center gap-3 mb-4">
