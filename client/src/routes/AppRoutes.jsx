@@ -18,6 +18,7 @@ import SetPasswordPage from '../pages/SetPasswordPage';
 import { ToastContainer } from 'react-toastify';
 import VerifySignupPage from '../pages/VerifySignupPage';
 import UserDetail from '../pages/UserDetail';
+import BlogDetail from '../pages/BlogDetail';
 
 const AppRoutes = () => {
   return (
@@ -39,6 +40,7 @@ const AppRoutes = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/user/:userId" element={<UserDetail />} />
+          <Route path="/blog/:blogId" element={<BlogDetail />} />
           <Route path="/your-posts" element={<MyPosts />} />
           <Route path="/deleted" element={<DeletedBlogs />} />
           <Route path="/account-setting" element={<AccountSetting />} />
