@@ -38,13 +38,9 @@ const BlogDetail = () => {
   }, [blog]);
 
   useEffect(() => {
-    if (blog && blog._id && !hasIncrementedRef.current) {
+    if (blog && blog.id && !hasIncrementedRef.current) {
       hasIncrementedRef.current = true;
-      blogService.incrementView(blog._id)
-        .then((data) => {
-          console.log("✅ View updated:", data);
-          setBlog((prev) => ({ ...prev, views: data.views }));
-        })
+      blogService.incrementView(blog.id)
         .catch((err) =>
           console.error('Failed to increment blog view:', err)
         );

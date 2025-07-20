@@ -231,25 +231,25 @@ const UserDetail = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                 <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-4 h-4 text-blue-300" />
                   <span>{user.email || 'Email not provided'}</span>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 text-orange-500" />
                   <span>Joined {formatDate(user.createdAt)}</span>
                 </div>
 
                 {user.age && (
                   <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 text-blue-400" />
                     <span>Age: {user.age}</span>
                   </div>
                 )}
 
                 {user.lastLogin && (
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-4 h-4 text-sky-400" />
                     <span>Last active: {formatDate(user.lastLogin)}</span>
                   </div>
                 )}

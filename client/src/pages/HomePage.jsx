@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Header from '../components/Header.jsx';
 import { HomeIcon, UserIcon, SettingsIcon, Plus, Info } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
-import { getTimeBasedGreeting, getCurrentDateTime, } from '../utils/utilityFunctions.js';
+import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
 import { motion } from 'framer-motion';
 import PostDetails from '../components/PostDetails.jsx';
 import PostModal from '../components/ui/modals/PostModal.jsx';
@@ -106,12 +106,18 @@ export const HomePage = () => {
   }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
   useEffect(() => {
-    setShowWelcomeBanner(true);
-    const timer = setTimeout(() => {
-      setShowWelcomeBanner(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (user?.id) { 
+      const hasSeenWelcomeBanner = localStorage.getItem(`hasSeenWelcomeBanner_${user.id}`);
+      if (!hasSeenWelcomeBanner) {
+        setShowWelcomeBanner(true);
+        const timer = setTimeout(() => {
+          setShowWelcomeBanner(false);
+          localStorage.setItem(`hasSeenWelcomeBanner_${user.id}`, 'true');
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -314,7 +320,7 @@ export const HomePage = () => {
         ]}
       />
 
-      <motion.main 
+      <motion.main
         className="flex-grow max-w-6xl mx-auto px-6 py-8"
         variants={containerVariants}
         initial="hidden"
@@ -396,17 +402,8 @@ export const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* Welcome Message */}
-        {showWelcomeBanner && (
-          <NotifyBanner
-            message="Welcome to Your Blog Space"
-            subMessage="Ready to share your thoughts with the world? Your creative journey continues here."
-            onClose={() => setShowWelcomeBanner(false)}
-          />
-        )}
-
         {/* Quick Stats Container */}
-        <motion.div 
+        <motion.div
           variants={itemVariants}
           className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 mb-6 border border-gray-700"
         >
@@ -539,6 +536,7 @@ export const HomePage = () => {
           onClose={() => setShowWelcomeBanner(false)}
         />
       )}
+
       {showNotificationBanner && notificationMessage && (
         <NotifyBanner
           message={notificationMessage}

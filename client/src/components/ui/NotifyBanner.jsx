@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Info, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
-const NotifyBanner = ({ message, type = 'info', duration = 3000, onClose }) => {
+const NotifyBanner = ({ message, subMessage, type = 'info', duration = 3000, onClose }) => {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -15,7 +15,6 @@ const NotifyBanner = ({ message, type = 'info', duration = 3000, onClose }) => {
 
   if (!visible) return null;
 
-  // Configuration for different notification types
   const typeConfig = {
     info: {
       icon: Info,
@@ -56,7 +55,11 @@ const NotifyBanner = ({ message, type = 'info', duration = 3000, onClose }) => {
         className={`flex items-center ${config.bgColor} border-l-4 ${config.borderColor} ${config.textColor} px-4 py-3 rounded-lg shadow-lg w-[300px] animate-bounce-in`}
       >
         <IconComponent className={`${config.iconColor} mr-3 w-5 h-5`} />
-        <p className="flex-grow text-sm">{message}</p>
+        {/* Render both message and subMessage */}
+        <div className="flex-grow">
+          <p className="text-sm font-semibold">{message}</p>
+          {subMessage && <p className="text-xs text-gray-400 mt-1">{subMessage}</p>}
+        </div>
         <button
           onClick={() => {
             setVisible(false);
