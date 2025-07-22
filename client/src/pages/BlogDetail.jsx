@@ -7,6 +7,8 @@ import { formatDate } from '../utils/utilityFunctions';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import { parseEmojisEnhanced } from '../utils/emojiParser';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/Button';
 
 const BlogDetail = () => {
   const { blogId } = useParams();
@@ -14,6 +16,7 @@ const BlogDetail = () => {
   const [blog, setBlog] = useState(null);
   const [error, setError] = useState(null);
   const hasIncrementedRef = useRef(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -71,8 +74,7 @@ const BlogDetail = () => {
         <Header
           title="Blog"
           isLoading={true}
-          icons={[{ icon: ArrowLeft, link: -1 }]}
-        />
+          icons={[{ icon: ArrowLeft, link: -1 }]} />
         <div className="max-w-4xl mx-auto p-6 animate-pulse">
           <div className="bg-gray-800/50 rounded-lg p-6 h-96"></div>
         </div>
@@ -84,7 +86,27 @@ const BlogDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#0f0f23] text-white">
-      <Header title="Blog" icons={[{ icon: ArrowLeft, link: -1 }]} />
+      <Header title="Blog" icons={[{ icon: ArrowLeft, link: -1 }]}
+        customElements={[
+          !isAuthenticated && (
+            <div className="flex gap-3" key="auth-buttons">
+              <Button
+                type="login"
+                className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </Button>
+              <Button
+                type="signup"
+                className="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+                onClick={() => navigate('/signup')}
+              >
+                Signup
+              </Button>
+            </div>
+          ),
+        ]} />
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 mb-6 transition-all duration-300 hover:shadow-lg hover:border-blue-900">
           <h1 className="text-3xl font-bold mb-2 text-white hover:text-orange-300 transition-colors duration-300">

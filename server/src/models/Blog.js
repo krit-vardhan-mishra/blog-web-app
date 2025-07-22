@@ -16,6 +16,25 @@ const BlogSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    genre: {
+      type: String,
+      enum: [
+        'All',
+        'Lifestyle',
+        'Business',
+        'Entertainment',
+        'Science',
+        'Art',
+        'Sports',
+        'Technology',
+        'Health',
+        'Travel',
+        'Food',
+        'Education'
+      ],
+      default: 'All',
+      required: true,
+    },
     views: {
       type: Number,
       default: 0,
@@ -44,6 +63,18 @@ BlogSchema.methods = {
   updateContent(newContent) {
     if (newContent && newContent.trim() !== '') {
       this.content = newContent;
+      return this.save();
+    }
+    return false;
+  },
+
+  updateGenre(newGenre) {
+    const validGenres = [
+      'All', 'Lifestyle', 'Business', 'Entertainment', 'Science',
+      'Art', 'Sports', 'Technology', 'Health', 'Travel', 'Food', 'Education'
+    ];
+    if (newGenre && validGenres.includes(newGenre)) {
+      this.genre = newGenre;
       return this.save();
     }
     return false;

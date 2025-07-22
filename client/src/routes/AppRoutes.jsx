@@ -20,6 +20,7 @@ import VerifySignupPage from '../pages/VerifySignupPage';
 import UserDetail from '../pages/UserDetail';
 import BlogDetail from '../pages/BlogDetail';
 import Footer from '../components/Footer';
+import ExplorePage from '../pages/ExplorePage';
 
 const AppRoutes = () => {
   return (
@@ -28,6 +29,9 @@ const AppRoutes = () => {
         <div style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/user/:userId" element={<UserDetail />} />
+            <Route path="/blog/:blogId" element={<BlogDetail />} />
 
             <Route element={<PublicRoute />}>
               <Route path="/login" element={<LoginPage />} />
@@ -42,8 +46,6 @@ const AppRoutes = () => {
 
             <Route element={<PrivateRoute />}>
               <Route path="/home" element={<HomePage />} />
-              <Route path="/user/:userId" element={<UserDetail />} />
-              <Route path="/blog/:blogId" element={<BlogDetail />} />
               <Route path="/your-posts" element={<MyPosts />} />
               <Route path="/deleted" element={<DeletedBlogs />} />
               <Route path="/account-setting" element={<AccountSetting />} />

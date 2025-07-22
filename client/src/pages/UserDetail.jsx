@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   User, Calendar, Mail,
   Clock, BookOpen, Eye,
-  ArrowLeft, UserCheck, UserX, 
+  ArrowLeft, UserCheck, UserX,
   Shield, AlertCircle, Info,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,6 +11,8 @@ import Header from '../components/Header';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/Button';
 
 const UserDetail = () => {
   const { userId } = useParams();
@@ -23,6 +25,7 @@ const UserDetail = () => {
   const [notification, setNotification] = useState(null);
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState(null);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     document.title = user ? `${user.name} - User Profile` : 'User Profile';
@@ -180,7 +183,27 @@ const UserDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-white">
-      <Header title="User Profile" icons={[{ icon: ArrowLeft, link: -1 }]} />
+      <Header title="User Profile" icons={[{ icon: ArrowLeft, link: -1 }]}
+        customElements={[
+          !isAuthenticated && (
+            <div className="flex gap-3" key="auth-buttons">
+              <Button
+                type="login"
+                className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </Button>
+              <Button
+                type="signup"
+                className="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+                onClick={() => navigate('/signup')}
+              >
+                Signup
+              </Button>
+            </div>
+          ),
+        ]} />
 
       <motion.div
         className="max-w-6xl mx-auto p-6"

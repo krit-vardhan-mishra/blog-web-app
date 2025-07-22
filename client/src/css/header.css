@@ -1,0 +1,110 @@
+/* Search animations */
+@keyframes searchExpand {
+  0% {
+    width: 40px;
+    transform-origin: right center;
+    opacity: 0;
+    right: 20px;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    width: calc(100% - 40px);
+    transform-origin: right center;
+    opacity: 1;
+    right: 20px;
+  }
+}
+
+@keyframes searchCollapse {
+  0% {
+    width: calc(100% - 40px);
+    transform-origin: right center;
+    opacity: 1;
+    right: 20px;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    width: 40px;
+    transform-origin: right center;
+    opacity: 0;
+    right: 20px;
+  }
+}
+
+/* Title animations */
+@keyframes titleFadeOut {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes titleFadeIn {
+  0% {
+    transform: translateY(-10px) scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Button animations */
+@keyframes buttonSpin {
+  0% {
+    transform: rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: rotate(180deg) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse effect for search input when typing */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+/* Animation classes */
+.search-expand {
+  animation: searchExpand 0.4s ease-out forwards;
+}
+
+.search-collapse {
+  animation: searchCollapse 0.3s ease-in forwards;
+}
+
+.title-fade-out {
+  animation: titleFadeOut 0.3s ease-in forwards;
+}
+
+.title-fade-in {
+  animation: titleFadeIn 0.4s ease-out forwards;
+}
+
+.button-spin {
+  animation: buttonSpin 0.6s ease-out forwards;
+}
+
+.search-input-active {
+  animation: pulse 2s infinite;
+}

@@ -31,11 +31,11 @@ router.use((error, req, res, next) => {
   });
 });
 
-router.get('/user/:userId', authenticateToken, getUserBlogs);
-router.get('/', authenticateToken, getNonDeletedBlogs);
+router.get('/user/:userId', getUserBlogs);
+router.get('/', getNonDeletedBlogs);
 router.get('/deleted', authenticateToken, getAllDeletedBlogsByUser);
-router.post('/increment-view/:id', authenticateToken, incrementBlogView);
-router.get('/:id', authenticateToken, getBlogByIdWithAuthor);
+router.post('/increment-view/:id', incrementBlogView);
+router.get('/:id', getBlogByIdWithAuthor);
 router.post('/', authenticateToken, createBlog);
 router.put('/:id', authenticateToken, updateBlog);
 router.delete('/:id', authenticateToken, safeDeleteBlog);

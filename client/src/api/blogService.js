@@ -26,7 +26,6 @@ const blogService = {
     }
   },
 
-  // New method to fetch blogs by user ID
   fetchByUserId: async (userId) => {
     try {
       const response = await apiClient.get(`/blogs/user/${userId}`);

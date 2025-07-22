@@ -18,7 +18,7 @@ router.post('/', createUser);
 router.get('/profile', authenticateToken, getCurrentUserProfile);
 router.put('/profile', authenticateToken, updateUserProfile);
 router.get('/', authenticateToken, getAllUsers);
-router.get('/:id', authenticateToken, getUserById);
+router.get('/:id', getUserById);
 router.get('/with-blogs', authenticateToken, getUsersWithBlogs);
 router.get('/without-blogs', authenticateToken, getUsersWithoutBlogs);
 router.delete('/delete/:id', authenticateToken, deleteUserById);

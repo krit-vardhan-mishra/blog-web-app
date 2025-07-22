@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header.jsx';
-import { HomeIcon, UserIcon, SettingsIcon, Plus, Info } from 'lucide-react';
+import { HomeIcon, UserIcon, SettingsIcon, Plus, Info, BinocularsIcon } from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
 import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
 import { motion } from 'framer-motion';
@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from '../components/ui/dropdown-menu.jsx';
-import { useNavigate } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 
 export const HomePage = () => {
   const { user, token, setUser, logout } = useAuth();
@@ -106,7 +106,7 @@ export const HomePage = () => {
   }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
   useEffect(() => {
-    if (user?.id) { 
+    if (user?.id) {
       const hasSeenWelcomeBanner = localStorage.getItem(`hasSeenWelcomeBanner_${user.id}`);
       if (!hasSeenWelcomeBanner) {
         setShowWelcomeBanner(true);
@@ -441,9 +441,13 @@ export const HomePage = () => {
         </motion.div>
 
         {/* All Posts Section */}
-        <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-bold text-white mb-6">Recent Posts</h2>
-
+        <motion.div variants={itemVariants} className='bg-gray-800/50 p-4 border-2 border-gray-700 rounded-lg'>
+          <div className='flex flex-row w-full justify-between mb-6'>
+            <h2 className="start text-2xl font-bold text-white">Recent Posts</h2>
+            <NavLink to={'/explore'} className={'flex font-medium underline text-blue-400 hover:text-blue-500 duration-150'}>
+              <BinocularsIcon className='mr-2'/> Explore
+            </NavLink>
+          </div>
           {allBlogs.length === 0 ? (
             <div className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700">
               <div className="text-gray-400 text-lg">

@@ -1,8 +1,9 @@
-import { LogOut, Trash2 } from 'lucide-react';
+import { LogOut, Trash2, X, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import HeaderSkeleton from '../skeleton/component/HeaderSkeleton';
 import { useAuth } from '../context/AuthContext';
+import '@/css/header.css';
 
 export const Header = ({
   title,
@@ -27,51 +28,69 @@ export const Header = ({
     }
   };
 
+  const handleIconClick = (icon, link, onClick) => {
+    if (onClick) {
+      onClick();
+    } else if (icon === LogOut) {
+      handleLogout();
+    }
+  };
+
   return (
     <div
       className={clsx(
-        'w-full h-[70px] bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700',
+        'w-full bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700 overflow-hidden relative transition-all duration-300 h-[70px]', // Fixed height
         className
       )}
     >
-      <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold transition-transform duration-300">
-        {title}
-      </h1>
+      {/* Main header content */}
+      <div className={'flex items-center justify-between w-full transition-all duration-300 opacity-100'}>
+        <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold">
+          {title}
+        </h1>
 
-      <div className="flex items-center space-x-2 mr-[5px]">
-        {/* Icon buttons */}
-        {icons.map(({ icon: Icon, link }, index) =>
-          Icon === LogOut ? (
-            <div
-              key={index}
-              onClick={handleLogout}
-              className="group p-2 rounded-full transition duration-200 cursor-pointer hover:bg-red-500/80"
-            >
-              <Icon className="text-white w-6 h-6 transform transition-transform duration-200 group-hover:scale-110" />
-            </div>
-          ) : (
-            <Link to={link} key={index}>
-              <div
+        <div className="flex items-center space-x-2">
+          {/* Other icons */}
+          {icons.map(({ icon: Icon, link, onClick }, index) =>
+            Icon === LogOut ? (
+              <button
+                key={index}
+                onClick={handleLogout}
+                className="p-2 rounded-full hover:bg-red-500/80 transition-colors duration-200"
+              >
+                <Icon className="text-white w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                key={index}
+                onClick={() => handleIconClick(Icon, link, onClick)}
                 className={clsx(
-                  `group p-2 rounded-full transition duration-200 cursor-pointer`,
+                  'p-2 rounded-full transition-colors duration-200',
                   {
-                    'hover:bg-red-500/50':
-                      Icon === Trash2 && title !== 'Your Deleted Posts',
+                    'hover:bg-red-500/50': Icon === Trash2,
                     'hover:bg-white/10': Icon !== Trash2,
+                    // Removed 'bg-blue-500/20': Icon === Search && isSearchActive,
                   }
                 )}
               >
-                <Icon className="text-white w-6 h-6 transform transition-transform duration-200 group-hover:scale-110" />
-              </div>
-            </Link>
-          )
-        )}
+                {link ? (
+                  <Link to={link}>
+                    <Icon className="text-white w-5 h-5" />
+                  </Link>
+                ) : (
+                  <Icon className="text-white w-5 h-5" />
+                )}
+              </button>
+            )
+          )}
 
-        {/* Custom elements like DropdownMenu */}
-        {customElements.map((Element, i) => (
-          <div key={`custom-${i}`}>{Element}</div>
-        ))}
+          {/* Custom elements */}
+          {customElements.map((Element, i) => (
+            <div key={`custom-${i}`}>{Element}</div>
+          ))}
+        </div>
       </div>
+
     </div>
   );
 };
