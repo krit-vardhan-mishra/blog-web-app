@@ -1,7 +1,7 @@
 import apiClient from './apiService.js';
 
 const userService = {
-  fetchAll: () => apiClient.get('/users'),
+  fetchAll: () => apiClient.get('/users/').then(res => res),
   fetchById: (userId) => apiClient.get(`/users/${userId}`),
   create: (userData) => apiClient.post('/users', userData),
   updateProfile: (userData) => apiClient.put('/users/profile', userData),

@@ -10,8 +10,6 @@ import './config/passport.js';
 import cron from 'node-cron';
 import User from './models/User.js';
 import OTP from './models/OTP.js';
-import session from 'express-session';
-import MongoStore from 'connect-mongo';
 import passport from 'passport';
 
 dotenv.config();

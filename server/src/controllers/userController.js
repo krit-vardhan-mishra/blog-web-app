@@ -25,7 +25,7 @@ export async function getAllUsers(req, res) {
     res.status(200).json({ success: true, users: users.map(user => user.toJSON()) });
   } catch (error) {
     console.error('❌ Get all users error:', error);
-    res.status(500).json({ success: false, message: `Failed to get users: ${error.message}` });
+    res.status(500).json({ success: false, message: `Failed to get users: ${error.message}`, users: [] });
   }
 }
 

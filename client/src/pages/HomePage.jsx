@@ -1,9 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from '../components/Header.jsx';
-import { HomeIcon, UserIcon, SettingsIcon, Plus, Info, BinocularsIcon } from 'lucide-react';
+import {
+  HomeIcon,
+  UserIcon,
+  SettingsIcon,
+  Plus,
+  Info,
+  BinocularsIcon,
+  Search,
+  X,
+  Calendar,
+  Eye
+} from 'lucide-react';
 import NotifyBanner from '../components/ui/NotifyBanner.jsx';
-import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
-import { motion } from 'framer-motion';
+import { getTimeBasedGreeting, getCurrentDateTime, formatDate } from '../utils/utilityFunctions.js';
+import { motion, AnimatePresence } from 'framer-motion';
 import PostDetails from '../components/PostDetails.jsx';
 import PostModal from '../components/ui/modals/PostModal.jsx';
 import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
@@ -23,6 +34,7 @@ import {
   DropdownMenuLabel,
 } from '../components/ui/dropdown-menu.jsx';
 import { NavLink, useNavigate } from 'react-router';
+import SimpleBar from 'simplebar-react';
 
 export const HomePage = () => {
   const { user, token, setUser, logout } = useAuth();
@@ -45,13 +57,28 @@ export const HomePage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
+
+  // Search functionality states
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchInputRef = useRef(null);
+
   const navigate = useNavigate();
+
   const userBlogs = allBlogs.filter((blog) => blog.author?._id === user?.id);
   const userBlogsCount = userBlogs.length;
   const totalViews = userBlogs.reduce(
     (sum, blog) => sum + (Number(blog.views) || 0),
     0
   );
+
+  // Get latest 6 blogs for recent posts section
+  const latestBlogs = allBlogs
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 6);
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
@@ -79,6 +106,7 @@ export const HomePage = () => {
   useEffect(() => {
     if (token) {
       fetchAllBlogsData();
+      fetchAllUsers();
     }
   }, [token]);
 
@@ -119,6 +147,32 @@ export const HomePage = () => {
     }
   }, [user?.id]);
 
+  // Search functionality effects
+  useEffect(() => {
+    if (isSearchActive) {
+      searchInputRef.current?.focus();
+
+      const handleKeyDown = (event) => {
+        if (event.key === 'Escape') {
+          handleSearchToggle();
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isSearchActive]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      performSearch();
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, allBlogs, allUsers]);
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -146,6 +200,69 @@ export const HomePage = () => {
       return () => clearTimeout(timer);
     }
   }, [showNotificationBanner]);
+
+  // Search functionality methods
+  const handleSearchToggle = () => {
+    setIsSearchActive(!isSearchActive);
+    if (isSearchActive) {
+      setSearchQuery('');
+      setSearchResults([]);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
+
+  const performSearch = () => {
+    setSearchLoading(true);
+    const query = searchQuery.toLowerCase().trim();
+
+    // Search blogs
+    const matchingBlogs = allBlogs.filter(blog =>
+      blog.title.toLowerCase().includes(query) ||
+      blog.content.toLowerCase().includes(query) ||
+      (blog.author?.name || '').toLowerCase().includes(query)
+    );
+
+    // Search users
+    const matchingUsers = allUsers.filter(user =>
+      user.name.toLowerCase().includes(query) ||
+      (user.email || '').toLowerCase().includes(query)
+    );
+
+    setSearchResults([
+      ...matchingBlogs.map(blog => ({ ...blog, type: 'blog' })),
+      ...matchingUsers.map(user => ({ ...user, type: 'user' }))
+    ]);
+
+    setSearchLoading(false);
+  };
+
+  const handleSearchResultClick = (result) => {
+    if (result.type === 'blog') {
+      setSelectedBlogForModal(result);
+      setIsPostModalOpen(true);
+    } else if (result.type === 'user') {
+      navigate(`/user/${result._id || result.id}`);
+    }
+    setIsSearchActive(false);
+    setSearchQuery('');
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await userService.fetchAll();
+      setAllUsers(response.users || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setAllUsers([]);
+    }
+  };
 
   const handleStatClick = (stat) => {
     setIsAllStatsOpen(false);
@@ -286,6 +403,7 @@ export const HomePage = () => {
         title="Home"
         icons={[
           { icon: HomeIcon, link: '/home' },
+          { icon: Search, onClick: handleSearchToggle }
         ]}
         customElements={[
           <DropdownMenu key="user-dropdown">
@@ -319,6 +437,123 @@ export const HomePage = () => {
           </DropdownMenu>,
         ]}
       />
+
+      {/* Search Input Section */}
+      <AnimatePresence>
+        {isSearchActive && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 0.3 }}
+            className="inset-0 flex justify-center items-start pt-4 z-10 px-4"
+          >
+            <div className="max-w-6xl w-full px-4 py-3 bg-gray-900/80 backdrop-blur-md border-b border-gray-700 shadow-lg rounded-lg">
+              <form onSubmit={handleSearchSubmit} className="flex items-center max-w-7xl mx-auto">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Search blogs, users, or content..."
+                  className="flex-1 px-4 py-2 bg-transparent text-white placeholder-gray-400 focus:outline-none text-lg"
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchToggle}
+                  className="ml-3 p-2 rounded-full hover:bg-white/10 transition-colors duration-200"
+                >
+                  <X className="text-white w-6 h-6" />
+                </button>
+              </form>
+
+              {/* Search Results */}
+              {searchQuery && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 max-h-96 overflow-hidden" 
+                >
+                  <SimpleBar
+                    style={{
+                      maxHeight: '384px',
+                      width: '100%',
+                    }}
+                    className="pr-2 p-4"
+                  >
+                    {searchLoading ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="space-y-2 p-2">
+                        {searchResults.map((result, index) => (
+                          <motion.div
+                            key={`${result.type}-${result._id || result.id}-${index}`}
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => handleSearchResultClick(result)}
+                            className="p-3 bg-gray-800/50 rounded-lg cursor-pointer hover:bg-gray-700/50 transition-colors duration-200 border border-gray-600"
+                          >
+                            {result.type === 'blog' ? (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                                    Blog
+                                  </span>
+                                  <div className="flex items-center space-x-1 text-gray-400 text-xs">
+                                    <Eye className="w-3 h-3" />
+                                    <span>{result.views || 0}</span>
+                                  </div>
+                                </div>
+                                <h4 className="text-white font-medium mb-1 line-clamp-1">
+                                  {result.title}
+                                </h4>
+                                <p className="text-gray-300 text-sm line-clamp-2 mb-2">
+                                  {result.content}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-gray-400">
+                                  <div className="flex items-center space-x-1">
+                                    <UserIcon className="w-3 h-3" />
+                                    <span>{result.author?.name || 'Anonymous'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>{formatDate(result.createdAt)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                                    User
+                                  </span>
+                                </div>
+                                <h4 className="text-white font-medium mb-1">
+                                  {result.name}
+                                </h4>
+                                {result.email && (
+                                  <p className="text-gray-300 text-sm">
+                                    {result.email}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400">
+                        No results found for "{searchQuery}"
+                      </div>
+                    )}
+                  </SimpleBar>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.main
         className="flex-grow max-w-6xl mx-auto px-6 py-8"
@@ -440,15 +675,15 @@ export const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* All Posts Section */}
+        {/* Recent Posts Section - Show only latest 6 */}
         <motion.div variants={itemVariants} className='bg-gray-800/50 p-4 border-2 border-gray-700 rounded-lg'>
           <div className='flex flex-row w-full justify-between mb-6'>
             <h2 className="start text-2xl font-bold text-white">Recent Posts</h2>
             <NavLink to={'/explore'} className={'flex font-medium underline text-blue-400 hover:text-blue-500 duration-150'}>
-              <BinocularsIcon className='mr-2'/> Explore
+              <BinocularsIcon className='mr-2' /> Explore
             </NavLink>
           </div>
-          {allBlogs.length === 0 ? (
+          {latestBlogs.length === 0 ? (
             <div className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700">
               <div className="text-gray-400 text-lg">
                 No blogs available yet.
@@ -456,7 +691,7 @@ export const HomePage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allBlogs.map((blog) => (
+              {latestBlogs.map((blog) => (
                 <PostDetails
                   key={blog._id || blog.id}
                   blog={blog}
@@ -469,6 +704,19 @@ export const HomePage = () => {
                   onViewIncrement={handleViewIncrement}
                 />
               ))}
+            </div>
+          )}
+
+          {/* Show more button if there are more than 6 blogs */}
+          {allBlogs.length > 6 && (
+            <div className="text-center mt-6">
+              <NavLink
+                to="/explore"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
+              >
+                <BinocularsIcon className="mr-2 w-5 h-5" />
+                View All {allBlogs.length} Posts
+              </NavLink>
             </div>
           )}
         </motion.div>

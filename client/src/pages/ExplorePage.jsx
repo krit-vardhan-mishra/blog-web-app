@@ -10,7 +10,7 @@ import {
   Filter,
   Sparkles,
   AlertCircle,
-  X // Import X icon for closing search
+  X 
 } from 'lucide-react';
 import Header from '../components/Header';
 import { Button } from '../components/ui/Button';

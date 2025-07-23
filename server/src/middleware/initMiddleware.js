@@ -5,20 +5,17 @@ import passport from 'passport';
 import MongoStore from 'connect-mongo';
 
 export default function initMiddleware(app) {
-  // Configure CORS to allow requests from the frontend
   app.use(
     cors({
-      origin: 'http://localhost:5173', // Frontend URL
+      origin: 'http://localhost:5173',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true, // Allow cookies and session data
+      credentials: true,
     })
   );
 
-  // Parse JSON bodies
   app.use(express.json());
 
-  // Configure session with MongoStore
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -29,13 +26,12 @@ export default function initMiddleware(app) {
         ttl: 14 * 24 * 60 * 60, // 14 days
       }),
       cookie: {
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24,
       },
     })
   );
 
-  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 }
