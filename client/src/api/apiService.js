@@ -4,10 +4,35 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+  retry: 3,
+  retryDelay: (retryCount) => {
+    return retryCount * 1000;
+  }
+});
+
+// Add request interceptor for retries
+apiClient.interceptors.response.use(null, async (error) => {
+  const { config } = error;
+  if (!config || !config.retry) {
+    return Promise.reject(error);
+  }
+
+  config.retryCount = config.retryCount || 0;
+
+  if (config.retryCount >= config.retry) {
+    return Promise.reject(error);
+  }
+
+  config.retryCount += 1;
+  const delayRetry = new Promise(resolve => {
+    setTimeout(resolve, config.retryDelay(config.retryCount));
+  });
+
+  return delayRetry.then(() => apiClient(config));
 });
 
 // Request interceptor to add token

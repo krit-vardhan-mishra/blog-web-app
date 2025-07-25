@@ -3,7 +3,7 @@ import FooterSkeleton from '../component/FooterSkeleton';
 
 const AccountSettingSkeleton = () => {
   return (
-    <div className="bg-[#1C222A] min-h-screen">
+    <div className="bg-[#1A1C20] min-h-screen">
       {/* Header Skeleton */}
       <HeaderSkeleton />
 
@@ -40,8 +40,6 @@ const AccountSettingSkeleton = () => {
         </div>
       </div>
 
-      {/* Footer Skeleton */}
-      <FooterSkeleton />
     </div>
   );
 };

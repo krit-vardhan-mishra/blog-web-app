@@ -1,5 +1,6 @@
 import Blog from '../models/Blog.js';
 import mongoose from 'mongoose';
+import { calculateEngagementScore } from '../utils/engagementUtils.js';
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -29,9 +30,30 @@ export const getBlogByIdWithAuthor = async (req, res) => {
 
 export const getNonDeletedBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isDeleted: false })
+    const { genre, tags, difficulty, sortBy = 'createdAt', order = 'desc' } = req.query;
+
+    let filter = { isDeleted: false };
+
+    if (genre && genre !== 'All') {
+      filter.genre = genre;
+    }
+
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',');
+      filter.tags = { $in: tagArray };
+    }
+
+    if (difficulty) {
+      filter.readingDifficulty = difficulty;
+    }
+
+    const sortOrder = order === 'desc' ? -1 : 1;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder;
+
+    const blogs = await Blog.find(filter)
       .populate('author', 'name email')
-      .sort({ createdAt: -1 });
+      .sort(sortOptions);
 
     res.json(blogs);
   } catch (error) {
@@ -62,7 +84,7 @@ export const getAllDeletedBlogsByUser = async (req, res) => {
 
 export const createBlog = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, genre = 'All', tags = [], readingDifficulty = 'intermediate' } = req.body;
     const userId = req.user.id;
 
     if (!title || !content) {
@@ -73,10 +95,25 @@ export const createBlog = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
+    const validGenres = [
+      'All', 'Lifestyle', 'Business', 'Entertainment', 'Science',
+      'Art', 'Sports', 'Technology', 'Health', 'Travel', 'Food', 'Education'
+    ];
+
+    if (!validGenres.includes(genre)) {
+      return res.status(400).json({ message: 'Invalid genre selected' });
+    }
+
+    const processedTags = Array.isArray(tags) ? tags :
+      (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []);
+
     const newBlog = new Blog({
       title: title.trim(),
       content: content.trim(),
-      author: userId
+      author: userId,
+      genre,
+      tags: processedTags,
+      readingDifficulty
     });
 
     const savedBlog = await newBlog.save();
@@ -92,7 +129,7 @@ export const createBlog = async (req, res) => {
 export const updateBlog = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content } = req.body;
+    const { title, content, genre, tags, readingDifficulty } = req.body;
     const userId = req.user.id;
 
     if (!isValidObjectId(id)) {
@@ -113,9 +150,36 @@ export const updateBlog = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this blog' });
     }
 
+    const updateData = {
+      title: title.trim(),
+      content: content.trim()
+    };
+
+    if (genre) {
+      const validGenres = [
+        'All', 'Lifestyle', 'Business', 'Entertainment', 'Science',
+        'Art', 'Sports', 'Technology', 'Health', 'Travel', 'Food', 'Education'
+      ];
+
+      if (validGenres.includes(genre)) {
+        updateData.genre = genre;
+      }
+    }
+
+    // Add tags if provided
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags :
+        (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []);
+    }
+
+    // Add reading difficulty if provided
+    if (readingDifficulty && ['beginner', 'intermediate', 'advanced'].includes(readingDifficulty)) {
+      updateData.readingDifficulty = readingDifficulty;
+    }
+
     const updatedBlog = await Blog.findByIdAndUpdate(
       id,
-      { title: title.trim(), content: content.trim() },
+      updateData,
       { new: true }
     ).populate('author', 'name email');
 
@@ -253,19 +317,137 @@ export const deleteUserAllBlogs = async (userId) => {
 export const getUserBlogs = async (req, res) => {
   try {
     const { userId } = req.params;
+    const { genre, difficulty, sortBy = 'createdAt', order = 'desc' } = req.query;
 
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    const blogs = await Blog.find({ 
-      author: userId, 
-      isDeleted: false 
-    }).populate('author', 'name email').sort({ createdAt: -1 });
+    let filter = {
+      author: userId,
+      isDeleted: false
+    };
+
+    if (genre && genre !== 'All') {
+      filter.genre = genre;
+    }
+
+    if (difficulty) {
+      filter.readingDifficulty = difficulty;
+    }
+
+    const sortOrder = order === 'desc' ? -1 : 1;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder;
+
+    const blogs = await Blog.find(filter)
+      .populate('author', 'name email')
+      .sort(sortOptions);
 
     res.json(blogs);
   } catch (error) {
     console.error('Error fetching user blogs:', error);
     res.status(500).json({ message: 'Server error while fetching user blogs' });
+  }
+};
+
+export const updateBlogEngagement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { metrics } = req.body;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid blog ID format' });
+    }
+
+    const blog = await Blog.findById(id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    const timeSpent = metrics.timeSpent || 0;
+    const existingMetricIndex = blog.interactionMetrics.timeSpent
+      .findIndex(m => m.userId.toString() === userId);
+
+    if (existingMetricIndex > -1) {
+      blog.interactionMetrics.timeSpent[existingMetricIndex].duration += timeSpent;
+      blog.interactionMetrics.timeSpent[existingMetricIndex].lastRead = new Date();
+    } else {
+      blog.interactionMetrics.timeSpent.push({
+        userId,
+        duration: timeSpent,
+        lastRead: new Date()
+      });
+    }
+
+    const totalDuration = blog.interactionMetrics.timeSpent
+      .reduce((sum, metric) => sum + metric.duration, 0);
+    const totalReaders = blog.interactionMetrics.timeSpent.length;
+    blog.averageReadTime = totalDuration / totalReaders;
+
+    blog.engagementScore = calculateEngagementScore(blog);
+
+    if (metrics.completedReading) {
+      blog.readCount += 1;
+    }
+
+    await blog.save();
+    res.json({ message: 'Engagement metrics updated successfully' });
+  } catch (error) {
+    console.error('Error updating engagement:', error);
+    res.status(500).json({ message: 'Server error while updating engagement' });
+  }
+};
+
+export const toggleBookmark = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid blog ID format' });
+    }
+
+    const blog = await Blog.findById(id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    const bookmarkIndex = blog.interactionMetrics.bookmarks.indexOf(userId);
+
+    if (bookmarkIndex > -1) {
+      blog.interactionMetrics.bookmarks.splice(bookmarkIndex, 1);
+      await blog.save();
+      res.json({ message: 'Bookmark removed', bookmarked: false });
+    } else {
+      blog.interactionMetrics.bookmarks.push(userId);
+      await blog.save();
+      res.json({ message: 'Blog bookmarked', bookmarked: true });
+    }
+  } catch (error) {
+    console.error('Error toggling bookmark:', error);
+    res.status(500).json({ message: 'Server error while toggling bookmark' });
+  }
+};
+
+// Get user's bookmarked blogs
+export const getUserBookmarks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const blogs = await Blog.find({
+      'interactionMetrics.bookmarks': userId,
+      isDeleted: false
+    }).populate('author', 'name email').sort({ updatedAt: -1 });
+
+    res.json(blogs);
+  } catch (error) {
+    console.error('Error fetching bookmarked blogs:', error);
+    res.status(500).json({ message: 'Server error while fetching bookmarks' });
   }
 };

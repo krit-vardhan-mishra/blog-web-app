@@ -39,7 +39,7 @@ export const Header = ({
   return (
     <div
       className={clsx(
-        'w-full bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700 overflow-hidden relative transition-all duration-300 h-[70px]', // Fixed height
+        'w-full bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700 overflow-hidden relative transition-all duration-300 h-[70px]', 
         className
       )}
     >
@@ -69,7 +69,6 @@ export const Header = ({
                   {
                     'hover:bg-red-500/50': Icon === Trash2,
                     'hover:bg-white/10': Icon !== Trash2,
-                    // Removed 'bg-blue-500/20': Icon === Search && isSearchActive,
                   }
                 )}
               >

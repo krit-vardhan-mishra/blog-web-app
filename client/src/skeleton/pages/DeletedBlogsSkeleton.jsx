@@ -24,7 +24,6 @@ const DeletedBlogsSkeleton = () => {
         ))}
       </div>
 
-      <FooterSkeleton />
     </div>
   );
 };

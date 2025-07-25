@@ -5,7 +5,7 @@ import FooterSkeleton from '../component/FooterSkeleton';
 
 const MyPostsSkeleton = () => {
   return (
-    <div className="bg-[#1C222A] min-h-screen">
+    <div className="bg-[#1A1C20] min-h-screen">
       {/* Header Skeleton */}
       <HeaderSkeleton />
 
@@ -35,8 +35,6 @@ const MyPostsSkeleton = () => {
         <div className="w-6 h-6 bg-gray-600 rounded"></div>
       </div>
 
-      {/* Footer Skeleton */}
-      <FooterSkeleton />
     </div>
   );
 };

@@ -157,7 +157,6 @@ export const MyPosts = () => {
   };
 
   const handleEditPost = (blog) => {
-    console.log('Edit post clicked', blog);
     setBlogToEdit(blog);
     setIsEditPostOpen(true);
   };
@@ -355,6 +354,9 @@ export const MyPosts = () => {
         onUpdateSuccess={handlePostUpdateSuccess}
         title={blogToEdit?.title || ''}
         content={blogToEdit?.content || ''}
+        genre={blogToEdit?.genre || 'All'}
+        tags={blogToEdit?.tags || []}
+        readingDifficulty={blogToEdit?.readingDifficulty || 'intermediate'}
         blogId={blogToEdit?.id || blogToEdit?._id}
         userId={user?.id}
         token={token}

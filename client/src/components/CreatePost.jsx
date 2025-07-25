@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CreatePostSkeleton } from '../skeleton/component/CreatePostSkeleton';
 import useAuth from '../hooks/useAuth';
 import blogService from '../api/blogService';
+import GenreSelector from './GenreSelector';
 
 export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const { user, token } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [genre, setGenre] = useState('All');
   const [error, setError] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -15,78 +17,40 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
     setError(null);
     setIsCreating(true);
 
-    console.log(
-      '🔐 User from useAuth:',
-      user ? user.name : 'No user',
-      'Token exists:',
-      !!token
-    );
+    if (!genre) {
+      setError("Please select a genre.");
+      setIsCreating(false);
+      return;
+    }
 
-    // Validation
     if (!title.trim() || !content.trim()) {
       setError('Title and content are required.');
       setIsCreating(false);
       return;
     }
 
-    if (!token) {
-      setError('Authentication required. Please log in again.');
-      setIsCreating(false);
-      return;
-    }
-
-    if (!user?.id) {
-      setError('User information not available. Please refresh and try again.');
-      setIsCreating(false);
-      return;
-    }
-
-    console.log('📝 Attempting to create post with:', {
-      title: title.trim(),
-      content: content.trim(),
-    });
-
     try {
-      // Use the blogService instead of direct fetch
       const response = await blogService.create({
-        title: title.trim(),
-        content: content.trim(),
+        title,
+        content,
+        genre,
+        tags: [],
+        readingDifficulty: 'intermediate'
       });
 
-      console.log('✅ Blog created successfully:', response);
+      if (response) {
+        if (onPostSuccess) {
+          onPostSuccess('Blog Uploaded Successfully!');
+        }
 
-      // Call success callback
-      if (onPostSuccess) {
-        onPostSuccess('Blog Uploaded Successfully!');
+        setTitle('');
+        setContent('');
+        setGenre('All');
+        setError(null);
       }
-
-      // Reset form
-      setTitle('');
-      setContent('');
-      setError(null);
     } catch (err) {
       console.error('❌ Error creating blog:', err.message);
-
-      // Handle specific error types
-      if (
-        err.message.includes('expired') ||
-        err.message.includes('Session expired')
-      ) {
-        setError('Your session has expired. Please log in again.');
-        // The apiService interceptor should handle redirect
-      } else if (
-        err.message.includes('Access denied') ||
-        err.message.includes('Forbidden')
-      ) {
-        setError('Access denied. Please check your permissions.');
-      } else if (
-        err.message.includes('Network Error') ||
-        err.message.includes('timeout')
-      ) {
-        setError('Network error. Please check your connection and try again.');
-      } else {
-        setError(err.message || 'Failed to create blog. Please try again.');
-      }
+      setError(err.message || 'Failed to create blog. Please try again.');
     } finally {
       setIsCreating(false);
     }
@@ -126,6 +90,12 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
             disabled={isCreating}
           />
         </div>
+
+        {/* Add Genre Selector */}
+        <GenreSelector
+          selectedGenre={genre}
+          onGenreChange={setGenre}
+        />
 
         <div className="mb-4">
           <label htmlFor="post-content" className="block mb-2 font-medium">

@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-   isAccountVerified: {
+  isAccountVerified: {
     type: Boolean,
     default: false
   },
@@ -59,6 +59,37 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: null
+  },
+  preferences: {
+    favoriteGenres: [{
+      type: String,
+      enum: ['All',
+        'Lifestyle',
+        'Business',
+        'Entertainment',
+        'Science',
+        'Art',
+        'Sports',
+        'Technology',
+        'Health',
+        'Travel',
+        'Food',
+        'Education']
+    }],
+    readingHistory: [{
+      blogId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Blog'
+      },
+      timeSpent: Number,
+      lastRead: Date
+    }],
+    topicInterests: [String],
+    readingLevel: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+      default: 'intermediate'
+    }
   }
 }, {
   timestamps: true,

@@ -1,10 +1,9 @@
 import PostDetailsSkeleton from '../component/PostDetailsSkeleton';
-import FooterSkeleton from '../component/FooterSkeleton';
 import HeaderSkeleton from '../component/HeaderSkeleton';
 
 export const HomePageSkeleton = () => {
   return (
-    <div className="bg-[#1C222A] min-h-screen">
+    <div className="bg-[#1A1C20] min-h-screen">
       <HeaderSkeleton />
 
       <div className="max-w-4xl mx-auto p-6">
@@ -46,8 +45,6 @@ export const HomePageSkeleton = () => {
       <div className="fixed bottom-6 right-6 z-50 bg-gray-700 p-4 rounded-full shadow-lg">
         <div className="w-6 h-6 bg-gray-600 rounded"></div>
       </div>
-
-      <FooterSkeleton />
     </div>
   );
 };

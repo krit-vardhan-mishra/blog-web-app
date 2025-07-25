@@ -35,6 +35,9 @@ import {
 } from '../components/ui/dropdown-menu.jsx';
 import { NavLink, useNavigate } from 'react-router';
 import SimpleBar from 'simplebar-react';
+import '@/css/home-page.css';
+import { getInitialRecommendations } from '@/utils/recommendationUtils.js';
+import { calculateGenreMatchScore } from '@/utils/blogUtils.js';
 
 export const HomePage = () => {
   const { user, token, setUser, logout } = useAuth();
@@ -57,14 +60,13 @@ export const HomePage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedBlogForModal, setSelectedBlogForModal] = useState(null);
-
-  // Search functionality states
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchInputRef = useRef(null);
+  const [latestBlogs, setLatestBlogs] = useState([]);
 
   const navigate = useNavigate();
 
@@ -75,10 +77,49 @@ export const HomePage = () => {
     0
   );
 
-  // Get latest 6 blogs for recent posts section
-  const latestBlogs = allBlogs
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 6);
+  const getRecommendedBlogs = (allBlogs, user) => {
+    return allBlogs
+      .filter(blog => !blog.isDeleted)
+      .map(blog => {
+        const score = calculateBlogScore(blog, user);
+        return { ...blog, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+  };
+
+  const calculateBlogScore = (blog, user) => {
+    const now = new Date();
+    const blogAge = (now - new Date(blog.createdAt)) / (1000 * 60 * 60 * 24);
+
+    const weights = {
+      recency: 0.3,
+      views: 0.2,
+      avgReadTime: 0.2,
+      genreMatch: 0.15,
+      engagementScore: 0.15
+    };
+
+    const recencyScore = Math.exp(-blogAge / 30);
+    const viewsScore = Math.min(blog.views / 100, 1);
+    const readTimeScore = Math.min(blog.averageReadTime / 300, 1);
+    const genreMatchScore = calculateGenreMatchScore(blog, user);
+
+    return (
+      recencyScore * weights.recency +
+      viewsScore * weights.views +
+      readTimeScore * weights.avgReadTime +
+      genreMatchScore * weights.genreMatch +
+      (blog.engagementScore || 0) * weights.engagementScore
+    );
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchAllBlogsData();
+      fetchAllUsers();
+    }
+  }, [token, user]);
 
   const stats = [
     { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
@@ -354,16 +395,29 @@ export const HomePage = () => {
   const fetchAllBlogsData = async () => {
     setIsLoading(true);
     const start = Date.now();
+
     try {
       const blogsData = await blogService.fetchAll();
+
       const duration = Date.now() - start;
       const minDelay = 500;
-
       if (duration < minDelay) {
         await new Promise((res) => setTimeout(res, minDelay - duration));
       }
 
       setAllBlogs(blogsData);
+
+      const hasEngagementMetrics = blogsData.some(blog =>
+        blog.engagementScore !== undefined &&
+        blog.averageReadTime !== undefined
+      );
+
+      const recommended = hasEngagementMetrics
+        ? getRecommendedBlogs(blogsData, user)
+        : getInitialRecommendations(blogsData, user);
+
+      setLatestBlogs(recommended);
+
     } catch (error) {
       console.error('Failed to fetch blogs', error);
       setAllBlogs([]);
@@ -371,6 +425,7 @@ export const HomePage = () => {
       setIsLoading(false);
     }
   };
+
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -403,7 +458,8 @@ export const HomePage = () => {
         title="Home"
         icons={[
           { icon: HomeIcon, link: '/home' },
-          { icon: Search, onClick: handleSearchToggle }
+          { icon: Search, onClick: handleSearchToggle },
+          { icon: BinocularsIcon, link: '/explore' }
         ]}
         customElements={[
           <DropdownMenu key="user-dropdown">
@@ -472,7 +528,7 @@ export const HomePage = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 max-h-96 overflow-hidden" 
+                  className="mt-4 max-h-96 overflow-hidden"
                 >
                   <SimpleBar
                     style={{
@@ -601,9 +657,7 @@ export const HomePage = () => {
                     <div className="text-sm leading-relaxed whitespace-pre-line mt-3">
                       {user.about.split('\n').map((line, index) => (
                         <p key={index} className="about-line mb-2">
-                          <span className="text-green-400 font-mono mr-2">
-                            &gt;
-                          </span>
+                          <span className="text-green-400 font-mono mr-2">&gt;</span>
                           {line
                             .split(
                               /(?<=[\u0900-\u097F])(?=[^\u0900-\u097F])|(?<=[^\u0900-\u097F])(?=[\u0900-\u097F])/g
@@ -614,18 +668,22 @@ export const HomePage = () => {
 
                               if (isEmpty) return <span key={idx}>{part}</span>;
 
-                              return (
-                                <span
-                                  key={idx}
-                                  className={`hover-word ${isDevanagari ? 'devanagari-text' : 'english-text'}`}
-                                  style={{
-                                    marginRight: '0.2em',
-                                    display: 'inline-block',
-                                  }}
-                                >
-                                  {part}
-                                </span>
-                              );
+                              return part.split(/(\s+)/).map((word, wordIdx) => {
+                                if (word.trim() === '') return <span key={`${idx}-${wordIdx}`}>{word}</span>;
+
+                                return (
+                                  <span
+                                    key={`${idx}-${wordIdx}`}
+                                    className={`hover-word no-underline ${isDevanagari ? 'devanagari-text' : 'english-text'}`}
+                                    style={{
+                                      marginRight: '0.2em',
+                                      display: 'inline-block',
+                                    }}
+                                  >
+                                    {word}
+                                  </span>
+                                );
+                              });
                             })}
                         </p>
                       ))}
@@ -701,7 +759,6 @@ export const HomePage = () => {
                   onEdit={() => handleEditPost(blog)}
                   onDelete={() => handleDeleteClick(blog.id || blog._id)}
                   onOpenModal={handleOpenPostModal}
-                  onViewIncrement={handleViewIncrement}
                 />
               ))}
             </div>
@@ -715,7 +772,7 @@ export const HomePage = () => {
                 className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
               >
                 <BinocularsIcon className="mr-2 w-5 h-5" />
-                View All {allBlogs.length} Posts
+                View All Posts
               </NavLink>
             </div>
           )}
@@ -746,6 +803,10 @@ export const HomePage = () => {
         content={blogToEdit?.content || ''}
         blogId={blogToEdit?.id || blogToEdit?._id}
         userId={user?.id}
+        blog={blogToEdit}
+        genre={blogToEdit?.genre || 'All'}
+        tags={blogToEdit?.tags || []}
+        readingDifficulty={blogToEdit?.readingDifficulty || 'intermediate'}
         token={token}
       />
 

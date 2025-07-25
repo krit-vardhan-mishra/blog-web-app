@@ -42,6 +42,38 @@ const BlogSchema = new mongoose.Schema(
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+    averageReadTime: {
+      type: Number, 
+      default: 0,
+    },
+    engagementScore: {
+      type: Number, 
+      default: 0,
+    },
+    readCount: {
+      type: Number, 
+      default: 0,
+    },
+    interactionMetrics: {
+      timeSpent: [{ 
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
+        duration: Number,
+        lastRead: Date
+      }],
+      bookmarks: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }]
+    },
+    tags: [String], 
+    readingDifficulty: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+      default: 'intermediate'
     }
   },
   {
