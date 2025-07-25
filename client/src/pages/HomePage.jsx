@@ -454,6 +454,7 @@ export const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
+      
       <Header
         title="Home"
         icons={[

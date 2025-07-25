@@ -5,7 +5,6 @@ import LoginPage from '../pages/LoginPage';
 import LandingPage from '../pages/LandingPage';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
-import { HomePage } from '../pages/HomePage';
 import MyPosts from '../pages/MyPosts';
 import DeletedBlogs from '../pages/DeletedBlogs';
 import AccountSetting from '../pages/AccountSetting';
@@ -21,6 +20,7 @@ import UserDetail from '../pages/UserDetail';
 import BlogDetail from '../pages/BlogDetail';
 import Footer from '../components/Footer';
 import ExplorePage from '../pages/ExplorePage';
+import HomePage from '@/pages/HomePage';
 
 const AppRoutes = () => {
   return (

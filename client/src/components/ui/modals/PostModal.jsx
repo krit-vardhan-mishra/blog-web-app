@@ -320,6 +320,7 @@ const PostModal = ({
                 style={{
                   height: '100%',
                   maxHeight: 'calc(90vh - 200px)',
+                  overflowY: 'auto',
                 }}
                 className="px-6 py-4"
                 onScroll={handleScroll}
