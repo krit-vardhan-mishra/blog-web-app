@@ -1,22 +1,22 @@
 import { useMemo, useCallback } from 'react';
 
-export const usePerformanceOptimizations = ({ 
-  allBlogs = [], 
-  user, 
+export const usePerformanceOptimizations = ({
+  allBlogs = [],
+  user,
   lastUpdated,
   searchQuery,
   allUsers = []
 }) => {
-  
-  const userBlogs = useMemo(() => 
-    allBlogs.filter((blog) => blog.author?._id === user?.id), 
+
+  const userBlogs = useMemo(() =>
+    allBlogs.filter((blog) => blog.author?._id === user?.id),
     [allBlogs, user?.id]
   );
 
   const stats = useMemo(() => {
     const userBlogsCount = userBlogs.length;
     const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
-    
+
     return [
       { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
       { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
@@ -30,7 +30,7 @@ export const usePerformanceOptimizations = ({
 
   const performSearch = useCallback((query) => {
     if (!query || !query.trim()) return [];
-    
+
     const searchTerm = query.toLowerCase().trim();
 
     const matchingBlogs = allBlogs.filter(blog =>
@@ -50,12 +50,12 @@ export const usePerformanceOptimizations = ({
     ];
   }, [allBlogs, allUsers]);
 
-  const activeBlogs = useMemo(() => 
+  const activeBlogs = useMemo(() =>
     allBlogs.filter(blog => !blog.isDeleted),
     [allBlogs]
   );
 
-  const displayedUserName = useMemo(() => 
+  const displayedUserName = useMemo(() =>
     user?.name ? user.name.split(' ')[0] + '...' : 'Guest',
     [user?.name]
   );

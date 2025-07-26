@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
-import userService from '../api/userService';
+import userService from '../api/userService.js';
 
 export const useEffectsManager = ({
   user,

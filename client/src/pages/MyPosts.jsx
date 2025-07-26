@@ -11,8 +11,8 @@ import CreatePostModal from '../components/ui/modals/CreatePostModal';
 import EditPostModal from '../components/ui/modals/EditPostModal';
 import QuickStatsModal from '../components/ui/modals/QuickStatsModal';
 import SingleStatModal from '../components/ui/modals/SingleStatModal';
-import useAuth from '../hooks/useAuth';
 import blogService from '../api/blogService';
+import { useAuth } from '@/context/AuthContext';
 
 export const MyPosts = () => {
   const { user, token } = useAuth();

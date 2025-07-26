@@ -5,12 +5,14 @@ import {
   Search,
   BookOpen,
   Eye,
-  Calendar,
-  User as UserIcon,
+  UserIcon,
   Filter,
   Sparkles,
   AlertCircle,
-  X 
+  X,
+  Tag,
+  Target, Bookmark,
+  Clock
 } from 'lucide-react';
 import Header from '../components/Header';
 import { Button } from '../components/ui/Button';
@@ -239,7 +241,7 @@ const ExplorePage = () => {
         ]}
       />
 
-      {/* Search Input Section - Appears only when isSearchActive is true */}
+      {/* Search Input Section */}
       <AnimatePresence>
         {isSearchActive && (
           <motion.div
@@ -369,43 +371,91 @@ const ExplorePage = () => {
                   exit="exit"
                 >
                   <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 hover:border-blue-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
-                    {/* Genre Badge */}
-                    <div className="flex justify-between items-start mb-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getGenreColor(
-                          blog.genre || 'All'
-                        )}`}
-                      >
-                        {blog.genre || 'Uncategorized'}
-                      </span>
-                      <div className="flex items-center space-x-1 text-gray-400 hover:text-blue-200 text-xs">
-                        <Eye className="w-3 h-3" />
-                        <span>{blog.views || 0}</span>
-                      </div>
-                    </div>
 
                     {/* Title */}
                     <h3 className="text-lg font-semibold mb-3 text-white hover:text-blue-300 transition-colors duration-200 line-clamp-2">
                       {blog.title}
                     </h3>
 
-                    {/* Content Preview */}
+                    {/* Genre, Difficulty, Read Time, Engagement */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getGenreColor(blog.genre || 'All')}`}>
+                        {blog.genre || 'Uncategorized'}
+                      </span>
+
+                      {blog.readingDifficulty && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${blog.readingDifficulty === 'beginner' ? 'text-green-400 bg-green-900/30' :
+                          blog.readingDifficulty === 'intermediate' ? 'text-yellow-400 bg-yellow-900/30' :
+                            blog.readingDifficulty === 'advanced' ? 'text-red-400 bg-red-900/30' :
+                              'text-gray-400 bg-gray-900/30'
+                            }`}>
+                          {blog.readingDifficulty === 'beginner' ? '🟢' :
+                            blog.readingDifficulty === 'intermediate' ? '🟡' :
+                              blog.readingDifficulty === 'advanced' ? '🔴' : '⚪'} {blog.readingDifficulty}
+                        </span>
+                      )}
+
+                      {blog.averageReadTime > 0 && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-400 bg-blue-900/30 flex items-center">
+                          <Clock size={12} className="mr-1" />
+                          {Math.round(blog.averageReadTime / 60)}m read
+                        </span>
+                      )}
+
+                      {blog.engagementScore > 0 && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium text-purple-400 bg-purple-900/30 flex items-center">
+                          <Target size={12} className="mr-1" />
+                          {Math.round(blog.engagementScore)} score
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tags */}
+                    {blog.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {blog.tags.slice(0, 3).map((tag, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors duration-200">
+                            <Tag size={10} className="mr-1" />
+                            {tag}
+                          </span>
+                        ))}
+                        {blog.tags.length > 3 && (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-400">
+                            +{blog.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Content */}
                     <p className="text-gray-300 text-sm mb-4 line-clamp-4 leading-relaxed">
                       {blog.content}
                     </p>
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between text-xs text-gray-400">
-                      <div
-                        className="flex items-center space-x-1 hover:text-blue-300 transition-colors duration-200"
+                    {/* Footer: Author, Date, Views, Bookmarks */}
+                    <div className="flex items-center justify-between text-xs text-gray-400 space-x-4">
+                      <div className="flex items-center space-x-1 hover:text-blue-300 transition-colors duration-200"
                         onClick={(e) => handleAuthorClick(e, blog.author?._id || blog.author?.id)}
                       >
-                        <UserIcon className="w-3 h-3" />
+                        <UserIcon className="w-3 h-3 text-blue-400" />
                         <span>{blog.author?.name || 'Anonymous'}</span>
+                        <div className="flex items-center text-gray-500">
+                          <span>{formatDate(blog.createdAt)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>{formatDate(blog.createdAt)}</span>
+
+                      <div className="flex items-center space-x-3">
+                        {blog.interactionMetrics?.bookmarks?.length > 0 && (
+                          <div className="flex items-center text-yellow-400">
+                            <Bookmark size={12} className="mr-1" />
+                            <span>{blog.interactionMetrics.bookmarks.length}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center text-gray-400 hover:text-blue-300 transition-colors duration-200">
+                          <Eye size={12} className="mr-1" />
+                          <span>{blog.views || 0}</span>
+                        </div>
                       </div>
                     </div>
                   </div>

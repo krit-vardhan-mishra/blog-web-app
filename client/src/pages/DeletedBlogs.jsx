@@ -7,8 +7,8 @@ import NotifyBanner from '../components/ui/NotifyBanner';
 import Footer from '../components/Footer';
 import DeletedBlogsSkeleton from '../skeleton/pages/DeletedBlogsSkeleton';
 import PermanentDeleteDialog from '../components/ui/modals/PermanentDeleteDialog';
-import useAuth from '../hooks/useAuth';
 import blogService from '../api/blogService';
+import { useAuth } from '@/context/AuthContext';
 
 export const DeletedBlogs = () => {
   const { user, token } = useAuth();

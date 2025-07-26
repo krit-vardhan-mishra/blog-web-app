@@ -10,6 +10,7 @@ import { NavLink } from 'react-router';
 import { formatDate } from '../../../utils/utilityFunctions';
 import { parseEmojisEnhanced } from '../../../utils/emojiParser';
 import { getScrollDepth } from '../../../utils/scrollUtils';
+import Lenis from '@studio-freight/lenis';
 
 const PostModal = ({
   isOpen,
@@ -48,6 +49,7 @@ const PostModal = ({
   );
   const hasIncrementedRef = useRef(false);
   const modalContentRef = useRef(null);
+  const lenisModalRef = useRef(null);
 
   const name = author?.name || 'Unknown';
   const email = author?.email || '';
@@ -183,16 +185,59 @@ const PostModal = ({
   }, [isOpen, blogId, token, onViewIncrement]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      startTime.current = Date.now();
-      scrollPositions.current = [];
-    } else {
-      document.body.style.overflow = 'auto';
+    let lenisInstance;
+    if (isOpen && modalContentRef.current) {
+      const scrollableElement = modalContentRef.current.getScrollElement();
+
+      if (scrollableElement) {
+        lenisInstance = new Lenis({
+          wrapper: scrollableElement,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+
+        lenisModalRef.current = lenisInstance;
+
+        const raf = (time) => {
+          lenisInstance.raf(time);
+          requestAnimationFrame(raf);
+        };
+
+        requestAnimationFrame(raf);
+      }
     }
 
     return () => {
-      document.body.style.overflow = 'auto';
+      if (lenisInstance) {
+        lenisInstance.destroy();
+        lenisModalRef.current = null;
+      }
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+
+      const lenis = window.lenisInstance;
+      if (lenis) {
+        lenis.stop();
+      }
+    } else {
+      document.body.style.overflow = '';
+
+      const lenis = window.lenisInstance;
+      if (lenis) {
+        lenis.start();
+      }
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      const lenis = window.lenisInstance;
+      if (lenis) {
+        lenis.start();
+      }
     };
   }, [isOpen]);
 
@@ -290,8 +335,8 @@ const PostModal = ({
                     whileTap={{ scale: 0.9 }}
                     onClick={handleBookmarkToggle}
                     className={`p-2 rounded-full transition-all duration-200 ${isBookmarked
-                        ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                        : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
+                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                      : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
                       }`}
                     aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
@@ -316,14 +361,17 @@ const PostModal = ({
             {/* Content */}
             <div className="flex-1 min-h-0">
               <SimpleBar
-                scrollableNodeProps={{ ref: modalContentRef }}
+                ref={modalContentRef}
+                scrollableNodeProps={{
+                  onScroll: handleScroll,
+                }}
                 style={{
                   height: '100%',
                   maxHeight: 'calc(90vh - 200px)',
                   overflowY: 'auto',
+                  WebkitOverflowScrolling: 'touch',
                 }}
                 className="px-6 py-4"
-                onScroll={handleScroll}
               >
                 <div
                   className="text-gray-300 whitespace-pre-line text-base leading-relaxed"

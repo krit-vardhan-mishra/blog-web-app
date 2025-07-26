@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import SignupPage from '../pages/SignupPage';
 import LoginPage from '../pages/LoginPage';
 import LandingPage from '../pages/LandingPage';
@@ -23,6 +23,23 @@ import ExplorePage from '../pages/ExplorePage';
 import HomePage from '@/pages/HomePage';
 
 const AppRoutes = () => {
+  const location = useLocation();
+
+  const hideFooterRoutes = [
+    '*',
+    '/',
+    '/login',
+    '/signup',
+    '/google-auth',
+    '/forgot-password',
+    '/verify-otp',
+    '/verify-signup',
+    '/reset-password',
+    '/set-password'
+  ];
+
+  const shouldShowFooter = !hideFooterRoutes.includes(location.pathname);
+
   return (
     <>
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -54,7 +71,8 @@ const AppRoutes = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
-        <Footer />
+
+        {shouldShowFooter && <Footer />}
       </div>
 
       <ToastContainer

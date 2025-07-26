@@ -7,10 +7,10 @@ import { Button } from '../components/ui/Button';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import AccountSettingSkeleton from '../skeleton/pages/AccountSettingSkeleton';
 import PasswordConfirmationDialog from '../components/ui/PasswordConfirmationDialog';
-import useAuth from '../hooks/useAuth';
 import userService from '../api/userService';
 import authService from '../api/authService';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
+import { useAuth } from '@/context/AuthContext';
 
 export const AccountSetting = () => {
   const { user, token, setUser, logout } = useAuth();

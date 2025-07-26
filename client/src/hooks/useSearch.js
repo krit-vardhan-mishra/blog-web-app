@@ -10,7 +10,7 @@ export const useSearch = (allBlogs, allUsers) => {
   const navigate = useNavigate();
 
   const handleSearchToggle = useCallback(() => {
-    setIsSearchActive(!isSearchActive);
+    setIsSearchActive(prev => !prev);
     if (isSearchActive) {
       setSearchQuery('');
       setSearchResults([]);
@@ -23,6 +23,14 @@ export const useSearch = (allBlogs, allUsers) => {
 
   const performSearch = useCallback(() => {
     setSearchLoading(true);
+    
+    // Clear results if query is empty
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+    
     const query = searchQuery.toLowerCase().trim();
 
     // Search blogs
@@ -54,6 +62,7 @@ export const useSearch = (allBlogs, allUsers) => {
     }
     setIsSearchActive(false);
     setSearchQuery('');
+    setSearchResults([]);
   }, [navigate]);
 
   const resetSearch = useCallback(() => {

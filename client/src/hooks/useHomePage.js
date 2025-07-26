@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import useAuth from './useAuth';
+import { useAuth } from '@/context/AuthContext';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
 import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';

@@ -20,6 +20,9 @@ const SearchFunctionality = ({
   useEffect(() => {
     if (searchQuery.trim()) {
       onPerformSearch();
+    } else {
+      // Clear results when query is empty
+      onPerformSearch();
     }
   }, [searchQuery, onPerformSearch]);
 
