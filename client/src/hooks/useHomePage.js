@@ -1,17 +1,16 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/context/AuthContext';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
-import { getTimeBasedGreeting, getCurrentDateTime } from '../utils/utilityFunctions.js';
+import { getCurrentDateTime } from '../utils/utilityFunctions.js';
 import { getInitialRecommendations } from '@/utils/recommendationUtils.js';
 import { calculateGenreMatchScore } from '@/utils/blogUtils.js';
 
 export const useHomePage = () => {
   const { user, token, setUser, logout } = useAuth();
   const navigate = useNavigate();
-  
-  // State management
+
   const [state, setState] = useState({
     selectedStat: null,
     isStatModalOpen: false,
@@ -25,7 +24,8 @@ export const useHomePage = () => {
     isEditPostOpen: false,
     currentTime: getCurrentDateTime(),
     blogToEdit: null,
-    isLoading: true,
+    isLoading: true, 
+    isBlogListRefreshing: false, 
     allBlogs: [],
     isConfirmOpen: false,
     selectedBlogId: null,
@@ -42,16 +42,15 @@ export const useHomePage = () => {
 
   const searchInputRef = useRef(null);
 
-  // Memoized calculations
-  const userBlogs = useMemo(() => 
-    state.allBlogs.filter((blog) => blog.author?._id === user?.id), 
+  const userBlogs = useMemo(() =>
+    state.allBlogs.filter((blog) => blog.author?._id === user?.id),
     [state.allBlogs, user?.id]
   );
 
   const stats = useMemo(() => {
     const userBlogsCount = userBlogs.length;
     const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
-    
+
     return [
       { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
       { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
@@ -63,12 +62,10 @@ export const useHomePage = () => {
     ];
   }, [userBlogs, state.lastUpdated]);
 
-  // Helper function to update state
   const updateState = useCallback((updates) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Blog scoring algorithm
   const calculateBlogScore = useCallback((blog, user) => {
     const now = new Date();
     const blogAge = (now - new Date(blog.createdAt)) / (1000 * 60 * 60 * 24);
@@ -106,19 +103,15 @@ export const useHomePage = () => {
       .slice(0, 6);
   }, [calculateBlogScore]);
 
-  // Fetch functions
-  const fetchAllBlogsData = useCallback(async () => {
-    updateState({ isLoading: true });
-    const start = Date.now();
+  const fetchAllBlogsData = useCallback(async (isBackgroundRefresh = false) => {
+    if (!isBackgroundRefresh) {
+      updateState({ isLoading: true });
+    } else {
+      updateState({ isBlogListRefreshing: true });
+    }
 
     try {
       const blogsData = await blogService.fetchAll();
-
-      const duration = Date.now() - start;
-      const minDelay = 500;
-      if (duration < minDelay) {
-        await new Promise((res) => setTimeout(res, minDelay - duration));
-      }
 
       const hasEngagementMetrics = blogsData.some(blog =>
         blog.engagementScore !== undefined &&
@@ -132,12 +125,17 @@ export const useHomePage = () => {
       updateState({
         allBlogs: blogsData,
         latestBlogs: recommended,
-        isLoading: false
+        isLoading: false,
+        isBlogListRefreshing: false,
       });
 
     } catch (error) {
       console.error('Failed to fetch blogs', error);
-      updateState({ allBlogs: [], isLoading: false });
+      updateState({
+        allBlogs: [],
+        isLoading: false,
+        isBlogListRefreshing: false
+      });
     }
   }, [user, getRecommendedBlogs, updateState]);
 
@@ -195,7 +193,7 @@ export const useHomePage = () => {
         isCreatePostOpen: false
       });
       updateLastUpdatedTime();
-      fetchAllBlogsData();
+      fetchAllBlogsData(true);
     }, [updateState, updateLastUpdatedTime, fetchAllBlogsData]),
 
     handlePostUpdateSuccess: useCallback((message) => {
@@ -205,7 +203,7 @@ export const useHomePage = () => {
         isEditPostOpen: false
       });
       updateLastUpdatedTime();
-      fetchAllBlogsData();
+      fetchAllBlogsData(true);
     }, [updateState, updateLastUpdatedTime, fetchAllBlogsData]),
 
     handlePostDeleteSuccess: useCallback(async (blogId) => {
@@ -246,26 +244,19 @@ export const useHomePage = () => {
   };
 
   return {
-    // State
     ...state,
     user,
     token,
     logout,
     navigate,
     searchInputRef,
-    
-    // Computed values
     userBlogs,
     stats,
-    
-    // Functions
     updateState,
     fetchAllBlogsData,
     fetchAllUsers,
     updateLastUpdatedTime,
     setUser,
-    
-    // Handlers
     ...handlers,
   };
 };

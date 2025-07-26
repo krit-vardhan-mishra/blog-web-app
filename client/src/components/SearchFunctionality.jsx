@@ -1,8 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Eye, UserIcon, Calendar } from 'lucide-react';
 import SimpleBar from 'simplebar-react';
 import { formatDate } from '../utils/utilityFunctions.js';
+import 'simplebar-react/dist/simplebar.min.css';
 
 const SearchFunctionality = ({
   isSearchActive,
@@ -15,18 +16,16 @@ const SearchFunctionality = ({
   onSearchResultClick,
   onPerformSearch
 }) => {
-  
-  // Handle search when query changes
+  const searchContentRef = useRef(null);
+
   useEffect(() => {
     if (searchQuery.trim()) {
       onPerformSearch();
     } else {
-      // Clear results when query is empty
       onPerformSearch();
     }
   }, [searchQuery, onPerformSearch]);
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     if (isSearchActive) {
       searchInputRef.current?.focus();
@@ -77,7 +76,6 @@ const SearchFunctionality = ({
               </button>
             </form>
 
-            {/* Search Results */}
             {searchQuery && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -85,11 +83,14 @@ const SearchFunctionality = ({
                 className="mt-4 max-h-96 overflow-hidden"
               >
                 <SimpleBar
+                  ref={searchContentRef}
                   style={{
                     maxHeight: '384px',
                     width: '100%',
                   }}
                   className="pr-2 p-4"
+                  forceVisible="y"
+                  autoHide={false}
                 >
                   {searchLoading ? (
                     <div className="text-center py-4">

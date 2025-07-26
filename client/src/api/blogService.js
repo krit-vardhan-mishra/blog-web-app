@@ -87,10 +87,7 @@ const blogService = {
         readingDifficulty: blogData.readingDifficulty || 'intermediate'
       };
 
-      console.log('Creating blog with payload:', payload);
-
       const response = await apiClient.post('/blogs', payload);
-      console.log('Blog creation response:', response);
       return response;
     } catch (error) {
       console.error('❌ Error creating blog:', error);

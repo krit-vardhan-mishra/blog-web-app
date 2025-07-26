@@ -14,7 +14,7 @@ import EditPostModal from '../components/ui/modals/EditPostModal';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
 import { motion } from 'framer-motion';
-import Lenis from '@studio-freight/lenis';
+import getGenreColor from '@/utils/genreColors';
 
 const BlogDetail = () => {
   const { user, token, isAuthenticated } = useAuth();
@@ -28,18 +28,14 @@ const BlogDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentViews, setCurrentViews] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  
-  // Engagement tracking
   const startTime = useRef(Date.now());
   const scrollPositions = useRef([]);
   const hasIncrementedRef = useRef(false);
   const contentRef = useRef(null);
-  const lenisRef = useRef(null);
 
   const userId = user?.id;
   const isAuthor = userId && blog?.author?._id === userId;
 
-  // Utility functions from PostModal
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'beginner': return 'text-green-400 bg-green-900/30';
@@ -56,24 +52,6 @@ const BlogDetail = () => {
       case 'advanced': return '🔴';
       default: return '⚪';
     }
-  };
-
-  const getGenreColor = (genre) => {
-    const colors = {
-      'All': 'bg-gray-600',
-      'Lifestyle': 'bg-pink-600',
-      'Business': 'bg-blue-600',
-      'Entertainment': 'bg-purple-600',
-      'Science': 'bg-green-600',
-      'Art': 'bg-indigo-600',
-      'Sports': 'bg-orange-600',
-      'Technology': 'bg-cyan-600',
-      'Health': 'bg-red-600',
-      'Travel': 'bg-teal-600',
-      'Food': 'bg-yellow-600',
-      'Education': 'bg-emerald-600'
-    };
-    return colors[genre] || 'bg-gray-600';
   };
 
   const formatReadTime = (seconds) => {
@@ -168,45 +146,13 @@ const BlogDetail = () => {
     };
   }, [blogId, userId]);
 
-  // Initialize Lenis for smooth scrolling
-  useEffect(() => {
-    let lenisInstance;
-    if (contentRef.current) {
-      const scrollableElement = contentRef.current.getScrollElement();
-
-      if (scrollableElement) {
-        lenisInstance = new Lenis({
-          wrapper: scrollableElement,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
-
-        lenisRef.current = lenisInstance;
-
-        const raf = (time) => {
-          lenisInstance.raf(time);
-          requestAnimationFrame(raf);
-        };
-
-        requestAnimationFrame(raf);
-      }
-    }
-
-    return () => {
-      if (lenisInstance) {
-        lenisInstance.destroy();
-        lenisRef.current = null;
-      }
-    };
-  }, [blog]);
-
   useEffect(() => {
     const fetchBlog = async () => {
       try {
         const result = await blogService.fetchById(blogId);
         setBlog(result);
         setCurrentViews(result.views || 0);
-        
+
         // Set bookmark status
         if (userId && result.interactionMetrics?.bookmarks) {
           setIsBookmarked(result.interactionMetrics.bookmarks.includes(userId));
@@ -262,7 +208,7 @@ const BlogDetail = () => {
       type: 'success',
     });
     setIsEditModalOpen(false);
-    
+
     // Refresh the blog data
     const fetchUpdatedBlog = async () => {
       try {
@@ -273,7 +219,7 @@ const BlogDetail = () => {
         console.error('Failed to refresh blog data:', err);
       }
     };
-    
+
     fetchUpdatedBlog();
   };
 
@@ -284,14 +230,14 @@ const BlogDetail = () => {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     setIsConfirmDeleteOpen(false);
-    
+
     try {
       await blogService.delete(blogId);
       setNotification({
         message: 'Blog moved to trash successfully!',
         type: 'success',
       });
-      
+
       // Navigate back after a short delay
       setTimeout(() => {
         navigate(-1);
@@ -343,11 +289,11 @@ const BlogDetail = () => {
     );
   }
 
-  const { 
-    title, 
-    content, 
-    author, 
-    createdAt, 
+  const {
+    title,
+    content,
+    author,
+    createdAt,
     genre = 'All',
     tags = [],
     readingDifficulty = 'intermediate',
@@ -379,10 +325,10 @@ const BlogDetail = () => {
             </div>
           ),
         ]} />
-      
+
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 mb-6 transition-all duration-300 hover:shadow-lg hover:border-blue-900 relative">
-          
+
           {/* Action buttons row */}
           <div className="absolute top-4 right-4 flex space-x-2">
             {/* Share button */}
@@ -390,7 +336,7 @@ const BlogDetail = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleShare}
-              className="p-2 rounded-full bg-gray-700 hover:bg-blue-600 text-white transition-all duration-200"
+              className="p-2 rounded-full bg-gray-700 hover:bg-yellow-600 text-white transition-all duration-200 h-10 w-10"
               aria-label="Share"
             >
               <Share2 size={18} />
@@ -438,7 +384,7 @@ const BlogDetail = () => {
           <h1 className="text-3xl font-bold mb-3 text-white hover:text-orange-300 transition-colors duration-300 pr-32">
             {title}
           </h1>
-          
+
           {/* Enhanced metadata badges */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getGenreColor(genre)}`}>
@@ -475,7 +421,7 @@ const BlogDetail = () => {
               ))}
             </div>
           )}
-          
+
           <div className="flex flex-wrap text-sm mb-4 space-x-4">
             <span className="flex items-center space-x-1 hover:text-indigo-300 text-indigo-100 transition-colors duration-200">
               <Calendar size={16} />
@@ -503,10 +449,10 @@ const BlogDetail = () => {
               </span>
             )}
           </div>
-          
-          <SimpleBar 
+
+          <SimpleBar
             ref={contentRef}
-            className='border-t-white/10 h-[70vh] border-t-2 border-b-white/10 border-b-2' 
+            className='border-t-white/10 h-[70vh] border-t-2 border-b-white/10 border-b-2'
             style={{ maxHeight: '70vh' }}
             scrollableNodeProps={{
               onScroll: handleScroll,

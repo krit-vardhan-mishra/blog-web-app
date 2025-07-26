@@ -6,7 +6,6 @@ import GenreSelector from './GenreSelector';
 import { Tags, BookOpen, Target, Plus, X, Save, AlertCircle } from 'lucide-react';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
-import Lenis from '@studio-freight/lenis';
 
 export const EditPost = ({
   onUpdateSuccess,
@@ -31,9 +30,6 @@ export const EditPost = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [initialData, setInitialData] = useState({});
-
-  const formContentRef = useRef(null);
-  const lenisFormRef = useRef(null);
 
   const difficultyOptions = [
     { value: 'beginner', label: 'Beginner', icon: '🟢', description: 'Easy to read for everyone' },
@@ -241,37 +237,6 @@ export const EditPost = ({
     }
   };
 
-  useEffect(() => {
-    let lenisInstance;
-    if (formContentRef.current) {
-      const scrollableElement = formContentRef.current.getScrollElement();
-
-      if (scrollableElement) {
-        lenisInstance = new Lenis({
-          wrapper: scrollableElement,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
-
-        lenisFormRef.current = lenisInstance;
-
-        const raf = (time) => {
-          lenisInstance.raf(time);
-          requestAnimationFrame(raf);
-        };
-
-        requestAnimationFrame(raf);
-      }
-    }
-
-    return () => {
-      if (lenisInstance) {
-        lenisInstance.destroy();
-        lenisFormRef.current = null;
-      }
-    };
-  }, []);
-
   if (isLoading || isCheckingOwnership) {
     return <EditPostSkeleton />;
   }
@@ -306,7 +271,6 @@ export const EditPost = ({
 
         {/* Simple Bar */}
         <SimpleBar
-          ref={formContentRef}
           style={{ maxHeight: 'calc(95vh - 120px)' }}
           className="pb-4"
         >

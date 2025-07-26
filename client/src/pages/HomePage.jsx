@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   HomeIcon,
@@ -10,10 +10,9 @@ import Header from '../components/Header.jsx';
 import SearchFunctionality from '../components/SearchFunctionality.jsx';
 import UserProfileSection from '../components/UserProfileSection.jsx';
 import StatsSection from '../components/StatsSection.jsx';
-import RecentPostsSection from '../components/RecentPostsSection.jsx';
 import ModalManager from '../components/ModalManager.jsx';
 import NotificationBannerManager from '../components/NotificationBannerManager.jsx';
-import FloatingActionButton from '../components/FloatingActionButton.jsx';
+import FloatingActionButton from '../components/ui/FloatingActionButton.jsx';
 import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
 import {
   DropdownMenu,
@@ -23,13 +22,12 @@ import {
   DropdownMenuLabel,
 } from '../components/ui/dropdown-menu.jsx';
 import { useHomePage } from '../hooks/useHomePage.js';
-import { useSearch } from '../hooks/useSearch.js';
 import { useEffectsManager } from '../hooks/useEffectsManager.js';
 import '@/css/home-page.css';
 import { usePerformanceOptimizations } from '@/hooks/usePerformanceOptimization.js';
 import { BlogProvider } from '@/context/BlogContext.jsx';
-import { useAuth } from '@/context/AuthContext.jsx';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch.js';
+import PostsSection from '@/components/PostsSection.jsx';
 
 export const HomePage = () => {
   const searchInputRef = useRef(null);
@@ -45,6 +43,7 @@ export const HomePage = () => {
     navigate,
     stats: originalStats,
     latestBlogs,
+    isBlogListRefreshing,
     allBlogs,
     allUsers,
     showWelcomeBanner,
@@ -209,7 +208,7 @@ export const HomePage = () => {
           onSearchResultClick={(result) => {
             handleSearchResultClick(result, handleOpenPostModal);
           }}
-          onPerformSearch={() => { }} 
+          onPerformSearch={() => { }}
         />
 
         {/* Main Content */}
@@ -237,15 +236,19 @@ export const HomePage = () => {
           />
 
           {/* Recent Posts Section */}
-          <RecentPostsSection
-            latestBlogs={latestBlogs}
-            allBlogs={allBlogs}
+          <PostsSection
+            posts={latestBlogs}
             user={user}
             token={token}
             onEdit={handleEditPost}
             onDelete={handleDeleteClick}
             onOpenModal={handleOpenPostModal}
             itemVariants={itemVariants}
+            isRefreshing={isBlogListRefreshing}
+            mode="recent"
+            showViewAll={allBlogs.length > 6}
+            showExploreLink={true}
+            showBookmarks={true}
           />
         </motion.main>
 

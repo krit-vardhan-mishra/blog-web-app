@@ -21,6 +21,8 @@ import blogService from '../api/blogService';
 import blogCategory from '../utils/blogCategories';
 import { formatDate } from '../utils/utilityFunctions';
 import NotifyBanner from '../components/ui/NotifyBanner';
+import getGenreColor from '@/utils/genreColors';
+import '@/css/explore-page.css';
 
 const ExplorePage = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -128,24 +130,6 @@ const ExplorePage = () => {
     if (authorId) {
       navigate(`/user/${authorId}`);
     }
-  };
-
-  const getGenreColor = (genre) => {
-    const colors = {
-      'Lifestyle': 'bg-pink-500',
-      'Business': 'bg-blue-500',
-      'Entertainment': 'bg-purple-500',
-      'Science': 'bg-green-500',
-      'Art': 'bg-orange-500',
-      'Sports': 'bg-red-500',
-      'Technology': 'bg-cyan-500',
-      'Health': 'bg-emerald-500',
-      'Travel': 'bg-indigo-500',
-      'Food': 'bg-yellow-500',
-      'Education': 'bg-teal-500',
-      'All': 'bg-gray-500'
-    };
-    return colors[genre] || 'bg-gray-500';
   };
 
   const containerVariants = {
@@ -291,21 +275,23 @@ const ExplorePage = () => {
             <Sparkles className="w-5 h-5 text-yellow-400" />
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            {Object.values(blogCategory).map((category) => (
-              <motion.button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedCategory === category
-                  ? `${getGenreColor(category)} text-white shadow-lg scale-105`
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-                  }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {category}
-              </motion.button>
-            ))}
+          <div className="overflow-auto hide-scrollbar p-4 snap-x snap-mandatory">
+            <div className="flex flex-nowrap gap-3">
+              {Object.values(blogCategory).map((category) => (
+                <motion.button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`flex-shrink-0 whitespace-nowrap snap-start px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedCategory === category
+                      ? `${getGenreColor(category)} text-white shadow-lg scale-105`
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {category}
+                </motion.button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-4 text-sm text-gray-400">
@@ -388,7 +374,7 @@ const ExplorePage = () => {
                           blog.readingDifficulty === 'intermediate' ? 'text-yellow-400 bg-yellow-900/30' :
                             blog.readingDifficulty === 'advanced' ? 'text-red-400 bg-red-900/30' :
                               'text-gray-400 bg-gray-900/30'
-                            }`}>
+                          }`}>
                           {blog.readingDifficulty === 'beginner' ? '🟢' :
                             blog.readingDifficulty === 'intermediate' ? '🟡' :
                               blog.readingDifficulty === 'advanced' ? '🔴' : '⚪'} {blog.readingDifficulty}

@@ -1,28 +1,14 @@
 import React from 'react';
-import { Tag, BookOpen, TrendingUp } from 'lucide-react';
+import { Tag } from 'lucide-react';
+import { genres } from '@/utils/genres';
 
-const GenreSelector = ({ 
-  selectedGenre, 
-  onGenreChange, 
+const GenreSelector = ({
+  selectedGenre,
+  onGenreChange,
   disabled = false,
   showLabel = true,
-  size = 'default' 
+  size = 'default'
 }) => {
-  const genres = [
-    { value: 'All', label: 'All Categories', icon: '🌐', color: 'bg-gray-600' },
-    { value: 'Lifestyle', label: 'Lifestyle', icon: '🌟', color: 'bg-pink-600' },
-    { value: 'Business', label: 'Business', icon: '💼', color: 'bg-blue-600' },
-    { value: 'Entertainment', label: 'Entertainment', icon: '🎬', color: 'bg-purple-600' },
-    { value: 'Science', label: 'Science', icon: '🔬', color: 'bg-green-600' },
-    { value: 'Art', label: 'Art', icon: '🎨', color: 'bg-indigo-600' },
-    { value: 'Sports', label: 'Sports', icon: '⚽', color: 'bg-orange-600' },
-    { value: 'Technology', label: 'Technology', icon: '💻', color: 'bg-cyan-600' },
-    { value: 'Health', label: 'Health', icon: '🏥', color: 'bg-red-600' },
-    { value: 'Travel', label: 'Travel', icon: '✈️', color: 'bg-teal-600' },
-    { value: 'Food', label: 'Food', icon: '🍳', color: 'bg-yellow-600' },
-    { value: 'Education', label: 'Education', icon: '📚', color: 'bg-emerald-600' }
-  ];
-
   const sizeClasses = {
     small: 'text-sm py-1 px-2',
     default: 'text-base py-2 px-3',
@@ -43,7 +29,7 @@ const GenreSelector = ({
           Genre/Category
         </label>
       )}
-      
+
       <div className="relative">
         <select
           value={selectedGenre}
@@ -66,8 +52,8 @@ const GenreSelector = ({
           }}
         >
           {genres.map((genre) => (
-            <option 
-              key={genre.value} 
+            <option
+              key={genre.value}
               value={genre.value}
               className="bg-[#1C222A] text-white"
             >
@@ -75,12 +61,11 @@ const GenreSelector = ({
             </option>
           ))}
         </select>
-        
+
         {/* Custom styling indicator */}
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <div className={`w-2 h-2 rounded-full ${
-            genres.find(g => g.value === selectedGenre)?.color || 'bg-gray-600'
-          }`} />
+          <div className={`w-2 h-2 rounded-full ${genres.find(g => g.value === selectedGenre)?.color || 'bg-gray-600'
+            }`} />
         </div>
       </div>
 
@@ -97,87 +82,6 @@ const GenreSelector = ({
             {genres.find(g => g.value === selectedGenre)?.label}
           </span>
         )}
-      </div>
-    </div>
-  );
-};
-
-export const GenreFilter = ({ 
-  selectedGenres = [], 
-  onGenreToggle, 
-  multiSelect = false,
-  showStats = false,
-  blogCounts = {}
-}) => {
-  const genres = [
-    { value: 'All', label: 'All', icon: '🌐', color: 'bg-gray-600' },
-    { value: 'Lifestyle', label: 'Lifestyle', icon: '🌟', color: 'bg-pink-600' },
-    { value: 'Business', label: 'Business', icon: '💼', color: 'bg-blue-600' },
-    { value: 'Entertainment', label: 'Entertainment', icon: '🎬', color: 'bg-purple-600' },
-    { value: 'Science', label: 'Science', icon: '🔬', color: 'bg-green-600' },
-    { value: 'Art', label: 'Art', icon: '🎨', color: 'bg-indigo-600' },
-    { value: 'Sports', label: 'Sports', icon: '⚽', color: 'bg-orange-600' },
-    { value: 'Technology', label: 'Technology', icon: '💻', color: 'bg-cyan-600' },
-    { value: 'Health', label: 'Health', icon: '🏥', color: 'bg-red-600' },
-    { value: 'Travel', label: 'Travel', icon: '✈️', color: 'bg-teal-600' },
-    { value: 'Food', label: 'Food', icon: '🍳', color: 'bg-yellow-600' },
-    { value: 'Education', label: 'Education', icon: '📚', color: 'bg-emerald-600' }
-  ];
-
-  const handleGenreClick = (genreValue) => {
-    if (multiSelect) {
-      const isSelected = selectedGenres.includes(genreValue);
-      if (isSelected) {
-        onGenreToggle(selectedGenres.filter(g => g !== genreValue));
-      } else {
-        onGenreToggle([...selectedGenres, genreValue]);
-      }
-    } else {
-      onGenreToggle(genreValue);
-    }
-  };
-
-  return (
-    <div className="mb-6">
-      <h3 className="text-lg font-medium text-white mb-3 flex items-center">
-        <TrendingUp className="mr-2 w-5 h-5" />
-        Filter by Genre
-      </h3>
-      
-      <div className="flex flex-wrap gap-2">
-        {genres.map((genre) => {
-          const isSelected = multiSelect 
-            ? selectedGenres.includes(genre.value)
-            : selectedGenres === genre.value;
-          
-          const count = blogCounts[genre.value] || 0;
-          
-          return (
-            <button
-              key={genre.value}
-              onClick={() => handleGenreClick(genre.value)}
-              className={`
-                inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium
-                transition-all duration-200 transform hover:scale-105
-                ${isSelected 
-                  ? `${genre.color} text-white shadow-lg` 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }
-              `}
-            >
-              <span className="mr-2">{genre.icon}</span>
-              {genre.label}
-              {showStats && count > 0 && (
-                <span className={`
-                  ml-2 px-2 py-0.5 rounded-full text-xs
-                  ${isSelected ? 'bg-white/20' : 'bg-gray-600'}
-                `}>
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
       </div>
     </div>
   );

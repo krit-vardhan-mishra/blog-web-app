@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye, UserIcon, Tag, Target, Bookmark, Clock } from 'lucide-react';
 import { NavLink } from 'react-router';
+import getGenreColor from '@/utils/genreColors';
 
 const PostDetails = ({
   blog,
@@ -45,24 +46,6 @@ const PostDetails = ({
       case 'advanced': return '🔴';
       default: return '⚪';
     }
-  };
-
-  const getGenreColor = (genre) => {
-    const colors = {
-      'All': 'bg-gray-600',
-      'Lifestyle': 'bg-pink-600',
-      'Business': 'bg-blue-600',
-      'Entertainment': 'bg-purple-600',
-      'Science': 'bg-green-600',
-      'Art': 'bg-indigo-600',
-      'Sports': 'bg-orange-600',
-      'Technology': 'bg-cyan-600',
-      'Health': 'bg-red-600',
-      'Travel': 'bg-teal-600',
-      'Food': 'bg-yellow-600',
-      'Education': 'bg-emerald-600'
-    };
-    return colors[genre] || 'bg-gray-600';
   };
 
   const formatReadTime = (seconds) => {

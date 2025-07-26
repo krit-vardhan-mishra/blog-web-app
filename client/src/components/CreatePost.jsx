@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { CreatePostSkeleton } from '../skeleton/component/CreatePostSkeleton';
 import blogService from '../api/blogService';
 import GenreSelector from './GenreSelector';
@@ -6,7 +6,6 @@ import { Tags, BookOpen, Target, Plus, X, Save, AlertCircle } from 'lucide-react
 import { Button } from '../components/ui/Button';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
-import Lenis from '@studio-freight/lenis'
 
 export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const [title, setTitle] = useState('');
@@ -16,9 +15,6 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
   const [tagInput, setTagInput] = useState('');
   const [readingDifficulty, setReadingDifficulty] = useState('intermediate');
   const [isCreating, setIsCreating] = useState(false);
-
-  const formContentRef = useRef(null);
-  const lenisFormRef = useRef(null);
 
   const difficultyOptions = [
     { value: 'beginner', label: 'Beginner', icon: '🟢', description: 'Easy to read for everyone' },
@@ -95,37 +91,6 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
     }
   };
 
-  useEffect(() => {
-    let lenisInstance;
-    if (formContentRef.current) {
-      const scrollableElement = formContentRef.current.getScrollElement();
-
-      if (scrollableElement) {
-        lenisInstance = new Lenis({
-          wrapper: scrollableElement,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
-
-        lenisFormRef.current = lenisInstance;
-
-        const raf = (time) => {
-          lenisInstance.raf(time);
-          requestAnimationFrame(raf);
-        };
-
-        requestAnimationFrame(raf);
-      }
-    }
-
-    return () => {
-      if (lenisInstance) {
-        lenisInstance.destroy();
-        lenisFormRef.current = null;
-      }
-    };
-  }, []);
-
   if (isLoading) {
     return <CreatePostSkeleton />;
   }
@@ -143,7 +108,6 @@ export const CreatePost = ({ onPostSuccess, isLoading = false }) => {
         </div>
 
         <SimpleBar
-          ref={formContentRef}
           style={{ maxHeight: 'calc(95vh - 120px)' }}
           className='pb-4'
         >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, ChevronDown, SortAsc, SortDesc, Tag, Target, Clock } from 'lucide-react';
-import { GenreFilter } from './GenreSelector';
+import GenreFilter from './GenreFilter';
 
 const BlogFilters = ({
   onFiltersChange,

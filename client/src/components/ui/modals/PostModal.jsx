@@ -10,7 +10,7 @@ import { NavLink } from 'react-router';
 import { formatDate } from '../../../utils/utilityFunctions';
 import { parseEmojisEnhanced } from '../../../utils/emojiParser';
 import { getScrollDepth } from '../../../utils/scrollUtils';
-import Lenis from '@studio-freight/lenis';
+import getGenreColor from '@/utils/genreColors';
 
 const PostModal = ({
   isOpen,
@@ -49,7 +49,6 @@ const PostModal = ({
   );
   const hasIncrementedRef = useRef(false);
   const modalContentRef = useRef(null);
-  const lenisModalRef = useRef(null);
 
   const name = author?.name || 'Unknown';
   const email = author?.email || '';
@@ -71,24 +70,6 @@ const PostModal = ({
       case 'advanced': return '🔴';
       default: return '⚪';
     }
-  };
-
-  const getGenreColor = (genre) => {
-    const colors = {
-      'All': 'bg-gray-600',
-      'Lifestyle': 'bg-pink-600',
-      'Business': 'bg-blue-600',
-      'Entertainment': 'bg-purple-600',
-      'Science': 'bg-green-600',
-      'Art': 'bg-indigo-600',
-      'Sports': 'bg-orange-600',
-      'Technology': 'bg-cyan-600',
-      'Health': 'bg-red-600',
-      'Travel': 'bg-teal-600',
-      'Food': 'bg-yellow-600',
-      'Education': 'bg-emerald-600'
-    };
-    return colors[genre] || 'bg-gray-600';
   };
 
   const formatReadTime = (seconds) => {
@@ -185,59 +166,14 @@ const PostModal = ({
   }, [isOpen, blogId, token, onViewIncrement]);
 
   useEffect(() => {
-    let lenisInstance;
-    if (isOpen && modalContentRef.current) {
-      const scrollableElement = modalContentRef.current.getScrollElement();
-
-      if (scrollableElement) {
-        lenisInstance = new Lenis({
-          wrapper: scrollableElement,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
-
-        lenisModalRef.current = lenisInstance;
-
-        const raf = (time) => {
-          lenisInstance.raf(time);
-          requestAnimationFrame(raf);
-        };
-
-        requestAnimationFrame(raf);
-      }
-    }
-
-    return () => {
-      if (lenisInstance) {
-        lenisInstance.destroy();
-        lenisModalRef.current = null;
-      }
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-
-      const lenis = window.lenisInstance;
-      if (lenis) {
-        lenis.stop();
-      }
     } else {
       document.body.style.overflow = '';
-
-      const lenis = window.lenisInstance;
-      if (lenis) {
-        lenis.start();
-      }
     }
 
     return () => {
       document.body.style.overflow = '';
-      const lenis = window.lenisInstance;
-      if (lenis) {
-        lenis.start();
-      }
     };
   }, [isOpen]);
 

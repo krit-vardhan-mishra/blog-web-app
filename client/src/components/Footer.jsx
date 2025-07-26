@@ -81,38 +81,22 @@ export const Footer = ({ isLoading = false }) => {
           <div>
             <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>
-                <button
-                  onClick={() => handleOpen('about')}
-                  className="hover:text-white"
-                >
-                  About Us
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleOpen('contact')}
-                  className="hover:text-white"
-                >
-                  Contact
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleOpen('privacy')}
-                  className="hover:text-white"
-                >
-                  Privacy Policy
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleOpen('terms')}
-                  className="hover:text-white"
-                >
-                  Terms of Service
-                </button>
-              </li>
+              {[
+                { name: "About Us", key: "about" },
+                { name: "Contact", key: "contact" },
+                { name: "Privacy Policy", key: "privacy" },
+                { name: "Terms of Service", key: "terms" },
+              ].map((item, index) => (
+                <li key={index}>
+                  <button
+                    onClick={() => handleOpen(item.key)}
+                    className="group flex items-center hover:text-white transition-all duration-300"
+                  >
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    {item.name}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
