@@ -74,7 +74,26 @@ const BlogDetail = () => {
 
     try {
       await blogService.toggleBookmark(blogId);
-      setIsBookmarked(!isBookmarked);
+
+      // Update local bookmark state
+      setIsBookmarked((prev) => !prev);
+
+      // Update bookmark count in blog state
+      setBlog((prevBlog) => {
+        if (!prevBlog) return prevBlog;
+        const updatedBookmarks = isBookmarked
+          ? prevBlog.interactionMetrics.bookmarks.filter(id => id !== userId)
+          : [...(prevBlog.interactionMetrics.bookmarks || []), userId];
+
+        return {
+          ...prevBlog,
+          interactionMetrics: {
+            ...prevBlog.interactionMetrics,
+            bookmarks: updatedBookmarks,
+          },
+        };
+      });
+
       setNotification({
         message: isBookmarked ? 'Bookmark removed' : 'Bookmark added',
         type: 'success',
@@ -336,7 +355,7 @@ const BlogDetail = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleShare}
-              className="p-2 rounded-full bg-gray-700 hover:bg-yellow-600 text-white transition-all duration-200 h-10 w-10"
+              className="flex items-center justify-center p-2 rounded-full bg-gray-700 hover:bg-blue-600 text-white transition-all duration-200 h-10 w-10"
               aria-label="Share"
             >
               <Share2 size={18} />
@@ -348,9 +367,9 @@ const BlogDetail = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleBookmarkToggle}
-                className={`p-2 rounded-full transition-all duration-200 ${isBookmarked
-                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                  : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
+                className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 h-10 w-10 ${isBookmarked
+                    ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                    : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
                   }`}
                 aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
               >

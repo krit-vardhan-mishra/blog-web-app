@@ -18,7 +18,6 @@ export const useEffectsManager = ({
   setShowNotificationBanner
 }) => {
 
-  // Initialize data on token/user change
   useEffect(() => {
     if (token) {
       fetchAllBlogsData();
@@ -26,7 +25,6 @@ export const useEffectsManager = ({
     }
   }, [token, user, fetchAllBlogsData, fetchAllUsers]);
 
-  // Set greeting and user name
   useEffect(() => {
     updateState({
       greeting: getTimeBasedGreeting(),
@@ -40,7 +38,6 @@ export const useEffectsManager = ({
     return () => clearInterval(interval);
   }, [user, updateState]);
 
-  // Update document title based on modal state
   useEffect(() => {
     if (isEditPostOpen) {
       document.title = 'Edit Post';
@@ -53,7 +50,6 @@ export const useEffectsManager = ({
     }
   }, [isEditPostOpen, isCreatePostOpen, isPostModalOpen, selectedBlogForModal]);
 
-  // Welcome banner management
   useEffect(() => {
     if (user?.id) {
       const hasSeenWelcomeBanner = localStorage.getItem(`hasSeenWelcomeBanner_${user.id}`);
@@ -68,7 +64,6 @@ export const useEffectsManager = ({
     }
   }, [user?.id, updateState]);
 
-  // Fetch user details if missing
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -88,7 +83,6 @@ export const useEffectsManager = ({
     }
   }, [token, user?.age, user?.about, setUser]);
 
-  // Notification banner auto-hide
   useEffect(() => {
     if (showNotificationBanner) {
       const timer = setTimeout(() => {
@@ -99,7 +93,6 @@ export const useEffectsManager = ({
     }
   }, [showNotificationBanner, setShowNotificationBanner, setNotificationMessage]);
 
-  // Load last updated time from localStorage
   useEffect(() => {
     const savedLastUpdated = localStorage.getItem(`lastUpdated_${user?.id}`);
     if (savedLastUpdated) {

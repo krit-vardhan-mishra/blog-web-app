@@ -54,7 +54,7 @@ const NotifyBanner = ({ message, subMessage, type = 'info', duration = 3000, onC
       <div
         className={`flex items-center ${config.bgColor} border-l-4 ${config.borderColor} ${config.textColor} px-4 py-3 rounded-lg shadow-lg w-[300px] animate-bounce-in`}
       >
-        <IconComponent className={`${config.iconColor} mr-3 w-5 h-5`} />
+        <IconComponent className={`${config.iconColor} mr-3 ${subMessage ? 'w-5 h-5' : 'w-6 h-6'} flex-shrink-0`} />
         {/* Render both message and subMessage */}
         <div className="flex-grow">
           <p className="text-sm font-semibold">{message}</p>

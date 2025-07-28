@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { GENRES, READING_LEVELS } from '../constants/enums.js';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -63,66 +64,7 @@ const userSchema = new mongoose.Schema({
   preferences: {
     favoriteGenres: [{
       type: String,
-      enum: [
-        'All',
-        'Lifestyle',
-        'Business',
-        'Entertainment',
-        'Science',
-        'Art',
-        'Sports',
-        'Technology',
-        'Health',
-        'Travel',
-        'Food',
-        'Education',
-        'Love & Relationships',
-        'Poetry',
-        'Cinema',
-        'Film Reviews',
-        'Music',
-        'Theatre',
-        'Photography',
-        'Dance',
-        'Comics & Graphic Novels',
-        'Fiction',
-        'Non-Fiction',
-        'Short Stories',
-        'Book Reviews',
-        'Writing Tips',
-        'Creative Writing',
-        'Culture & Traditions',
-        'History',
-        'Philosophy',
-        'Politics',
-        'Feminism',
-        'Spirituality',
-        'Mindfulness',
-        'Minimalism',
-        'Motivational',
-        'Productivity',
-        'Life Lessons',
-        'Freelancing',
-        'Career Advice',
-        'Job Search',
-        'Workplace Culture',
-        'Remote Work',
-        'Startup Life',
-        'AI & Machine Learning',
-        'Coding & Development',
-        'Gadgets & Reviews',
-        'Cybersecurity',
-        'Blockchain & Crypto',
-        'Adventure',
-        'Backpacking',
-        'Digital Nomad Life',
-        'Local Guides',
-        'Cultural Exchange',
-        'Parenting',
-        'Mental Health',
-        'Self-Improvement',
-        'Personal Journals'
-      ]
+      enum: GENRES,
     }],
     readingHistory: [{
       blogId: {
@@ -135,7 +77,7 @@ const userSchema = new mongoose.Schema({
     topicInterests: [String],
     readingLevel: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
+      enum: READING_LEVELS,
       default: 'intermediate'
     }
   }

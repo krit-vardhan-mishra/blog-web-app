@@ -72,6 +72,7 @@ export const HomePage = () => {
     handleOpenPostModal,
     handleClosePostModal,
     handleViewIncrement,
+    handleToggleBookmark,
   } = useHomePage();
 
   const {
@@ -249,6 +250,7 @@ export const HomePage = () => {
             showViewAll={allBlogs.length > 6}
             showExploreLink={true}
             showBookmarks={true}
+            onToggleBookmark={handleToggleBookmark}
           />
         </motion.main>
 
@@ -288,6 +290,7 @@ export const HomePage = () => {
           onEdit={handleEditPost}
           onDelete={handleDeleteClick}
           onViewIncrement={handleViewIncrement}
+          onToggleBookmark={handleToggleBookmark}
 
           // Confirm Delete Modal
           isConfirmOpen={isConfirmOpen}

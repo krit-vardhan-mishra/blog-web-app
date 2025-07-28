@@ -24,8 +24,8 @@ export const useHomePage = () => {
     isEditPostOpen: false,
     currentTime: getCurrentDateTime(),
     blogToEdit: null,
-    isLoading: true, 
-    isBlogListRefreshing: false, 
+    isLoading: true,
+    isBlogListRefreshing: false,
     allBlogs: [],
     isConfirmOpen: false,
     selectedBlogId: null,
@@ -241,6 +241,51 @@ export const useHomePage = () => {
         )
       }));
     }, [updateState]),
+
+    handleToggleBookmark: useCallback(async (blogId) => {
+      try {
+        await blogService.toggleBookmark(blogId);
+
+        updateState(prev => ({
+          allBlogs: prev.allBlogs.map(blog => {
+            if (blog._id === blogId || blog.id === blogId) {
+              const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
+              const isCurrentlyBookmarked = currentBookmarks.includes(user?.id);
+
+              return {
+                ...blog,
+                interactionMetrics: {
+                  ...blog.interactionMetrics,
+                  bookmarks: isCurrentlyBookmarked
+                    ? currentBookmarks.filter(id => id !== user?.id)
+                    : [...currentBookmarks, user?.id]
+                }
+              };
+            }
+            return blog;
+          }),
+          latestBlogs: prev.latestBlogs.map(blog => {
+            if (blog._id === blogId || blog.id === blogId) {
+              const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
+              const isCurrentlyBookmarked = currentBookmarks.includes(user?.id);
+
+              return {
+                ...blog,
+                interactionMetrics: {
+                  ...blog.interactionMetrics,
+                  bookmarks: isCurrentlyBookmarked
+                    ? currentBookmarks.filter(id => id !== user?.id)
+                    : [...currentBookmarks, user?.id]
+                }
+              };
+            }
+            return blog;
+          })
+        }));
+      } catch (error) {
+        console.error('Failed to toggle bookmark:', error);
+      }
+    }, [user?.id, updateState]),
   };
 
   return {

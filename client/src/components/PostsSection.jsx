@@ -4,7 +4,6 @@ import { BinocularsIcon, Plus } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import OptimizedPostDetails from './OptimizedPostDetails.jsx';
 import PostDetails from './PostDetails.jsx';
-import { useBookmark } from '../hooks/useBookmark.js';
 
 const PostsSection = ({
   // Common props
@@ -16,40 +15,27 @@ const PostsSection = ({
   onOpenModal,
   itemVariants,
   isRefreshing = false,
-  
+
   // Mode-specific props
-  mode = 'recent', // 'recent' or 'my-posts'
+  mode = 'recent',
   postsCount,
   showViewAll = false,
   showExploreLink = false,
   showBookmarks = false,
+  onToggleBookmark,
 }) => {
-  const { toggleBookmark } = useBookmark();
-
-  const handleToggleBookmark = async (blogId) => {
-    const result = await toggleBookmark(blogId);
-    if (result?.success) {
-      console.log(result.message);
-    } else if (result?.error) {
-      console.error('Bookmark error:', result.error);
-    }
-  };
-
-  if (isRefreshing && mode === 'recent') {
-    return <PostsSectionSkeleton />;
-  }
 
   return (
-    <motion.div 
-      variants={itemVariants} 
+    <motion.div
+      variants={itemVariants}
       className='bg-gray-800/50 p-4 border-2 border-gray-700 rounded-lg'
     >
-      <SectionHeader 
-        mode={mode} 
-        postsCount={postsCount} 
+      <SectionHeader
+        mode={mode}
+        postsCount={postsCount}
         showExploreLink={showExploreLink}
       />
-      
+
       {posts.length === 0 ? (
         <EmptyState mode={mode} />
       ) : (
@@ -61,10 +47,10 @@ const PostsSection = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onOpenModal={onOpenModal}
-            onToggleBookmark={showBookmarks ? handleToggleBookmark : null}
+            onToggleBookmark={showBookmarks ? onToggleBookmark : null}
             mode={mode}
           />
-          
+
           {showViewAll && <ViewAllButton />}
         </>
       )}
@@ -96,8 +82,8 @@ const SectionHeader = ({ mode, postsCount, showExploreLink }) => (
       {mode === 'my-posts' && <span className="text-blue-400 ml-2">({postsCount})</span>}
     </h2>
     {showExploreLink && (
-      <NavLink 
-        to={'/explore'} 
+      <NavLink
+        to={'/explore'}
         className={'flex font-medium underline text-blue-400 hover:text-blue-500 duration-150'}
       >
         <BinocularsIcon className='mr-2' /> Explore
@@ -128,13 +114,13 @@ const EmptyState = ({ mode }) => (
   </motion.div>
 );
 
-const PostsGrid = ({ 
-  posts, 
-  user, 
-  token, 
-  onEdit, 
-  onDelete, 
-  onOpenModal, 
+const PostsGrid = ({
+  posts,
+  user,
+  token,
+  onEdit,
+  onDelete,
+  onOpenModal,
   onToggleBookmark,
   mode
 }) => (

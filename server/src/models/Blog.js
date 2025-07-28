@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { GENRES, READING_LEVELS } from '../constants/enums.js';
 
 const BlogSchema = new mongoose.Schema(
   {
@@ -18,66 +19,7 @@ const BlogSchema = new mongoose.Schema(
     },
     genre: {
       type: String,
-      enum: [
-        'All',
-        'Lifestyle',
-        'Business',
-        'Entertainment',
-        'Science',
-        'Art',
-        'Sports',
-        'Technology',
-        'Health',
-        'Travel',
-        'Food',
-        'Education',
-        'Love & Relationships',
-        'Poetry',
-        'Cinema',
-        'Film Reviews',
-        'Music',
-        'Theatre',
-        'Photography',
-        'Dance',
-        'Comics & Graphic Novels',
-        'Fiction',
-        'Non-Fiction',
-        'Short Stories',
-        'Book Reviews',
-        'Writing Tips',
-        'Creative Writing',
-        'Culture & Traditions',
-        'History',
-        'Philosophy',
-        'Politics',
-        'Feminism',
-        'Spirituality',
-        'Mindfulness',
-        'Minimalism',
-        'Motivational',
-        'Productivity',
-        'Life Lessons',
-        'Freelancing',
-        'Career Advice',
-        'Job Search',
-        'Workplace Culture',
-        'Remote Work',
-        'Startup Life',
-        'AI & Machine Learning',
-        'Coding & Development',
-        'Gadgets & Reviews',
-        'Cybersecurity',
-        'Blockchain & Crypto',
-        'Adventure',
-        'Backpacking',
-        'Digital Nomad Life',
-        'Local Guides',
-        'Cultural Exchange',
-        'Parenting',
-        'Mental Health',
-        'Self-Improvement',
-        'Personal Journals'
-      ],
+      enum: GENRES,
       default: 'All',
       required: true,
     },
@@ -118,7 +60,7 @@ const BlogSchema = new mongoose.Schema(
     tags: [String],
     readingDifficulty: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
+      enum: READING_LEVELS,
       default: 'intermediate'
     }
   },
@@ -147,11 +89,7 @@ BlogSchema.methods = {
   },
 
   updateGenre(newGenre) {
-    const validGenres = [
-      'All', 'Lifestyle', 'Business', 'Entertainment', 'Science',
-      'Art', 'Sports', 'Technology', 'Health', 'Travel', 'Food', 'Education'
-    ];
-    if (newGenre && validGenres.includes(newGenre)) {
+    if (newGenre && GENRES.includes(newGenre)) {
       this.genre = newGenre;
       return this.save();
     }

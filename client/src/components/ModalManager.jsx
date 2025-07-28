@@ -36,6 +36,7 @@ const ModalManager = ({
   onEdit,
   onDelete,
   onViewIncrement,
+  onToggleBookmark,
 
   // Confirm Delete Modal
   isConfirmOpen,
@@ -98,6 +99,7 @@ const ModalManager = ({
             onClosePostModal();
           }}
           onViewIncrement={onViewIncrement}
+          onToggleBookmark={onToggleBookmark}
         />
       )}
 

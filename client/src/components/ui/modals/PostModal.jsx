@@ -115,9 +115,8 @@ const PostModal = ({
     try {
       await blogService.toggleBookmark(blogId);
       setIsBookmarked(!isBookmarked);
-      if (onToggleBookmark) {
-        onToggleBookmark(blogId);
-      }
+
+      onToggleBookmark(blogId);
     } catch (error) {
       console.error('Failed to toggle bookmark:', error);
     }

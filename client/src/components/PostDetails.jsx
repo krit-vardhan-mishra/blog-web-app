@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye, UserIcon, Tag, Target, Bookmark, Clock } from 'lucide-react';
 import { NavLink } from 'react-router';
@@ -99,9 +99,11 @@ const PostDetails = ({
           {/* Bookmark button for non-authors */}
           {!isAuthor && onToggleBookmark && (
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                onToggleBookmark(_id);
+                if (onToggleBookmark) {
+                  await onToggleBookmark(_id);
+                }
               }}
               className={`p-2 rounded-full transition-all duration-200 ${isBookmarked
                 ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
