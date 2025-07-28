@@ -44,15 +44,27 @@ const PostModal = ({
   const scrollPositions = useRef([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentViews, setCurrentViews] = useState(views);
-  const [isBookmarked, setIsBookmarked] = useState(
-    interactionMetrics.bookmarks?.includes(userId) || false
-  );
+
+  const [bookmarkState, setBookmarkState] = useState({
+    isBookmarked: interactionMetrics.bookmarks?.includes(userId) || false,
+    bookmarkCount: interactionMetrics.bookmarks?.length || 0
+  });
+
   const hasIncrementedRef = useRef(false);
   const modalContentRef = useRef(null);
 
   const name = author?.name || 'Unknown';
   const email = author?.email || '';
   const isAuthor = userId && author?._id === userId;
+
+  useEffect(() => {
+    if (blog && interactionMetrics) {
+      setBookmarkState({
+        isBookmarked: interactionMetrics.bookmarks?.includes(userId) || false,
+        bookmarkCount: interactionMetrics.bookmarks?.length || 0
+      });
+    }
+  }, [blog, interactionMetrics, userId]);
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -109,18 +121,18 @@ const PostModal = ({
     onClose();
   };
 
-  const handleBookmarkToggle = async () => {
-    if (!userId || !onToggleBookmark) return;
+  const handleBookmarkToggle = async (e) => {
+    e.stopPropagation();
 
-    try {
-      await blogService.toggleBookmark(blogId);
-      setIsBookmarked(!isBookmarked);
-
-      onToggleBookmark(blogId);
-    } catch (error) {
-      console.error('Failed to toggle bookmark:', error);
+    const result = await onToggleBookmark(blogId);
+    if (result?.success) {
+      setBookmarkState({
+        isBookmarked: result.isBookmarked,
+        bookmarkCount: result.bookmarkCount,
+      });
     }
   };
+
 
   const handleShare = async () => {
     const shareData = {
@@ -266,16 +278,14 @@ const PostModal = ({
                 {/* Bookmark button (for non-authors) */}
                 {!isAuthor && userId && (
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
                     onClick={handleBookmarkToggle}
-                    className={`p-2 rounded-full transition-all duration-200 ${isBookmarked
+                    className={`p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked
                       ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                       : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
                       }`}
-                    aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                    aria-label={bookmarkState.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
-                    <Bookmark size={20} fill={isBookmarked ? 'currentColor' : 'none'} />
+                    <Bookmark size={20} fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
                   </motion.button>
                 )}
 
@@ -335,10 +345,10 @@ const PostModal = ({
               <div className="flex items-center space-x-4">
                 {/* Stats */}
                 <div className="flex items-center space-x-4 text-sm text-gray-400">
-                  {interactionMetrics.bookmarks?.length > 0 && (
+                  {bookmarkState.bookmarkCount > 0 && (
                     <div className="flex items-center text-yellow-400">
                       <Bookmark size={16} className="mr-1" />
-                      <span>{interactionMetrics.bookmarks.length}</span>
+                      <span>{bookmarkState.bookmarkCount}</span>
                     </div>
                   )}
 

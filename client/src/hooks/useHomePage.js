@@ -149,7 +149,6 @@ export const useHomePage = () => {
     }
   }, [updateState]);
 
-  // Update last updated time
   const updateLastUpdatedTime = useCallback(() => {
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
@@ -168,6 +167,67 @@ export const useHomePage = () => {
       localStorage.setItem(`lastUpdated_${user.id}`, lastUpdatedString);
     }
   }, [user?.id, updateState]);
+
+  const updateBlogBookmarks = useCallback((blogId, userId, action) => {
+    updateState(prev => ({
+      allBlogs: prev.allBlogs.map(blog => {
+        if (blog._id === blogId || blog.id === blogId) {
+          const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
+          const isCurrentlyBookmarked = currentBookmarks.includes(userId);
+
+          let newBookmarks;
+          if (action === 'toggle') {
+            newBookmarks = isCurrentlyBookmarked
+              ? currentBookmarks.filter(id => id !== userId)
+              : [...currentBookmarks, userId];
+          } else if (action === 'add' && !isCurrentlyBookmarked) {
+            newBookmarks = [...currentBookmarks, userId];
+          } else if (action === 'remove' && isCurrentlyBookmarked) {
+            newBookmarks = currentBookmarks.filter(id => id !== userId);
+          } else {
+            newBookmarks = currentBookmarks;
+          }
+
+          return {
+            ...blog,
+            interactionMetrics: {
+              ...blog.interactionMetrics,
+              bookmarks: newBookmarks
+            }
+          };
+        }
+        return blog;
+      }),
+      latestBlogs: prev.latestBlogs.map(blog => {
+        if (blog._id === blogId || blog.id === blogId) {
+          const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
+          const isCurrentlyBookmarked = currentBookmarks.includes(userId);
+
+          let newBookmarks;
+          if (action === 'toggle') {
+            newBookmarks = isCurrentlyBookmarked
+              ? currentBookmarks.filter(id => id !== userId)
+              : [...currentBookmarks, userId];
+          } else if (action === 'add' && !isCurrentlyBookmarked) {
+            newBookmarks = [...currentBookmarks, userId];
+          } else if (action === 'remove' && isCurrentlyBookmarked) {
+            newBookmarks = currentBookmarks.filter(id => id !== userId);
+          } else {
+            newBookmarks = currentBookmarks;
+          }
+
+          return {
+            ...blog,
+            interactionMetrics: {
+              ...blog.interactionMetrics,
+              bookmarks: newBookmarks
+            }
+          };
+        }
+        return blog;
+      })
+    }));
+  }, [updateState]);
 
   // Event handlers
   const handlers = {
@@ -238,54 +298,57 @@ export const useHomePage = () => {
           blog._id === blogId || blog.id === blogId
             ? { ...blog, views: newViews }
             : blog
+        ),
+        latestBlogs: prev.latestBlogs.map((blog) =>
+          blog._id === blogId || blog.id === blogId
+            ? { ...blog, views: newViews }
+            : blog
         )
       }));
     }, [updateState]),
 
     handleToggleBookmark: useCallback(async (blogId) => {
+      if (!user?.id) {
+        console.warn('🚫 useHomePage: User must be logged in to bookmark');
+        return { success: false };
+      }
+
       try {
-        await blogService.toggleBookmark(blogId);
+        const response = await blogService.toggleBookmark(blogId);
+
+        const updatedBlog = response.blog;
+        const bookmarks = updatedBlog?.interactionMetrics?.bookmarks || [];
 
         updateState(prev => ({
-          allBlogs: prev.allBlogs.map(blog => {
-            if (blog._id === blogId || blog.id === blogId) {
-              const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
-              const isCurrentlyBookmarked = currentBookmarks.includes(user?.id);
-
-              return {
-                ...blog,
-                interactionMetrics: {
-                  ...blog.interactionMetrics,
-                  bookmarks: isCurrentlyBookmarked
-                    ? currentBookmarks.filter(id => id !== user?.id)
-                    : [...currentBookmarks, user?.id]
-                }
-              };
-            }
-            return blog;
-          }),
-          latestBlogs: prev.latestBlogs.map(blog => {
-            if (blog._id === blogId || blog.id === blogId) {
-              const currentBookmarks = blog.interactionMetrics?.bookmarks || [];
-              const isCurrentlyBookmarked = currentBookmarks.includes(user?.id);
-
-              return {
-                ...blog,
-                interactionMetrics: {
-                  ...blog.interactionMetrics,
-                  bookmarks: isCurrentlyBookmarked
-                    ? currentBookmarks.filter(id => id !== user?.id)
-                    : [...currentBookmarks, user?.id]
-                }
-              };
-            }
-            return blog;
-          })
+          ...prev,
+          allBlogs: prev.allBlogs.map(blog =>
+            blog._id === blogId ? updatedBlog : blog
+          ),
         }));
+
+        await fetchAllBlogsData(true);
+
+        updateState({
+          notificationMessage: response.bookmarked ? 'Bookmark added!' : 'Bookmark removed!',
+          showNotificationBanner: true
+        });
+
+        return {
+          success: true,
+          updatedBlog,
+          isBookmarked: bookmarks.includes(user.id),
+          bookmarkCount: bookmarks.length
+        };
+
       } catch (error) {
-        console.error('Failed to toggle bookmark:', error);
+        console.error('❌ useHomePage: Failed to toggle bookmark:', error);
+        updateState({
+          notificationMessage: 'Failed to update bookmark. Please try again.',
+          showNotificationBanner: true
+        });
+        return { success: false };
       }
-    }, [user?.id, updateState]),
+    }, [user?.id, updateState, fetchAllBlogsData]),
   };
 
   return {
@@ -302,6 +365,7 @@ export const useHomePage = () => {
     fetchAllUsers,
     updateLastUpdatedTime,
     setUser,
+    updateBlogBookmarks,
     ...handlers,
   };
 };

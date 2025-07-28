@@ -75,10 +75,8 @@ const BlogDetail = () => {
     try {
       await blogService.toggleBookmark(blogId);
 
-      // Update local bookmark state
       setIsBookmarked((prev) => !prev);
 
-      // Update bookmark count in blog state
       setBlog((prevBlog) => {
         if (!prevBlog) return prevBlog;
         const updatedBookmarks = isBookmarked
@@ -172,7 +170,6 @@ const BlogDetail = () => {
         setBlog(result);
         setCurrentViews(result.views || 0);
 
-        // Set bookmark status
         if (userId && result.interactionMetrics?.bookmarks) {
           setIsBookmarked(result.interactionMetrics.bookmarks.includes(userId));
         }

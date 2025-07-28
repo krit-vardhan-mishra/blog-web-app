@@ -84,7 +84,8 @@ const OptimizedPostDetails = memo(({
     prevProps.userId === nextProps.userId &&
     prevProps.author?.name === nextProps.author?.name &&
     JSON.stringify(prevBlog.tags) === JSON.stringify(nextBlog.tags) &&
-    JSON.stringify(prevBlog.interactionMetrics?.bookmarks) === JSON.stringify(nextBlog.interactionMetrics?.bookmarks)
+    JSON.stringify(prevBlog.interactionMetrics?.bookmarks) === JSON.stringify(nextBlog.interactionMetrics?.bookmarks) &&
+    prevProps.onToggleBookmark === nextProps.onToggleBookmark
   );
 });
 

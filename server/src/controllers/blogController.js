@@ -521,24 +521,31 @@ export const toggleBookmark = async (req, res) => {
       return res.status(400).json({ message: 'Invalid blog ID format' });
     }
 
-    const blog = await Blog.findById(id);
+    const blog = await Blog.findById(id).populate('author', 'name email');
     if (!blog) {
       return res.status(404).json({ message: 'Blog not found' });
     }
 
     const bookmarkIndex = blog.interactionMetrics.bookmarks.indexOf(userId);
+    let wasBookmarked = bookmarkIndex > -1;
 
     if (bookmarkIndex > -1) {
       blog.interactionMetrics.bookmarks.splice(bookmarkIndex, 1);
-      await blog.save();
-      res.json({ message: 'Bookmark removed', bookmarked: false });
     } else {
       blog.interactionMetrics.bookmarks.push(userId);
-      await blog.save();
-      res.json({ message: 'Blog bookmarked', bookmarked: true });
     }
+
+    await blog.save();
+
+    res.json({
+      message: wasBookmarked ? 'Bookmark removed' : 'Blog bookmarked',
+      bookmarked: !wasBookmarked,
+      blog: blog,
+      interactionMetrics: blog.interactionMetrics,
+      success: true
+    });
   } catch (error) {
-    console.error('Error toggling bookmark:', error);
+    console.error('❌ Error toggling bookmark:', error);
     res.status(500).json({ message: 'Server error while toggling bookmark' });
   }
 };

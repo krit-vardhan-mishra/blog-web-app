@@ -25,12 +25,13 @@ const blogService = {
       const response = await apiClient.get(url);
       const blogs = response.blogs || response;
 
-      return blogs.map((blog) => ({
+      const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
+      return processedBlogs;
     } catch (error) {
-      console.error('❌ Error fetching blogs:', error.message);
+      console.error('❌ blogService: fetchAll failed:', error.message);
       throw error;
     }
   },
@@ -189,7 +190,14 @@ const blogService = {
       const response = await apiClient.post(`/blogs/${blogId}/bookmark`);
       return response;
     } catch (error) {
-      console.error('❌ Error toggling bookmark:', error.message);
+      console.error('❌ blogService: toggleBookmark failed:', {
+        blogId,
+        error: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data
+      });
+
       throw error;
     }
   },

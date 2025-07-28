@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye, UserIcon, Tag, Target, Bookmark, Clock } from 'lucide-react';
 import { NavLink } from 'react-router';
@@ -28,7 +28,18 @@ const PostDetails = ({
   } = blog;
 
   const isAuthor = author?._id === userId;
-  const isBookmarked = interactionMetrics.bookmarks?.includes(userId);
+
+  const [bookmarkState, setBookmarkState] = useState({
+    isBookmarked: interactionMetrics.bookmarks?.includes(userId) || false,
+    bookmarkCount: interactionMetrics.bookmarks?.length || 0
+  });
+
+  useEffect(() => {
+    setBookmarkState({
+      isBookmarked: interactionMetrics.bookmarks?.includes(userId) || false,
+      bookmarkCount: interactionMetrics.bookmarks?.length || 0
+    });
+  }, [interactionMetrics, userId]);
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -68,6 +79,18 @@ const PostDetails = ({
     return `${Math.ceil(diffDays / 365)} years ago`;
   };
 
+  const handleBookmarkToggle = async (e) => {
+    e.stopPropagation();
+
+    const result = await onToggleBookmark(_id);
+    if (result?.success) {
+      setBookmarkState({
+        isBookmarked: result.isBookmarked,
+        bookmarkCount: result.bookmarkCount,
+      });
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -98,21 +121,17 @@ const PostDetails = ({
         <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {/* Bookmark button for non-authors */}
           {!isAuthor && onToggleBookmark && (
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (onToggleBookmark) {
-                  await onToggleBookmark(_id);
-                }
-              }}
-              className={`p-2 rounded-full transition-all duration-200 ${isBookmarked
+            <motion.button
+              onClick={handleBookmarkToggle}
+              className={`p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked
                 ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                 : 'bg-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white'
                 }`}
-              aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+              aria-label={bookmarkState.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
             >
-              <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
-            </button>
+              <Bookmark size={16} fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
+            </motion.button>
+
           )}
 
           {/* Author actions */}
@@ -210,10 +229,10 @@ const PostDetails = ({
         </div>
 
         <div className="flex items-center space-x-3">
-          {interactionMetrics.bookmarks?.length > 0 && (
+          {bookmarkState.bookmarkCount > 0 && (
             <div className="flex items-center text-yellow-400">
               <Bookmark size={12} className="mr-1" />
-              <span>{interactionMetrics.bookmarks.length}</span>
+              <span>{bookmarkState.bookmarkCount}</span>
             </div>
           )}
 
