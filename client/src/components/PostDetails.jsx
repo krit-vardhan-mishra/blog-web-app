@@ -213,12 +213,12 @@ const PostDetails = ({
       <div className="flex items-center justify-between text-gray-400 text-xs">
         <div className="flex items-center space-x-4">
           <div className="flex items-center group-hover:scale-105 transition-transform duration-200">
-            <UserIcon size={14} className="mr-1 text-blue-400" />
             <NavLink
               to={`/user/${author?._id || author?.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="hover:text-blue-300 transition-colors duration-200"
+              className="flex hover:text-blue-400 transition-colors duration-200"
             >
+              <UserIcon size={14} className="mr-1 text-blue-400" />
               {author ? author.name : 'Unknown'}
             </NavLink>
           </div>
