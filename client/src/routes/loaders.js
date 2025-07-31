@@ -3,12 +3,35 @@ import userService from '../api/userService';
 
 export const exploreLoader = async () => {
   try {
-    const allBlogs = await blogService.fetchAll();
-    const activeBlogs = allBlogs.filter(blog => !blog.isDeleted);
-    return { blogs: activeBlogs, error: null };
+    const data = await blogService.fetchAll({ page: 1, limit: 12 });
+
+    if (data.blogs) {
+      const activeBlogs = data.blogs.filter(blog => !blog.isDeleted);
+      return {
+        blogs: activeBlogs,
+        pagination: data.pagination || {},
+        error: null
+      };
+    }
+
+    const activeBlogs = (Array.isArray(data) ? data : []).filter(blog => !blog.isDeleted);
+    return {
+      blogs: activeBlogs,
+      pagination: {},
+      error: null
+    };
   } catch (error) {
     console.error('Error fetching blogs:', error);
-    return { blogs: [], error: error.message || 'Failed to fetch blogs' };
+    throw new Response(
+      JSON.stringify({ message: error.message || 'Failed to fetch blogs' }),
+      {
+        status: 500,
+        statusText: 'Internal Server Error',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
   }
 };
 
@@ -18,14 +41,40 @@ export const blogDetailLoader = async ({ params }) => {
     return { blog, error: null };
   } catch (error) {
     console.error('Error fetching blog:', error);
-    return { blog: null, error: error.message || 'Failed to fetch blog' };
+
+    if (error.message.includes('not found') || error.status === 404) {
+      throw new Response(
+        JSON.stringify({ message: 'Blog not found' }),
+        {
+          status: 404,
+          statusText: 'Not Found',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
+
+    throw new Response(
+      JSON.stringify({ message: error.message || 'Failed to fetch blog' }),
+      {
+        status: 500,
+        statusText: 'Internal Server Error',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
   }
 };
 
 export const userDetailLoader = async ({ params }) => {
   try {
     const user = await userService.fetchById(params.userId);
-    const userBlogs = await blogService.fetchByUserId(params.userId);
+    const blogData = await blogService.fetchByUserId(params.userId);
+
+    const userBlogs = blogData.blogs || blogData || [];
+
     return { user, blogs: userBlogs, error: null };
   } catch (error) {
     console.error('Error fetching user:', error);

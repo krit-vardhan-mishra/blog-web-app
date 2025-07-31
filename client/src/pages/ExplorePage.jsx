@@ -1,46 +1,82 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLoaderData } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   BookOpen,
-  Eye,
-  UserIcon,
   Filter,
   Sparkles,
-  AlertCircle,
   X,
-  Tag,
-  Target, 
-  Bookmark,
-  Clock
 } from 'lucide-react';
 import Header from '../components/Header';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import blogCategory from '../utils/blogCategories';
-import { formatDate } from '../utils/utilityFunctions';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import getGenreColor from '@/utils/genreColors';
 import '@/css/explore-page.css';
+import BlogCard from '@/components/ui/BlogCard';
+import blogService from '@/api/blogService';
 
 const ExplorePage = () => {
-  // Get pre-loaded data from router loader
-  const { blogs: initialBlogs, error: loaderError } = useLoaderData();
-  
-  const [isSearchActive, setIsSearchActive] = useState(false);
-  const [blogs] = useState(initialBlogs || []); // No need to fetch again
+  const { blogs: initialBlogs, pagination: initialPagination, error: loaderError } = useLoaderData();
+  const [blogs, setBlogs] = useState(initialBlogs || []);
+  const [pagination, setPagination] = useState(initialPagination || {});
+  const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [notification, setNotification] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const searchInputRef = useRef(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const loadMoreBlogs = useCallback(async () => {
+    if (loading || !pagination.hasNextPage) return;
+
+    setLoading(true);
+    try {
+      const filters = {
+        page: pagination.currentPage + 1,
+        limit: 12,
+        ...(selectedCategory !== 'All' && { genre: selectedCategory })
+      };
+
+      const data = await blogService.fetchAll(filters);
+
+      if (data.blogs) {
+        setBlogs(prevBlogs => [...prevBlogs, ...data.blogs]);
+        setPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error('Error loading more blogs:', error);
+      setNotification({
+        message: 'Failed to load more blogs',
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, pagination.hasNextPage, pagination.currentPage, selectedCategory]);
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 1000
+      ) {
+        loadMoreBlogs();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadMoreBlogs]);
+
   useEffect(() => {
     document.title = "Explore More Blogs...";
-    
-    // Show error notification if loader failed
+
     if (loaderError) {
       setNotification({
         message: loaderError,
@@ -49,7 +85,6 @@ const ExplorePage = () => {
     }
   }, [loaderError]);
 
-  // Memoize filtered blogs for optimal performance
   const filteredBlogs = useMemo(() => {
     let filtered = blogs;
 
@@ -89,6 +124,34 @@ const ExplorePage = () => {
     }
   }, [isSearchActive]);
 
+  const handleCategoryChange = useCallback(async (category) => {
+    setSelectedCategory(category);
+    setLoading(true);
+
+    try {
+      const filters = {
+        page: 1,
+        limit: 12,
+        ...(category !== 'All' && { genre: category })
+      };
+
+      const data = await blogService.fetchAll(filters);
+
+      if (data.blogs) {
+        setBlogs(data.blogs);
+        setPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error('Error fetching filtered blogs:', error);
+      setNotification({
+        message: 'Failed to filter blogs',
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleSearchToggle = () => {
     setIsSearchActive(!isSearchActive);
     if (isSearchActive) {
@@ -115,7 +178,6 @@ const ExplorePage = () => {
     }
   };
 
-  // Minimal and fast animations since data is pre-loaded
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -135,127 +197,6 @@ const ExplorePage = () => {
       transition: { duration: 0.25 },
     },
   };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.15 },
-    },
-    hover: {
-      scale: 1.01,
-      y: -2,
-      transition: { duration: 0.1 },
-    },
-  };
-
-  // Memoized blog card component for better performance
-  const BlogCard = React.memo(({ blog, index }) => (
-    <motion.div
-      className="break-inside-avoid mb-6 cursor-pointer"
-      variants={cardVariants}
-      whileHover="hover"
-      onClick={() => handleBlogClick(blog._id)}
-      initial="hidden"
-      animate="visible"
-      style={{ 
-        // Add slight delay based on index for staggered effect
-        animationDelay: `${index * 0.03}s` 
-      }}
-    >
-      <div className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 hover:border-blue-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
-        {/* Title */}
-        <h3 className="text-lg font-semibold mb-3 text-white hover:text-blue-300 transition-colors duration-200 line-clamp-2">
-          {blog.title}
-        </h3>
-
-        {/* Genre, Difficulty, Read Time, Engagement */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getGenreColor(blog.genre || 'All')}`}>
-            {blog.genre || 'Uncategorized'}
-          </span>
-
-          {blog.readingDifficulty && (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              blog.readingDifficulty === 'beginner' ? 'text-green-400 bg-green-900/30' :
-              blog.readingDifficulty === 'intermediate' ? 'text-yellow-400 bg-yellow-900/30' :
-              blog.readingDifficulty === 'advanced' ? 'text-red-400 bg-red-900/30' :
-              'text-gray-400 bg-gray-900/30'
-            }`}>
-              {blog.readingDifficulty === 'beginner' ? '🟢' :
-               blog.readingDifficulty === 'intermediate' ? '🟡' :
-               blog.readingDifficulty === 'advanced' ? '🔴' : '⚪'} {blog.readingDifficulty}
-            </span>
-          )}
-
-          {blog.averageReadTime > 0 && (
-            <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-400 bg-blue-900/30 flex items-center">
-              <Clock size={12} className="mr-1" />
-              {Math.round(blog.averageReadTime / 60)}m read
-            </span>
-          )}
-
-          {blog.engagementScore > 0 && (
-            <span className="px-3 py-1 rounded-full text-xs font-medium text-purple-400 bg-purple-900/30 flex items-center">
-              <Target size={12} className="mr-1" />
-              {Math.round(blog.engagementScore)} score
-            </span>
-          )}
-        </div>
-
-        {/* Tags */}
-        {blog.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {blog.tags.slice(0, 3).map((tag, idx) => (
-              <span key={idx} className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors duration-200">
-                <Tag size={10} className="mr-1" />
-                {tag}
-              </span>
-            ))}
-            {blog.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-400">
-                +{blog.tags.length - 3} more
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Content */}
-        <p className="text-gray-300 text-sm mb-4 line-clamp-4 leading-relaxed">
-          {blog.content}
-        </p>
-
-        {/* Footer: Author, Date, Views, Bookmarks */}
-        <div className="flex items-center justify-between text-xs text-gray-400 space-x-4">
-          <div 
-            className="flex items-center space-x-1 hover:text-blue-300 transition-colors duration-200"
-            onClick={(e) => handleAuthorClick(e, blog.author?._id || blog.author?.id)}
-          >
-            <UserIcon className="w-3 h-3 text-blue-400" />
-            <span>{blog.author?.name || 'Anonymous'}</span>
-            <div className="flex items-center text-gray-500">
-              <span>{formatDate(blog.createdAt)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {blog.interactionMetrics?.bookmarks?.length > 0 && (
-              <div className="flex items-center text-yellow-400">
-                <Bookmark size={12} className="mr-1" />
-                <span>{blog.interactionMetrics.bookmarks.length}</span>
-              </div>
-            )}
-
-            <div className="flex items-center text-gray-400 hover:text-blue-300 transition-colors duration-200">
-              <Eye size={12} className="mr-1" />
-              <span>{blog.views || 0}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  ));
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
@@ -339,12 +280,11 @@ const ExplorePage = () => {
               {Object.values(blogCategory).map((category) => (
                 <motion.button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`flex-shrink-0 whitespace-nowrap snap-start px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    selectedCategory === category
-                      ? `${getGenreColor(category)} text-white shadow-lg scale-105`
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-                  }`}
+                  onClick={() => handleCategoryChange(category)}
+                  className={`flex-shrink-0 whitespace-nowrap snap-start px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedCategory === category
+                    ? `bg-${getGenreColor(category)} text-white shadow-lg scale-105`
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -377,25 +317,54 @@ const ExplorePage = () => {
           </motion.div>
         )}
 
-        {/* Optimized Blog Grid with Pre-loaded Data */}
+        {/* Blog Grid remains the same */}
         {filteredBlogs.length > 0 && (
-          <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-            {filteredBlogs.map((blog, index) => (
-              <BlogCard key={blog._id} blog={blog} index={index} />
-            ))}
-          </div>
+          <>
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+              {filteredBlogs.map((blog, index) => (
+                <BlogCard
+                  key={blog._id}
+                  blog={blog}
+                  index={index}
+                  handleBlogClick={handleBlogClick}
+                  handleAuthorClick={handleAuthorClick}
+                />
+              ))}
+            </div>
+
+            {/* Loading indicator */}
+            {loading && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center px-4 py-2 bg-gray-800/50 rounded-lg">
+                  <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <span className="text-gray-300">Loading more blogs...</span>
+                </div>
+              </div>
+            )}
+
+            {/* End of content indicator */}
+            {!pagination.hasNextPage && blogs.length > 0 && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center px-4 py-2 bg-gray-800/50 rounded-lg">
+                  <span className="text-gray-400">🎉 You've reached the end! No more blogs to load.</span>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </motion.div>
 
       {/* Notification */}
-      {notification && (
-        <NotifyBanner
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-        />
-      )}
-    </div>
+      {
+        notification && (
+          <NotifyBanner
+            message={notification.message}
+            type={notification.type}
+            onClose={() => setNotification(null)}
+          />
+        )
+      }
+    </div >
   );
 };
 

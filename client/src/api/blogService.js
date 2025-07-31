@@ -20,16 +20,32 @@ const blogService = {
       if (filters.order) {
         queryParams.append('order', filters.order);
       }
+      if (filters.page) {
+        queryParams.append('page', filters.page.toString());
+      }
+      if (filters.limit) {
+        queryParams.append('limit', filters.limit.toString());
+      }
 
       const url = `/blogs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiClient.get(url);
-      const blogs = response.blogs || response;
 
+      if (response.blogs && response.pagination) {
+        return {
+          blogs: response.blogs.map((blog) => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: response.pagination
+        };
+      }
+
+      const blogs = response.blogs || response;
       const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
-      return processedBlogs;
+      return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ blogService: fetchAll failed:', error.message);
       throw error;

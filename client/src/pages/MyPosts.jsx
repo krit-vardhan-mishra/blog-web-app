@@ -11,8 +11,11 @@ import ModalManager from '@/components/ModalManager';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import PostsSection from '@/components/PostsSection';
 import { BlogProvider } from '@/context/BlogContext';
+import { useLoaderData } from 'react-router';
 
 export const MyPosts = () => {
+  const loaderData = useLoaderData();
+
   const {
     isLoading,
     user,
@@ -42,7 +45,7 @@ export const MyPosts = () => {
     handleOpenPostModal,
     handleClosePostModal,
     handleViewIncrement,
-  } = useMyPosts();
+  } = useMyPosts(loaderData);
 
   useMyPostsEffects({
     user,

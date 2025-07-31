@@ -61,7 +61,15 @@ export const homePageLoader = async () => {
       blogService.getUserStats ? blogService.getUserStats(user.id) : Promise.resolve(null),
     ]);
 
-    const allBlogs = blogsRes.status === 'fulfilled' ? blogsRes.value.filter(b => !b.isDeleted) : [];
+    let allBlogs = [];
+    if (blogsRes.status === 'fulfilled') {
+      if (blogsRes.value.blogs) {
+        allBlogs = blogsRes.value.blogs.filter(b => !b.isDeleted);
+      } else {
+        allBlogs = (Array.isArray(blogsRes.value) ? blogsRes.value : []).filter(b => !b.isDeleted);
+      }
+    }
+
     const allUsers = usersRes.status === 'fulfilled' ? usersRes.value : [];
     const userStats = statsRes.status === 'fulfilled' ? statsRes.value : null;
 
@@ -121,13 +129,14 @@ export const myPostsLoader = async () => {
   if (cached) return cached;
 
   try {
-    const blogs = await blogService.fetchAll();
-    const userBlogs = blogs.filter(blog => 
+    const data = await blogService.fetchAll();
+    const allBlogs = data.blogs || data || [];
+    const userBlogs = allBlogs.filter(blog =>
       (blog.author?.id || blog.author?._id) === user.id && !blog.isDeleted
     );
-    const data = { blogs: userBlogs, user, error: null };
-    dataCache.set(cacheKey, data);
-    return data;
+    const result = { blogs: userBlogs, user, error: null };
+    dataCache.set(cacheKey, result);
+    return result;
   } catch (error) {
     return { blogs: [], user, error: error.message };
   }

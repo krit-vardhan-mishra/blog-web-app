@@ -245,7 +245,6 @@ export const DeletedBlogs = () => {
       {showNotification && (
         <NotifyBanner
           message={notificationMessage}
-          duration={3000}
           onClose={() => setShowNotification(false)}
         />
       )}

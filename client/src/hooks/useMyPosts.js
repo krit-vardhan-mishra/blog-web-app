@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import blogService from '../api/blogService';
 
-export const useMyPosts = () => {
+export const useMyPosts = (initialData = null) => {
     const { user, token } = useAuth();
 
     // State management
@@ -11,13 +11,13 @@ export const useMyPosts = () => {
         notificationMessage: '',
         isEditPostOpen: false,
         isCreatePostOpen: false,
-        isLoading: true,
+        isLoading: !initialData,
         isStatModalOpen: false,
         isAllStatsOpen: false,
         selectedStat: null,
         isPostModalOpen: false,
         selectedBlogForModal: null,
-        allBlogs: [],
+        allBlogs: initialData?.blogs || [],
         lastUpdated: null,
         isConfirmOpen: false,
         selectedBlogId: null,
@@ -30,12 +30,16 @@ export const useMyPosts = () => {
     }, []);
 
     // Memoized calculations - filter user's non-deleted blogs
-    const userBlogs = useMemo(() =>
-        state.allBlogs.filter(
+    const userBlogs = useMemo(() => {
+        if (!Array.isArray(state.allBlogs)) {
+            console.warn('state.allBlogs is not an array:', state.allBlogs);
+            return [];
+        }
+
+        return state.allBlogs.filter(
             (blog) => blog.author?._id === user?.id && !blog.isDeleted
-        ),
-        [state.allBlogs, user?.id]
-    );
+        );
+    }, [state.allBlogs, user?.id]);
 
     const stats = useMemo(() => {
         const userBlogsCount = userBlogs.length;
@@ -58,7 +62,7 @@ export const useMyPosts = () => {
         const start = Date.now();
 
         try {
-            const blogsData = await blogService.fetchAll();
+            const data = await blogService.fetchAll();
             const duration = Date.now() - start;
             const minDelay = 500;
 
@@ -66,6 +70,7 @@ export const useMyPosts = () => {
                 await new Promise((res) => setTimeout(res, minDelay - duration));
             }
 
+            const blogsData = data.blogs || data || [];
             updateState({ allBlogs: blogsData, isLoading: false });
         } catch (error) {
             console.error('Failed to fetch blogs', error);

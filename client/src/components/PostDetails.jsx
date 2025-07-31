@@ -164,7 +164,7 @@ const PostDetails = ({
 
       {/* Genre and Difficulty badges */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getGenreColor(genre)}`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white bg-${getGenreColor(genre)}`}>
           {genre}
         </span>
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(readingDifficulty)}`}>

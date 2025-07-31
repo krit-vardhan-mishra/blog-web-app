@@ -221,7 +221,7 @@ const PostModal = ({
 
                 {/* Metadata badges */}
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getGenreColor(genre)}`}>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white bg-${getGenreColor(genre)}`}>
                     {genre}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(readingDifficulty)}`}>

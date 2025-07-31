@@ -1,5 +1,3 @@
-// constants/enums.js
-
 export const GENRES = [
   'All',
   'Lifestyle',

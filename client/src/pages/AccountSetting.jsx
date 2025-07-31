@@ -725,7 +725,6 @@ export const AccountSetting = () => {
         <NotifyBanner
           message={notificationMessage}
           type={notificationType}
-          duration={3000}
           onClose={() => setShowNotification(false)}
         />
       )}

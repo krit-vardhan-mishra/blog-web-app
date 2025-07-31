@@ -57,7 +57,9 @@ const UserDetail = () => {
     const fetchUserBlogs = async () => {
       try {
         setBlogsLoading(true);
-        const allBlogs = await blogService.fetchAll();
+        const data = await blogService.fetchAll();
+        const allBlogs = data.blogs || data || [];
+
         const filteredBlogs = allBlogs.filter(
           (blog) =>
             blog.author &&

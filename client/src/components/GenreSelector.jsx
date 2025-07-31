@@ -57,19 +57,18 @@ const GenreSelector = ({
               value={genre.value}
               className="bg-[#1C222A] text-white"
             >
-              {genre.icon} {genre.label}
+              {genre.label} {genre.icon}
             </option>
           ))}
         </select>
 
-        {/* Custom styling indicator */}
+        {/* Left-side colored dot indicator */}
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <div className={`w-2 h-2 rounded-full ${genres.find(g => g.value === selectedGenre)?.color || 'bg-gray-600'
-            }`} />
+          <div className={`w-2 h-2 rounded-full ${genres.find(g => g.value === selectedGenre)?.color || 'bg-gray-600'}`} />
         </div>
       </div>
 
-      {/* Genre chips display (optional) */}
+      {/* Genre Chip with Emoji shown here instead */}
       <div className="mt-2 flex flex-wrap gap-1">
         {selectedGenre !== 'All' && (
           <span className={`

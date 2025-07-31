@@ -111,7 +111,8 @@ export const useHomePage = () => {
     }
 
     try {
-      const blogsData = await blogService.fetchAll();
+      const response = await blogService.fetchAll();
+      const blogsData = response.blogs || response || [];
 
       const hasEngagementMetrics = blogsData.some(blog =>
         blog.engagementScore !== undefined &&

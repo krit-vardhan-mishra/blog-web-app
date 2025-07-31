@@ -1,6 +1,7 @@
 import Blog from '../models/Blog.js';
 import mongoose from 'mongoose';
 import { calculateEngagementScore } from '../utils/engagementUtils.js';
+import { GENRES, READING_LEVELS } from '../constants/enums.js';
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -30,7 +31,8 @@ export const getBlogByIdWithAuthor = async (req, res) => {
 
 export const getNonDeletedBlogs = async (req, res) => {
   try {
-    const { genre, tags, difficulty, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { genre, tags, difficulty, sortBy = 'createdAt',
+      order = 'desc', page = 1, limit = 12 } = req.query;
 
     let filter = { isDeleted: false };
 
@@ -51,11 +53,32 @@ export const getNonDeletedBlogs = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder;
 
-    const blogs = await Blog.find(filter)
-      .populate('author', 'name email')
-      .sort(sortOptions);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json(blogs);
+    const [blogs, totalBlogs] = await Promise.all([
+      Blog.find(filter)
+        .populate('author', 'name email')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum),
+      Blog.countDocuments(filter)
+    ]);
+
+    const totalPages = Math.ceil(totalBlogs / limitNum);
+    const hasNextPage = pageNum < totalPages;
+
+    res.json({
+      blogs,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalBlogs,
+        hasNextPage,
+        limit: limitNum
+      }
+    });
   } catch (error) {
     console.error('Error fetching blogs:', error);
     res.status(500).json({ message: 'Server error while fetching blogs' });
@@ -95,68 +118,7 @@ export const createBlog = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    const validGenres = [
-      'All',
-      'Lifestyle',
-      'Business',
-      'Entertainment',
-      'Science',
-      'Art',
-      'Sports',
-      'Technology',
-      'Health',
-      'Travel',
-      'Food',
-      'Education',
-      'Love & Relationships',
-      'Poetry',
-      'Cinema',
-      'Film Reviews',
-      'Music',
-      'Theatre',
-      'Photography',
-      'Dance',
-      'Comics & Graphic Novels',
-      'Fiction',
-      'Non-Fiction',
-      'Short Stories',
-      'Book Reviews',
-      'Writing Tips',
-      'Creative Writing',
-      'Culture & Traditions',
-      'History',
-      'Philosophy',
-      'Politics',
-      'Feminism',
-      'Spirituality',
-      'Mindfulness',
-      'Minimalism',
-      'Motivational',
-      'Productivity',
-      'Life Lessons',
-      'Freelancing',
-      'Career Advice',
-      'Job Search',
-      'Workplace Culture',
-      'Remote Work',
-      'Startup Life',
-      'AI & Machine Learning',
-      'Coding & Development',
-      'Gadgets & Reviews',
-      'Cybersecurity',
-      'Blockchain & Crypto',
-      'Adventure',
-      'Backpacking',
-      'Digital Nomad Life',
-      'Local Guides',
-      'Cultural Exchange',
-      'Parenting',
-      'Mental Health',
-      'Self-Improvement',
-      'Personal Journals'
-    ];
-
-    if (!validGenres.includes(genre)) {
+    if (!GENRES.includes(genre)) {
       return res.status(400).json({ message: 'Invalid genre selected' });
     }
 
@@ -212,68 +174,8 @@ export const updateBlog = async (req, res) => {
     };
 
     if (genre) {
-      const validGenres = [
-        'All',
-        'Lifestyle',
-        'Business',
-        'Entertainment',
-        'Science',
-        'Art',
-        'Sports',
-        'Technology',
-        'Health',
-        'Travel',
-        'Food',
-        'Education',
-        'Love & Relationships',
-        'Poetry',
-        'Cinema',
-        'Film Reviews',
-        'Music',
-        'Theatre',
-        'Photography',
-        'Dance',
-        'Comics & Graphic Novels',
-        'Fiction',
-        'Non-Fiction',
-        'Short Stories',
-        'Book Reviews',
-        'Writing Tips',
-        'Creative Writing',
-        'Culture & Traditions',
-        'History',
-        'Philosophy',
-        'Politics',
-        'Feminism',
-        'Spirituality',
-        'Mindfulness',
-        'Minimalism',
-        'Motivational',
-        'Productivity',
-        'Life Lessons',
-        'Freelancing',
-        'Career Advice',
-        'Job Search',
-        'Workplace Culture',
-        'Remote Work',
-        'Startup Life',
-        'AI & Machine Learning',
-        'Coding & Development',
-        'Gadgets & Reviews',
-        'Cybersecurity',
-        'Blockchain & Crypto',
-        'Adventure',
-        'Backpacking',
-        'Digital Nomad Life',
-        'Local Guides',
-        'Cultural Exchange',
-        'Parenting',
-        'Mental Health',
-        'Self-Improvement',
-        'Personal Journals'
-      ];
 
-      if (validGenres.includes(genre)) {
+      if (GENRES.includes(genre)) {
         updateData.genre = genre;
       }
     }
@@ -285,7 +187,7 @@ export const updateBlog = async (req, res) => {
     }
 
     // Add reading difficulty if provided
-    if (readingDifficulty && ['beginner', 'intermediate', 'advanced'].includes(readingDifficulty)) {
+    if (readingDifficulty && READING_LEVELS.includes(readingDifficulty)) {
       updateData.readingDifficulty = readingDifficulty;
     }
 
@@ -429,7 +331,7 @@ export const deleteUserAllBlogs = async (userId) => {
 export const getUserBlogs = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { genre, difficulty, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { genre, difficulty, sortBy = 'createdAt', order = 'desc', page, limit } = req.query;
 
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
@@ -452,11 +354,40 @@ export const getUserBlogs = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder;
 
-    const blogs = await Blog.find(filter)
-      .populate('author', 'name email')
-      .sort(sortOptions);
+    if (page && limit) {
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const skip = (pageNum - 1) * limitNum;
 
-    res.json(blogs);
+      const [blogs, totalBlogs] = await Promise.all([
+        Blog.find(filter)
+          .populate('author', 'name email')
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(limitNum),
+        Blog.countDocuments(filter)
+      ]);
+
+      const totalPages = Math.ceil(totalBlogs / limitNum);
+      const hasNextPage = pageNum < totalPages;
+
+      res.json({
+        blogs,
+        pagination: {
+          currentPage: pageNum,
+          totalPages,
+          totalBlogs,
+          hasNextPage,
+          limit: limitNum
+        }
+      });
+    } else {
+      const blogs = await Blog.find(filter)
+        .populate('author', 'name email')
+        .sort(sortOptions);
+
+      res.json(blogs);
+    }
   } catch (error) {
     console.error('Error fetching user blogs:', error);
     res.status(500).json({ message: 'Server error while fetching user blogs' });

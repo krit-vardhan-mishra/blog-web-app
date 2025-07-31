@@ -36,6 +36,7 @@ import {
   homePageLoader,
   myPostsLoader,
 } from './protectedLoaders';
+import RouterErrorBoundary from '@/components/RouterErrorBoundary';
 
 const cachedExploreLoader = createCachedLoader(exploreLoader);
 const cachedBlogDetailLoader = createCachedLoader(blogDetailLoader);
@@ -43,36 +44,75 @@ const cachedUserDetailLoader = createCachedLoader(userDetailLoader);
 
 const routes = createRoutesFromElements(
   <>
-    {/* Public Routes */}
-    <Route element={<PublicRoute />}>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="login" element={<LoginPage />} />
-      <Route path="signup" element={<SignupPage />} />
-      <Route path="google-auth" element={<GoogleAuthHandler />} />
-      <Route path="forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="verify-otp" element={<VerifyOTPPage />} />
-      <Route path="verify-signup" element={<VerifySignupPage />} />
-      <Route path="reset-password" element={<ResetPasswordPage />} />
-      <Route path="set-password" element={<SetPasswordPage />} />
-    </Route>
-
-    {/* Public Loadable Routes */}
-    <Route path="explore" element={<ExplorePage />} loader={cachedExploreLoader} />
-    <Route path="user/:userId" element={<UserDetail />} loader={cachedUserDetailLoader} />
-    <Route path="blog/:blogId" element={<BlogDetail />} loader={cachedBlogDetailLoader} />
-
-    {/* Private Routes */}
-    <Route element={<PrivateRoute />}>
-      <Route element={<MainLayout />}>
-        <Route path="home" element={<HomePage />} loader={homePageLoader} />
-        <Route path="your-posts" element={<MyPosts />} loader={myPostsLoader} />
-        <Route path="deleted" element={<DeletedBlogs />} />
-        <Route path="account-setting" element={<AccountSetting />} />
+    {/* Root route with error boundary */}
+    <Route 
+      path="/" 
+      errorElement={<RouterErrorBoundary />}
+    >
+      {/* Public Routes */}
+      <Route element={<PublicRoute />}>
+        <Route index element={<LandingPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="signup" element={<SignupPage />} />
+        <Route path="google-auth" element={<GoogleAuthHandler />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="verify-otp" element={<VerifyOTPPage />} />
+        <Route path="verify-signup" element={<VerifySignupPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route path="set-password" element={<SetPasswordPage />} />
       </Route>
-    </Route>
 
-    {/* Fallback */}
-    <Route path="*" element={<NotFound />} />
+      {/* Public Loadable Routes */}
+      <Route 
+        path="explore" 
+        element={<ExplorePage />} 
+        loader={cachedExploreLoader}
+        errorElement={<RouterErrorBoundary />}
+      />
+      <Route 
+        path="user/:userId" 
+        element={<UserDetail />} 
+        loader={cachedUserDetailLoader}
+        errorElement={<RouterErrorBoundary />}
+      />
+      <Route 
+        path="blog/:blogId" 
+        element={<BlogDetail />} 
+        loader={cachedBlogDetailLoader}
+        errorElement={<RouterErrorBoundary />}
+      />
+
+      {/* Private Routes */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<MainLayout />}>
+          <Route 
+            path="home" 
+            element={<HomePage />} 
+            loader={homePageLoader}
+            errorElement={<RouterErrorBoundary />}
+          />
+          <Route 
+            path="your-posts" 
+            element={<MyPosts />} 
+            loader={myPostsLoader}
+            errorElement={<RouterErrorBoundary />}
+          />
+          <Route 
+            path="deleted" 
+            element={<DeletedBlogs />}
+            errorElement={<RouterErrorBoundary />}
+          />
+          <Route 
+            path="account-setting" 
+            element={<AccountSetting />}
+            errorElement={<RouterErrorBoundary />}
+          />
+        </Route>
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<NotFound />} />
+    </Route>
   </>
 );
 

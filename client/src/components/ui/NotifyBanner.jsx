@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Info, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
-const NotifyBanner = ({ message, subMessage, type = 'info', duration = 3000, onClose }) => {
+const NotifyBanner = ({ message, subMessage, type = 'info', onClose }) => {
+  const duration = 3000;
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
