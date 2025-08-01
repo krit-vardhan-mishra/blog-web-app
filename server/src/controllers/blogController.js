@@ -5,6 +5,58 @@ import { GENRES, READING_LEVELS } from '../constants/enums.js';
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const buildSortCriteria = (req) => {
+  const { 
+    sortBy = 'createdAt', 
+    order = 'desc',
+    prioritizeEngagement,
+    prioritizeWatchTime,
+    prioritizeDifficulty,
+    sortType = 'default'
+  } = req.query;
+
+  const sortOrder = order === 'desc' ? -1 : 1;
+  let sortOptions = {};
+
+  if (sortType === 'homepage' || sortType === 'explore') {
+    sortOptions = {
+      views: -1,
+      engagementScore: -1,
+      readCount: -1,
+      averageReadTime: -1,
+      createdAt: -1
+    };
+  } else if (sortType === 'userBlogs') {
+    sortOptions = {
+      createdAt: -1,
+      updatedAt: -1
+    };
+  } else if (prioritizeEngagement === 'true') {
+    sortOptions = {
+      engagementScore: -1,
+      views: -1,
+      readCount: -1,
+      [sortBy]: sortOrder
+    };
+  } else if (prioritizeWatchTime === 'true') {
+    sortOptions = {
+      averageReadTime: -1,
+      engagementScore: -1,
+      [sortBy]: sortOrder
+    };
+  } else if (prioritizeDifficulty === 'true') {
+    sortOptions = {
+      readingDifficulty: -1,
+      engagementScore: -1,
+      [sortBy]: sortOrder
+    };
+  } else {
+    sortOptions[sortBy] = sortOrder;
+  }
+
+  return sortOptions;
+};
+
 export const getBlogByIdWithAuthor = async (req, res) => {
   try {
     const { id } = req.params;
@@ -31,8 +83,14 @@ export const getBlogByIdWithAuthor = async (req, res) => {
 
 export const getNonDeletedBlogs = async (req, res) => {
   try {
-    const { genre, tags, difficulty, sortBy = 'createdAt',
-      order = 'desc', page = 1, limit = 12 } = req.query;
+    const { 
+      genre, 
+      tags, 
+      difficulty, 
+      page = 1, 
+      limit = 12,
+      search
+    } = req.query;
 
     let filter = { isDeleted: false };
 
@@ -49,10 +107,16 @@ export const getNonDeletedBlogs = async (req, res) => {
       filter.readingDifficulty = difficulty;
     }
 
-    const sortOrder = order === 'desc' ? -1 : 1;
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
+    }
 
+    const sortOptions = buildSortCriteria(req);
+    
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -68,6 +132,7 @@ export const getNonDeletedBlogs = async (req, res) => {
 
     const totalPages = Math.ceil(totalBlogs / limitNum);
     const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
 
     res.json({
       blogs,
@@ -76,6 +141,7 @@ export const getNonDeletedBlogs = async (req, res) => {
         totalPages,
         totalBlogs,
         hasNextPage,
+        hasPrevPage,
         limit: limitNum
       }
     });
@@ -88,17 +154,46 @@ export const getNonDeletedBlogs = async (req, res) => {
 export const getAllDeletedBlogsByUser = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { page = 1, limit = 12 } = req.query;
 
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    const deletedBlogs = await Blog.find({
-      author: userId,
-      isDeleted: true
-    }).populate('author', 'name email').sort({ updatedAt: -1 });
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json(deletedBlogs);
+    const [deletedBlogs, totalBlogs] = await Promise.all([
+      Blog.find({
+        author: userId,
+        isDeleted: true
+      })
+        .populate('author', 'name email')
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Blog.countDocuments({
+        author: userId,
+        isDeleted: true
+      })
+    ]);
+
+    const totalPages = Math.ceil(totalBlogs / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      blogs: deletedBlogs,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalBlogs,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNum
+      }
+    });
   } catch (error) {
     console.error('Error fetching deleted blogs:', error);
     res.status(500).json({ message: 'Server error while fetching deleted blogs' });
@@ -174,19 +269,16 @@ export const updateBlog = async (req, res) => {
     };
 
     if (genre) {
-
       if (GENRES.includes(genre)) {
         updateData.genre = genre;
       }
     }
 
-    // Add tags if provided
     if (tags !== undefined) {
       updateData.tags = Array.isArray(tags) ? tags :
         (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []);
     }
 
-    // Add reading difficulty if provided
     if (readingDifficulty && READING_LEVELS.includes(readingDifficulty)) {
       updateData.readingDifficulty = readingDifficulty;
     }
@@ -324,6 +416,35 @@ export const incrementBlogView = async (req, res) => {
   }
 };
 
+export const getUserStats = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const [blogs, user] = await Promise.all([
+      Blog.find({ author: userId, isDeleted: false }),
+      Blog.findOne({ author: userId }).sort({ updatedAt: -1 }).select('updatedAt')
+    ]);
+
+    const totalBlogs = blogs.length;
+    const totalViews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+    const lastUpdated = user ? user.updatedAt : null;
+
+    res.json({
+      totalBlogs,
+      totalViews,
+      lastUpdated,
+      success: true
+    });
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    res.status(500).json({ message: 'Server error while fetching user stats' });
+  }
+};
+
 export const deleteUserAllBlogs = async (userId) => {
   await Blog.deleteMany({ author: userId });
 };
@@ -331,7 +452,7 @@ export const deleteUserAllBlogs = async (userId) => {
 export const getUserBlogs = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { genre, difficulty, sortBy = 'createdAt', order = 'desc', page, limit } = req.query;
+    const { genre, difficulty, page = 1, limit = 5 } = req.query;
 
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
@@ -350,44 +471,36 @@ export const getUserBlogs = async (req, res) => {
       filter.readingDifficulty = difficulty;
     }
 
-    const sortOrder = order === 'desc' ? -1 : 1;
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder;
+    const sortOptions = buildSortCriteria({ ...req, query: { ...req.query, sortType: 'userBlogs' } });
+    
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    if (page && limit) {
-      const pageNum = parseInt(page);
-      const limitNum = parseInt(limit);
-      const skip = (pageNum - 1) * limitNum;
-
-      const [blogs, totalBlogs] = await Promise.all([
-        Blog.find(filter)
-          .populate('author', 'name email')
-          .sort(sortOptions)
-          .skip(skip)
-          .limit(limitNum),
-        Blog.countDocuments(filter)
-      ]);
-
-      const totalPages = Math.ceil(totalBlogs / limitNum);
-      const hasNextPage = pageNum < totalPages;
-
-      res.json({
-        blogs,
-        pagination: {
-          currentPage: pageNum,
-          totalPages,
-          totalBlogs,
-          hasNextPage,
-          limit: limitNum
-        }
-      });
-    } else {
-      const blogs = await Blog.find(filter)
+    const [blogs, totalBlogs] = await Promise.all([
+      Blog.find(filter)
         .populate('author', 'name email')
-        .sort(sortOptions);
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum),
+      Blog.countDocuments(filter)
+    ]);
 
-      res.json(blogs);
-    }
+    const totalPages = Math.ceil(totalBlogs / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      blogs,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalBlogs,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNum
+      }
+    });
   } catch (error) {
     console.error('Error fetching user blogs:', error);
     res.status(500).json({ message: 'Server error while fetching user blogs' });
@@ -397,8 +510,7 @@ export const getUserBlogs = async (req, res) => {
 export const updateBlogEngagement = async (req, res) => {
   try {
     const { id } = req.params;
-    const { metrics } = req.body;
-    const userId = req.user.id;
+    const { metrics, userId, isAnonymous } = req.body;
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({ message: 'Invalid blog ID format' });
@@ -410,30 +522,51 @@ export const updateBlogEngagement = async (req, res) => {
     }
 
     const timeSpent = metrics.timeSpent || 0;
-    const existingMetricIndex = blog.interactionMetrics.timeSpent
-      .findIndex(m => m.userId.toString() === userId);
 
-    if (existingMetricIndex > -1) {
-      blog.interactionMetrics.timeSpent[existingMetricIndex].duration += timeSpent;
-      blog.interactionMetrics.timeSpent[existingMetricIndex].lastRead = new Date();
-    } else {
+    if (isAnonymous || !userId) {
       blog.interactionMetrics.timeSpent.push({
-        userId,
+        userId: null, 
         duration: timeSpent,
         lastRead: new Date()
       });
+
+      if (metrics.completedReading) {
+        blog.readCount += 1;
+      }
+    } else {
+      if (!isValidObjectId(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID format' });
+      }
+
+      const existingMetricIndex = blog.interactionMetrics.timeSpent
+        .findIndex(m => m.userId && m.userId.toString() === userId);
+
+      if (existingMetricIndex > -1) {
+        blog.interactionMetrics.timeSpent[existingMetricIndex].duration += timeSpent;
+        blog.interactionMetrics.timeSpent[existingMetricIndex].lastRead = new Date();
+      } else {
+        blog.interactionMetrics.timeSpent.push({
+          userId,
+          duration: timeSpent,
+          lastRead: new Date()
+        });
+      }
+
+      if (metrics.completedReading) {
+        blog.readCount += 1;
+      }
     }
 
+    // Recalculate average read time including all users (authenticated and anonymous)
     const totalDuration = blog.interactionMetrics.timeSpent
       .reduce((sum, metric) => sum + metric.duration, 0);
     const totalReaders = blog.interactionMetrics.timeSpent.length;
-    blog.averageReadTime = totalDuration / totalReaders;
+    
+    if (totalReaders > 0) {
+      blog.averageReadTime = totalDuration / totalReaders;
+    }
 
     blog.engagementScore = calculateEngagementScore(blog);
-
-    if (metrics.completedReading) {
-      blog.readCount += 1;
-    }
 
     await blog.save();
     res.json({ message: 'Engagement metrics updated successfully' });
@@ -481,21 +614,49 @@ export const toggleBookmark = async (req, res) => {
   }
 };
 
-// Get user's bookmarked blogs
 export const getUserBookmarks = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { page = 1, limit = 12 } = req.query;
 
     if (!isValidObjectId(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    const blogs = await Blog.find({
-      'interactionMetrics.bookmarks': userId,
-      isDeleted: false
-    }).populate('author', 'name email').sort({ updatedAt: -1 });
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json(blogs);
+    const [blogs, totalBlogs] = await Promise.all([
+      Blog.find({
+        'interactionMetrics.bookmarks': userId,
+        isDeleted: false
+      })
+        .populate('author', 'name email')
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Blog.countDocuments({
+        'interactionMetrics.bookmarks': userId,
+        isDeleted: false
+      })
+    ]);
+
+    const totalPages = Math.ceil(totalBlogs / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      blogs,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalBlogs,
+        hasNextPage,
+        hasPrevPage,
+        limit: limitNum
+      }
+    });
   } catch (error) {
     console.error('Error fetching bookmarked blogs:', error);
     res.status(500).json({ message: 'Server error while fetching bookmarks' });

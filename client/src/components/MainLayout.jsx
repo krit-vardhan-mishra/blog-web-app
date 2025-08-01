@@ -1,5 +1,4 @@
 import React from 'react';
-import Footer from '../components/Footer';
 import { Outlet } from 'react-router';
 
 export default function MainLayout() {
@@ -8,7 +7,6 @@ export default function MainLayout() {
       <div style={{ flex: 1 }}>
         <Outlet />
       </div>
-      <Footer />
     </div>
   );
 }

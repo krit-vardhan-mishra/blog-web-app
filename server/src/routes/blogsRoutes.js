@@ -12,7 +12,8 @@ import {
   getUserBlogs,
   updateBlogEngagement,
   toggleBookmark,
-  getUserBookmarks
+  getUserBookmarks,
+  getUserStats
 } from '../controllers/blogController.js';
 import authenticateToken from '../middleware/authenticateToken.js';
 
@@ -34,8 +35,10 @@ router.use((error, req, res, next) => {
   });
 });
 
+router.get('/user/:userId/stats', getUserStats);
 router.get('/user/:userId', getUserBlogs);
 router.get('/bookmarks', authenticateToken, getUserBookmarks);
+router.get('/search', getNonDeletedBlogs);
 router.get('/', getNonDeletedBlogs);
 router.get('/deleted', authenticateToken, getAllDeletedBlogsByUser);
 router.post('/increment-view/:id', incrementBlogView);
@@ -45,7 +48,7 @@ router.put('/:id', authenticateToken, updateBlog);
 router.delete('/:id', authenticateToken, safeDeleteBlog);
 router.delete('/permanent/:id', authenticateToken, permanentlyDeleteBlog);
 router.post('/restore/:id', authenticateToken, restoreDeletedBlog);
-router.post('/:id/engagement', authenticateToken, updateBlogEngagement);
+router.post('/:id/engagement', updateBlogEngagement);
 router.post('/:id/bookmark', authenticateToken, toggleBookmark);
 
 export default router;

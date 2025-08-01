@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
 import { getCurrentDateTime } from '../utils/utilityFunctions.js';
-import { getInitialRecommendations } from '@/utils/recommendationUtils.js';
 import { calculateGenreMatchScore } from '@/utils/blogUtils.js';
 
 export const useHomePage = () => {
@@ -51,16 +50,30 @@ export const useHomePage = () => {
     const userBlogsCount = userBlogs.length;
     const totalViews = userBlogs.reduce((sum, blog) => sum + (Number(blog.views) || 0), 0);
 
+    const blogUpdateTimes = userBlogs.map(blog => new Date(blog.updatedAt || blog.createdAt));
+    const mostRecentBlogUpdate = blogUpdateTimes.length > 0 ? new Date(Math.max(...blogUpdateTimes)) : null;
+    const accountCreated = user?.createdAt ? new Date(user.createdAt) : null;
+    const lastLogin = user?.lastLogin ? new Date(user.lastLogin) : null;
+    
+    const allDates = [mostRecentBlogUpdate, accountCreated, lastLogin].filter(Boolean);
+    const lastUpdate = allDates.length > 0 ? new Date(Math.max(...allDates)) : null;
+    
+    const lastUpdateText = lastUpdate ? lastUpdate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) : 'Never';
+
     return [
       { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
-      { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
+      { title: 'Total Views', count: totalViews, subtitle: 'Across all your posts' },
       {
         title: 'Last Updated',
-        count: state.lastUpdated || 'Never',
+        count: lastUpdateText,
         subtitle: 'Recent activity',
       },
     ];
-  }, [userBlogs, state.lastUpdated]);
+  }, [userBlogs, user]);
 
   const updateState = useCallback((updates) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -111,21 +124,15 @@ export const useHomePage = () => {
     }
 
     try {
-      const response = await blogService.fetchAll();
-      const blogsData = response.blogs || response || [];
+      const response = await blogService.fetchForHomePage();
+      const latestBlogs = response.blogs || [];
 
-      const hasEngagementMetrics = blogsData.some(blog =>
-        blog.engagementScore !== undefined &&
-        blog.averageReadTime !== undefined
-      );
-
-      const recommended = hasEngagementMetrics
-        ? getRecommendedBlogs(blogsData, user)
-        : getInitialRecommendations(blogsData, user);
+      const allBlogsResponse = await blogService.fetchAll({}, { page: 1, limit: 100 });
+      const allBlogsData = allBlogsResponse.blogs || [];
 
       updateState({
-        allBlogs: blogsData,
-        latestBlogs: recommended,
+        allBlogs: allBlogsData,
+        latestBlogs: latestBlogs,
         isLoading: false,
         isBlogListRefreshing: false,
       });
@@ -134,11 +141,12 @@ export const useHomePage = () => {
       console.error('Failed to fetch blogs', error);
       updateState({
         allBlogs: [],
+        latestBlogs: [],
         isLoading: false,
         isBlogListRefreshing: false
       });
     }
-  }, [user, getRecommendedBlogs, updateState]);
+  }, [updateState]);
 
   const fetchAllUsers = useCallback(async () => {
     try {

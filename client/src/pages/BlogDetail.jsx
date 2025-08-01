@@ -128,7 +128,6 @@ const BlogDetail = () => {
     }
   };
 
-  // Record engagement on page unload
   useEffect(() => {
     const recordEngagement = async () => {
       const timeSpent = (Date.now() - startTime.current) / 1000;
@@ -137,14 +136,15 @@ const BlogDetail = () => {
         : getScrollDepth() / 100;
 
       try {
-        if (blogId && userId && timeSpent > 5) { // Only record if spent more than 5 seconds
+        if (blogId && timeSpent > 5) {
           await blogService.updateEngagement(blogId, {
             metrics: {
               timeSpent,
               scrollDepth: maxScrollDepth,
               completedReading: maxScrollDepth > 0.7 && timeSpent > 30
             },
-            userId
+            userId: userId || null, 
+            isAnonymous: !userId 
           });
         }
       } catch (error) {
@@ -190,11 +190,10 @@ const BlogDetail = () => {
     }
   }, [blog]);
 
-  // View increment with enhanced logic from PostModal
   useEffect(() => {
     let timer;
 
-    if (blog && blogId && token && !hasIncrementedRef.current) {
+    if (blog && blogId && !hasIncrementedRef.current) {
       timer = setTimeout(async () => {
         try {
           const updatedBlogResponse = await blogService.incrementView(blogId);
@@ -208,7 +207,7 @@ const BlogDetail = () => {
     }
 
     return () => clearTimeout(timer);
-  }, [blog, blogId, token]);
+  }, [blog, blogId]); // Removed token dependency
 
   const handleEdit = () => {
     setIsEditModalOpen(true);

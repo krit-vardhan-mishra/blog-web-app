@@ -55,8 +55,9 @@ export const homePageLoader = async () => {
   if (cachedData) return { ...cachedData, fromCache: true };
 
   try {
-    const [blogsRes, usersRes, statsRes] = await Promise.allSettled([
-      blogService.fetchAll(),
+    const [blogsRes, homepageBlogsRes, usersRes, statsRes] = await Promise.allSettled([
+      blogService.fetchAll({}, { page: 1, limit: 100 }),
+      blogService.fetchForHomePage(),
       userService.fetchAll ? userService.fetchAll() : Promise.resolve([]),
       blogService.getUserStats ? blogService.getUserStats(user.id) : Promise.resolve(null),
     ]);
@@ -70,11 +71,17 @@ export const homePageLoader = async () => {
       }
     }
 
+    let latestBlogs = [];
+    if (homepageBlogsRes.status === 'fulfilled') {
+      latestBlogs = homepageBlogsRes.value.blogs || [];
+    } else {
+      latestBlogs = allBlogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
+    }
+
     const allUsers = usersRes.status === 'fulfilled' ? usersRes.value : [];
     const userStats = statsRes.status === 'fulfilled' ? statsRes.value : null;
 
     const userBlogs = allBlogs.filter(b => (b.author?.id || b.author?._id) === user.id);
-    const latestBlogs = allBlogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6);
 
     const totalViews = userBlogs.reduce((sum, b) => sum + (b.views || 0), 0);
     const lastUpdated = userBlogs.length

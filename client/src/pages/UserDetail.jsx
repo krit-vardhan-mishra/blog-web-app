@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   User, Calendar, Mail,
@@ -19,8 +19,10 @@ const UserDetail = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [userBlogs, setUserBlogs] = useState([]);
+  const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [blogsLoading, setBlogsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(null);
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
@@ -57,16 +59,15 @@ const UserDetail = () => {
     const fetchUserBlogs = async () => {
       try {
         setBlogsLoading(true);
-        const data = await blogService.fetchAll();
-        const allBlogs = data.blogs || data || [];
-
-        const filteredBlogs = allBlogs.filter(
-          (blog) =>
-            blog.author &&
-            (blog.author._id === userId || blog.author === userId) &&
-            !blog.isDeleted
-        );
-        setUserBlogs(filteredBlogs);
+        const data = await blogService.fetchByUserId(userId, {}, { page: 1, limit: 5 });
+        
+        if (data.blogs) {
+          setUserBlogs(data.blogs);
+          setPagination(data.pagination);
+        } else {
+          setUserBlogs([]);
+          setPagination({});
+        }
       } catch (err) {
         console.error('Error fetching user blogs:', err);
         setNotification({
@@ -82,6 +83,51 @@ const UserDetail = () => {
       fetchUserBlogs();
     }
   }, [userId]);
+
+  // Load more blogs function
+  const loadMoreBlogs = useCallback(async () => {
+    if (loadingMore || !pagination.hasNextPage) return;
+
+    setLoadingMore(true);
+    try {
+      const loadingPromise = new Promise(resolve => setTimeout(resolve, 1200));
+      const dataPromise = blogService.fetchByUserId(userId, {}, { page: pagination.currentPage + 1, limit: 5 });
+      
+      const [, data] = await Promise.all([loadingPromise, dataPromise]);
+      
+      if (data.blogs) {
+        setUserBlogs(prevBlogs => {
+          const existingIds = new Set(prevBlogs.map(blog => blog._id));
+          const newBlogs = data.blogs.filter(blog => !existingIds.has(blog._id));
+          return [...prevBlogs, ...newBlogs];
+        });
+        setPagination(data.pagination);
+      }
+    } catch (err) {
+      console.error('Error loading more blogs:', err);
+      setNotification({
+        message: 'Failed to load more blogs',
+        type: 'error',
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [userId, loadingMore, pagination.hasNextPage, pagination.currentPage]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 1000 &&
+        !loadingMore && pagination.hasNextPage
+      ) {
+        loadMoreBlogs();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadMoreBlogs]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -394,35 +440,47 @@ const UserDetail = () => {
               ))}
             </div>
           ) : userBlogs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userBlogs.map((blog) => (
-                <motion.div
-                  key={blog._id}
-                  className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 cursor-pointer"
-                  variants={cardVariants}
-                  whileHover="hover"
-                  onClick={() => handleBlogClick(blog._id)}
-                >
-                  <h3 className="text-xl font-semibold mb-2 line-clamp-2">
-                    {blog.title}
-                  </h3>
-                  <p className="text-gray-400 mb-4 line-clamp-3">
-                    {blog.content}
-                  </p>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userBlogs.map((blog) => (
+                  <motion.div
+                    key={blog._id}
+                    className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 cursor-pointer"
+                    variants={cardVariants}
+                    whileHover="hover"
+                    onClick={() => handleBlogClick(blog._id)}
+                  >
+                    <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+                      {blog.title}
+                    </h3>
+                    <p className="text-gray-400 mb-4 line-clamp-3">
+                      {blog.content}
+                    </p>
 
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-2 text-blue-300">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(blog.createdAt)}</span>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center space-x-2 text-blue-300">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(blog.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-blue-300">
+                        <Eye className="w-4 h-4" />
+                        <span>{blog.views || 0}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-blue-300">
-                      <Eye className="w-4 h-4" />
-                      <span>{blog.views || 0}</span>
-                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Loading more blogs indicator */}
+              {loadingMore && (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center px-4 py-2 bg-gray-800/50 rounded-lg">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span className="text-gray-300">Loading more blogs...</span>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700">
               <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />

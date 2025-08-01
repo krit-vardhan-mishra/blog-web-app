@@ -39,7 +39,7 @@ export const Header = ({
   return (
     <div
       className={clsx(
-        'w-full bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700 overflow-hidden relative transition-all duration-300 h-[70px]', 
+        'w-full bg-[#1e1e2f] backdrop-blur-md shadow-md flex items-center justify-between px-4 border-b border-gray-700 overflow-hidden relative transition-all duration-300 h-[65px]', 
         className
       )}
     >

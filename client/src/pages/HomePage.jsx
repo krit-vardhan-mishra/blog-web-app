@@ -28,6 +28,7 @@ import { usePerformanceOptimizations } from '@/hooks/usePerformanceOptimization.
 import { BlogProvider } from '@/context/BlogContext.jsx';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch.js';
 import PostsSection from '@/components/PostsSection.jsx';
+import Footer from '@/components/Footer.jsx';
 
 export const HomePage = () => {
   const searchInputRef = useRef(null);
@@ -207,9 +208,15 @@ export const HomePage = () => {
           onSearchToggle={handleSearchToggle}
           onSearchChange={handleSearchChange}
           onSearchResultClick={(result) => {
-            handleSearchResultClick(result, handleOpenPostModal);
+            if (result.type === 'blog') {
+              navigate(`/blog/${result._id || result.id}`);
+            } else if (result.type === 'user') {
+              navigate(`/user/${result._id || result.id}`);
+            }
+            handleSearchToggle();
           }}
           onPerformSearch={() => { }}
+          allBlogs={allBlogs}
         />
 
         {/* Main Content */}
@@ -309,6 +316,8 @@ export const HomePage = () => {
           onCloseNotification={() => updateState({ showNotificationBanner: false })}
         />
       </div>
+
+      <Footer />
     </BlogProvider>
   );
 };

@@ -13,7 +13,6 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
   const handleSearchToggle = useCallback(() => {
     setIsSearchActive(prev => {
       if (prev) {
-        // Closing search - clear everything
         setSearchQuery('');
         setSearchResults([]);
         if (debounceTimerRef.current) {
@@ -29,29 +28,23 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
     setSearchQuery(newQuery);
   }, []);
 
-  // Debounced search effect
   useEffect(() => {
-    // Clear previous timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // If query is empty, clear results immediately
     if (!searchQuery.trim()) {
       setSearchResults([]);
       setSearchLoading(false);
       return;
     }
 
-    // Set loading state
     setSearchLoading(true);
 
-    // Set new timer
     debounceTimerRef.current = setTimeout(() => {
       performSearch(searchQuery);
     }, debounceMs);
 
-    // Cleanup function
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -67,15 +60,22 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
     }
     
     const searchTerm = query.toLowerCase().trim();
+    const isHashtagSearch = searchTerm.startsWith('#');
+    const tagQuery = isHashtagSearch ? searchTerm.substring(1) : searchTerm;
 
-    // Search blogs
-    const matchingBlogs = allBlogs.filter(blog =>
-      blog.title.toLowerCase().includes(searchTerm) ||
-      blog.content.toLowerCase().includes(searchTerm) ||
-      (blog.author?.name || '').toLowerCase().includes(searchTerm) ||
-      (blog.tags || []).some(tag => tag.toLowerCase().includes(searchTerm)) ||
-      (blog.genre || '').toLowerCase().includes(searchTerm)
-    );
+    const matchingBlogs = allBlogs.filter(blog => {
+      if (isHashtagSearch) {
+        return (blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery));
+      }
+      
+      return (
+        blog.title.toLowerCase().includes(searchTerm) ||
+        blog.content.toLowerCase().includes(searchTerm) ||
+        (blog.author?.name || '').toLowerCase().includes(searchTerm) ||
+        (blog.tags || []).some(tag => tag.toLowerCase().includes(searchTerm)) ||
+        (blog.genre || '').toLowerCase().includes(searchTerm)
+      );
+    });
 
     // Search users
     const matchingUsers = allUsers.filter(user =>
@@ -111,6 +111,7 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
     const content = blog.content.toLowerCase();
     const author = (blog.author?.name || '').toLowerCase();
     const tags = (blog.tags || []).join(' ').toLowerCase();
+    const genre = (blog.genre || '').toLowerCase();
     
     // Title matches get highest score
     if (title.includes(searchTerm)) score += 10;
@@ -122,8 +123,15 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
     // Author matches
     if (author.includes(searchTerm)) score += 5;
     
-    // Tag matches
-    if (tags.includes(searchTerm)) score += 4;
+    if (tags.includes(searchTerm)) score += 8;
+    if ((blog.tags || []).some(tag => tag.toLowerCase() === searchTerm)) score += 15;
+    
+    if (genre.includes(searchTerm)) score += 4;
+    
+    if (searchTerm.startsWith('#')) {
+      const tagQuery = searchTerm.substring(1);
+      if ((blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery))) score += 20;
+    }
     
     // Boost for exact matches
     if (title === searchTerm) score += 20;

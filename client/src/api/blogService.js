@@ -1,7 +1,7 @@
 import apiClient from './apiService.js';
 
 const blogService = {
-  fetchAll: async (filters = {}) => {
+  fetchAll: async (filters = {}, pagination = { page: 1, limit: 12 }, sortOptions = {}) => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -14,18 +14,29 @@ const blogService = {
       if (filters.difficulty) {
         queryParams.append('difficulty', filters.difficulty);
       }
-      if (filters.sortBy) {
-        queryParams.append('sortBy', filters.sortBy);
+
+      if (sortOptions.sortBy) {
+        queryParams.append('sortBy', sortOptions.sortBy);
       }
-      if (filters.order) {
-        queryParams.append('order', filters.order);
+      if (sortOptions.order) {
+        queryParams.append('order', sortOptions.order);
       }
-      if (filters.page) {
-        queryParams.append('page', filters.page.toString());
+      if (sortOptions.prioritizeEngagement) {
+        queryParams.append('prioritizeEngagement', sortOptions.prioritizeEngagement);
       }
-      if (filters.limit) {
-        queryParams.append('limit', filters.limit.toString());
+      if (sortOptions.prioritizeWatchTime) {
+        queryParams.append('prioritizeWatchTime', sortOptions.prioritizeWatchTime);
       }
+      if (sortOptions.prioritizeDifficulty) {
+        queryParams.append('prioritizeDifficulty', sortOptions.prioritizeDifficulty);
+      }
+      if (sortOptions.sortType) {
+        queryParams.append('sortType', sortOptions.sortType);
+      }
+
+      // Add pagination
+      queryParams.append('page', pagination.page.toString());
+      queryParams.append('limit', pagination.limit.toString());
 
       const url = `/blogs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiClient.get(url);
@@ -52,6 +63,43 @@ const blogService = {
     }
   },
 
+  fetchForHomePage: async () => {
+    try {
+      const response = await blogService.fetchAll(
+        {}, 
+        { page: 1, limit: 12 }, 
+        { sortType: 'homepage' }
+      );
+      
+      if (response.blogs && response.blogs.length > 0) {
+        const shuffled = [...response.blogs].sort(() => 0.5 - Math.random());
+        return {
+          blogs: shuffled.slice(0, 6),
+          totalFetched: response.blogs.length,
+          pagination: response.pagination
+        };
+      }
+      
+      return { blogs: [], totalFetched: 0, pagination: null };
+    } catch (error) {
+      console.error('❌ Error fetching blogs for homepage:', error.message);
+      throw error;
+    }
+  },
+
+  fetchForExplore: async (filters = {}, page = 1) => {
+    try {
+      return await blogService.fetchAll(
+        filters, 
+        { page, limit: 12 }, 
+        { sortType: 'explore' }
+      );
+    } catch (error) {
+      console.error('❌ Error fetching blogs for explore:', error.message);
+      throw error;
+    }
+  },
+
   fetchById: async (blogId) => {
     try {
       const response = await apiClient.get(`/blogs/${blogId}`);
@@ -62,7 +110,7 @@ const blogService = {
     }
   },
 
-  fetchByUserId: async (userId, filters = {}) => {
+  fetchByUserId: async (userId, filters = {}, pagination = { page: 1, limit: 5 }) => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -80,14 +128,28 @@ const blogService = {
         queryParams.append('order', filters.order);
       }
 
+      queryParams.append('page', pagination.page.toString());
+      queryParams.append('limit', pagination.limit.toString());
+
       const url = `/blogs/user/${userId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiClient.get(url);
-      const blogs = response.blogs || response;
 
-      return blogs.map((blog) => ({
+      if (response.blogs && response.pagination) {
+        return {
+          blogs: response.blogs.map((blog) => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: response.pagination
+        };
+      }
+
+      const blogs = response.blogs || response;
+      const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
+      return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ Error fetching blogs by user ID:', error.message);
       throw error;
@@ -173,15 +235,30 @@ const blogService = {
     }
   },
 
-  fetchDeleted: async () => {
+  fetchDeleted: async (pagination = { page: 1, limit: 12 }) => {
     try {
-      const response = await apiClient.get('/blogs/deleted');
-      const blogs = response.blogs || response;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', pagination.page.toString());
+      queryParams.append('limit', pagination.limit.toString());
 
-      return blogs.map((blog) => ({
+      const response = await apiClient.get(`/blogs/deleted?${queryParams.toString()}`);
+
+      if (response.blogs && response.pagination) {
+        return {
+          blogs: response.blogs.map((blog) => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: response.pagination
+        };
+      }
+
+      const blogs = response.blogs || response;
+      const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
+      return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ Error fetching deleted blogs:', error.message);
       throw error;
@@ -218,49 +295,64 @@ const blogService = {
     }
   },
 
-  fetchBookmarks: async () => {
+  fetchBookmarks: async (pagination = { page: 1, limit: 12 }) => {
     try {
-      const response = await apiClient.get('/blogs/bookmarks');
-      const blogs = response.blogs || response;
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', pagination.page.toString());
+      queryParams.append('limit', pagination.limit.toString());
 
-      return blogs.map((blog) => ({
+      const response = await apiClient.get(`/blogs/bookmarks?${queryParams.toString()}`);
+
+      if (response.blogs && response.pagination) {
+        return {
+          blogs: response.blogs.map((blog) => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: response.pagination
+        };
+      }
+
+      const blogs = response.blogs || response;
+      const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
+      return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ Error fetching bookmarks:', error.message);
       throw error;
     }
   },
 
-  fetchByGenre: async (genre) => {
+  fetchByGenre: async (genre, pagination = { page: 1, limit: 12 }) => {
     try {
-      return await blogService.fetchAll({ genre });
+      return await blogService.fetchAll({ genre }, pagination);
     } catch (error) {
       console.error('❌ Error fetching blogs by genre:', error.message);
       throw error;
     }
   },
 
-  fetchByTags: async (tags) => {
+  fetchByTags: async (tags, pagination = { page: 1, limit: 12 }) => {
     try {
-      return await blogService.fetchAll({ tags });
+      return await blogService.fetchAll({ tags }, pagination);
     } catch (error) {
       console.error('❌ Error fetching blogs by tags:', error.message);
       throw error;
     }
   },
 
-  fetchByDifficulty: async (difficulty) => {
+  fetchByDifficulty: async (difficulty, pagination = { page: 1, limit: 12 }) => {
     try {
-      return await blogService.fetchAll({ difficulty });
+      return await blogService.fetchAll({ difficulty }, pagination);
     } catch (error) {
       console.error('❌ Error fetching blogs by difficulty:', error.message);
       throw error;
     }
   },
 
-  search: async (searchTerm, filters = {}) => {
+  search: async (searchTerm, filters = {}, pagination = { page: 1, limit: 12 }) => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append('search', searchTerm);
@@ -271,15 +363,75 @@ const blogService = {
         }
       });
 
-      const response = await apiClient.get(`/blogs/search?${queryParams.toString()}`);
-      const blogs = response.blogs || response;
+      queryParams.append('page', pagination.page.toString());
+      queryParams.append('limit', pagination.limit.toString());
 
-      return blogs.map((blog) => ({
+      const response = await apiClient.get(`/blogs/search?${queryParams.toString()}`);
+
+      if (response.blogs && response.pagination) {
+        return {
+          blogs: response.blogs.map((blog) => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: response.pagination
+        };
+      }
+
+      const blogs = response.blogs || response;
+      const processedBlogs = blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
       }));
+      return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ Error searching blogs:', error.message);
+      throw error;
+    }
+  },
+
+  getUserStats: async (userId) => {
+    try {
+      const response = await apiClient.get(`/blogs/user/${userId}/stats`);
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching user stats:', error.message);
+      throw error;
+    }
+  },
+
+  fetchWithPriority: async (priorityType, filters = {}, pagination = { page: 1, limit: 12 }) => {
+    try {
+      const sortOptions = {};
+      
+      switch (priorityType) {
+        case 'engagement':
+          sortOptions.prioritizeEngagement = true;
+          sortOptions.sortBy = 'engagementScore';
+          sortOptions.order = 'desc';
+          break;
+        case 'watchTime':
+          sortOptions.prioritizeWatchTime = true;
+          sortOptions.sortBy = 'averageReadTime';
+          sortOptions.order = 'desc';
+          break;
+        case 'difficulty':
+          sortOptions.prioritizeDifficulty = true;
+          sortOptions.sortBy = 'readingDifficulty';
+          sortOptions.order = 'desc';
+          break;
+        case 'popular':
+          sortOptions.sortBy = 'views';
+          sortOptions.order = 'desc';
+          break;
+        default:
+          sortOptions.sortBy = 'createdAt';
+          sortOptions.order = 'desc';
+      }
+
+      return await blogService.fetchAll(filters, pagination, sortOptions);
+    } catch (error) {
+      console.error('❌ Error fetching blogs with priority:', error.message);
       throw error;
     }
   }

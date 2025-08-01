@@ -3,7 +3,7 @@ import userService from '../api/userService';
 
 export const exploreLoader = async () => {
   try {
-    const data = await blogService.fetchAll({ page: 1, limit: 12 });
+    const data = await blogService.fetchForExplore({}, 1);
 
     if (data.blogs) {
       const activeBlogs = data.blogs.filter(blog => !blog.isDeleted);
@@ -71,14 +71,14 @@ export const blogDetailLoader = async ({ params }) => {
 export const userDetailLoader = async ({ params }) => {
   try {
     const user = await userService.fetchById(params.userId);
-    const blogData = await blogService.fetchByUserId(params.userId);
+    const blogData = await blogService.fetchByUserId(params.userId, {}, { page: 1, limit: 5 });
 
-    const userBlogs = blogData.blogs || blogData || [];
+    const userBlogs = blogData.blogs || [];
 
-    return { user, blogs: userBlogs, error: null };
+    return { user, blogs: userBlogs, pagination: blogData.pagination, error: null };
   } catch (error) {
     console.error('Error fetching user:', error);
-    return { user: null, blogs: [], error: error.message || 'Failed to fetch user' };
+    return { user: null, blogs: [], pagination: {}, error: error.message || 'Failed to fetch user' };
   }
 };
 

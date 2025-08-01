@@ -36,16 +36,22 @@ const ExplorePage = () => {
 
     setLoading(true);
     try {
+      const loadingPromise = new Promise(resolve => setTimeout(resolve, 3000));
+      
       const filters = {
-        page: pagination.currentPage + 1,
-        limit: 12,
         ...(selectedCategory !== 'All' && { genre: selectedCategory })
       };
 
-      const data = await blogService.fetchAll(filters);
+      const dataPromise = blogService.fetchForExplore(filters, pagination.currentPage + 1);
+      
+      const [, data] = await Promise.all([loadingPromise, dataPromise]);
 
       if (data.blogs) {
-        setBlogs(prevBlogs => [...prevBlogs, ...data.blogs]);
+        setBlogs(prevBlogs => {
+          const existingIds = new Set(prevBlogs.map(blog => blog._id));
+          const newBlogs = data.blogs.filter(blog => !existingIds.has(blog._id));
+          return [...prevBlogs, ...newBlogs];
+        });
         setPagination(data.pagination);
       }
     } catch (error) {
@@ -97,11 +103,22 @@ const ExplorePage = () => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(blog =>
-        blog.title.toLowerCase().includes(query) ||
-        blog.content.toLowerCase().includes(query) ||
-        (blog.author?.name || '').toLowerCase().includes(query)
-      );
+      const isHashtagSearch = query.startsWith('#');
+      const tagQuery = isHashtagSearch ? query.substring(1) : query;
+      
+      filtered = filtered.filter(blog => {
+        if (isHashtagSearch) {
+          return (blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery));
+        }
+        
+        return (
+          blog.title.toLowerCase().includes(query) ||
+          blog.content.toLowerCase().includes(query) ||
+          (blog.author?.name || '').toLowerCase().includes(query) ||
+          (blog.tags || []).some(tag => tag.toLowerCase().includes(query)) ||
+          (blog.genre || '').toLowerCase().includes(query)
+        );
+      });
     }
 
     return filtered;
@@ -130,12 +147,10 @@ const ExplorePage = () => {
 
     try {
       const filters = {
-        page: 1,
-        limit: 12,
         ...(category !== 'All' && { genre: category })
       };
 
-      const data = await blogService.fetchAll(filters);
+      const data = await blogService.fetchForExplore(filters, 1);
 
       if (data.blogs) {
         setBlogs(data.blogs);
@@ -242,7 +257,7 @@ const ExplorePage = () => {
                   type="text"
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  placeholder="Search blogs, authors, or content..."
+                  placeholder="Search blogs, tags, authors, or content..."
                   className="flex-1 px-4 py-2 bg-transparent text-white placeholder-gray-400 focus:outline-none text-lg"
                 />
                 <button
@@ -345,8 +360,9 @@ const ExplorePage = () => {
             {/* End of content indicator */}
             {!pagination.hasNextPage && blogs.length > 0 && (
               <div className="text-center py-8">
-                <div className="inline-flex items-center px-4 py-2 bg-gray-800/50 rounded-lg">
-                  <span className="text-gray-400">🎉 You've reached the end! No more blogs to load.</span>
+                <div className="inline-flex items-center px-6 py-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <span className="text-xl mr-2">🎉</span>
+                  <span className="text-gray-300">You've reached the end! No more blogs to load.</span>
                 </div>
               </div>
             )}
@@ -355,8 +371,7 @@ const ExplorePage = () => {
       </motion.div>
 
       {/* Notification */}
-      {
-        notification && (
+      { notification && (
           <NotifyBanner
             message={notification.message}
             type={notification.type}

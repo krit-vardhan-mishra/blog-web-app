@@ -4,7 +4,6 @@ export const getInitialRecommendations = (allBlogs, user) => {
   return allBlogs
     .filter(blog => !blog.isDeleted)
     .map(blog => {
-      // Calculate temporary score based on available data
       const ageInDays = (now - new Date(blog.createdAt)) / (1000 * 60 * 60 * 24);
       const viewsWeight = 0.4;
       const recencyWeight = 0.6;
