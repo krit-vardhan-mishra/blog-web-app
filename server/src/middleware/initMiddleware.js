@@ -23,7 +23,7 @@ export default function initMiddleware(app) {
       saveUninitialized: false,
       store: MongoStore.create({
         mongoUrl: process.env.MONGODB_URI,
-        ttl: 14 * 24 * 60 * 60, // 14 days
+        ttl: 14 * 24 * 60 * 60,
       }),
       cookie: {
         secure: process.env.NODE_ENV === 'production',

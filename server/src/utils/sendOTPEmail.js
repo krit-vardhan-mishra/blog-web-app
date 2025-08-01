@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
 import { otpRateLimiter } from '../middleware/rateLimiter.js';
+import { EMAIL } from './constants.js';
 
-const SENDER_EMAIL = process.env.SENDER_EMAIL;
-const SENDER_PASSWORD = process.env.SENDER_PASSWORD;
+const { EMAIL: SENDER_EMAIL, PASSWORD: SENDER_PASSWORD } = EMAIL.SENDER;
 
 const createTransporter = () => {
   return nodemailer.createTransport({

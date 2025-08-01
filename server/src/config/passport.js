@@ -1,14 +1,12 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { GOOGLE_AUTH } from '../utils/constants.js';
 
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    clientID: GOOGLE_AUTH.CLIENT_ID,
+    clientSecret: GOOGLE_AUTH.CLIENT_SECRET,
+    callbackURL: GOOGLE_AUTH.CALLBACK_URL,
     proxy: true,
     passReqToCallback: true
   },

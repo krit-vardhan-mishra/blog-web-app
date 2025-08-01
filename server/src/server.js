@@ -1,5 +1,4 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import usersRoutes from './routes/usersRoutes.js';
 import blogsRoutes from './routes/blogsRoutes.js';
@@ -11,10 +10,13 @@ import cron from 'node-cron';
 import User from './models/User.js';
 import OTP from './models/OTP.js';
 import passport from 'passport';
+import path from 'path';
+import { SERVER, GOOGLE_AUTH } from './utils/constants.js';
 
-dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 5000;
+const { PORT, NODE_ENV } = SERVER;
+const { CLIENT_URL } = GOOGLE_AUTH;
+const __dirname = path.resolve();
 
 app.set('trust proxy', true);
 
@@ -22,16 +24,18 @@ await connectDB()
   .then(() => console.log("Database connected"))
   .catch(err => console.error("Database connection error:", err));
 
-initMiddleware(app);
+if (NODE_ENV !== "DEVELOPMENT") {
+  initMiddleware(app);
+}
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 cron.schedule('0 0 * * *', async () => {
-  await OTP.deleteMany({ 
-    createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } 
+  await OTP.deleteMany({
+    createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
   });
-  
+
   await User.updateMany(
     { blockExpires: { $lt: new Date() } },
     { $set: { loginAttempts: 0, blockExpires: null } }
@@ -43,6 +47,13 @@ app.use("/api/blogs", blogsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", otpRoutes);
 
+if (NODE_ENV === "PRODUCTION") {
+  app.use(express.static(path.join(__dirname, "../client/dist")));
+  app.get("*", (res, req) => {
+    res.sendFile(path.join(__dirname, "../client", "dist", "index.html"));
+  })
+}
+
 app.use((err, _, res, req) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
@@ -50,15 +61,15 @@ app.use((err, _, res, req) => {
 
 app.use((err, _, res, req) => {
   console.error('Global error handler:', err);
-  
+
   if (err.oauthError) {
-    return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_${err.oauthError.code}`);
+    return res.redirect(`${CLIENT_URL}/login?error=oauth_${err.oauthError.code}`);
   }
 
-  res.status(500).json({ 
+  res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
