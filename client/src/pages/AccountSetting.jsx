@@ -54,7 +54,7 @@ export const AccountSetting = () => {
         const response = await userService.fetchById(user.id);
         setUserDetails(response.user);
       } catch (err) {
-        console.log(err.message);
+        console.error(err.message);
       }
     };
 
@@ -154,12 +154,6 @@ export const AccountSetting = () => {
 
     if (isValidPassword) {
       try {
-        console.log('Attempting to delete account with:', {
-          userId: user.id,
-          deleteBlogs: deleteBlogsChoice,
-          token: token,
-        });
-
         const response = await userService.deleteAccount(
           user.id,
           deleteBlogsChoice,

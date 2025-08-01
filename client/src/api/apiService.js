@@ -14,27 +14,6 @@ const apiClient = axios.create({
   }
 });
 
-// Add request interceptor for retries
-apiClient.interceptors.response.use(null, async (error) => {
-  const { config } = error;
-  if (!config || !config.retry) {
-    return Promise.reject(error);
-  }
-
-  config.retryCount = config.retryCount || 0;
-
-  if (config.retryCount >= config.retry) {
-    return Promise.reject(error);
-  }
-
-  config.retryCount += 1;
-  const delayRetry = new Promise(resolve => {
-    setTimeout(resolve, config.retryDelay(config.retryCount));
-  });
-
-  return delayRetry.then(() => apiClient(config));
-});
-
 // Request interceptor to add token
 apiClient.interceptors.request.use(
   (config) => {
@@ -50,18 +29,47 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor with safe error handling
 apiClient.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
-  (error) => {
-    console.error('❌ API Error:', error.message);
+  (response) => response.data,
+  async (error) => {
+    const { config } = error;
+
+    const shouldNotRetry = [429, 401, 403].includes(error.response?.status);
+
+    if (config && config.retry && !shouldNotRetry) {
+      config.retryCount = config.retryCount || 0;
+
+      if (config.retryCount < config.retry) {
+        config.retryCount += 1;
+        const delayRetry = new Promise(resolve =>
+          setTimeout(resolve, config.retryDelay(config.retryCount))
+        );
+        return delayRetry.then(() => apiClient(config));
+      }
+    }
 
     if (error.code === 'ECONNABORTED') {
       return Promise.reject(
         new Error(`Request timed out after ${error.config.timeout}ms`)
       );
+    }
+
+    const errorMessage = error.response?.data?.message || error.message;
+
+    if (error.response?.status === 429) {
+      if (errorMessage.includes('Account temporarily locked')) {
+        const minutes = errorMessage.match(/\d+/)?.[0] || '25';
+        error.lockoutTime = parseInt(minutes);
+        error.isAccountLocked = true;
+      }
+
+      return Promise.reject(error);
+    }
+
+    if (errorMessage.includes('Account temporarily locked')) {
+      const minutes = errorMessage.match(/\d+/)?.[0] || '25';
+      error.lockoutTime = parseInt(minutes);
+      error.isAccountLocked = true;
     }
 
     if (error.response?.status === 401) {
@@ -83,11 +91,6 @@ apiClient.interceptors.response.use(
         new Error('Access denied. Please check your permissions.')
       );
     }
-
-    const errorMessage =
-      error.response?.data?.message ||
-      error.message ||
-      'An unexpected error occurred';
 
     return Promise.reject(new Error(errorMessage));
   }

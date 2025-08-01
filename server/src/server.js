@@ -63,5 +63,5 @@ app.use((err, _, res, req) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT} at Date: ${new Date().toLocaleTimeString()}`);
+  console.debug(`Server running at Date: ${new Date().toLocaleTimeString()}`);
 });

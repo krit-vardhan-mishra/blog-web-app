@@ -4,7 +4,6 @@ import { Button } from '../components/ui/Button';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LoginPageSkeleton } from '../skeleton/pages/LoginPageSkelton';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
@@ -66,6 +65,9 @@ export const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const [lockoutTimer, setLockoutTimer] = useState(null);
+  const [rateLimitTimer, setRateLimitTimer] = useState(null);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -76,19 +78,88 @@ export const LoginPage = () => {
     try {
       await login(formData.email, formData.password, rememberMe);
     } catch (err) {
-      setErrors({ form: err.message || 'Login failed. Please try again.' });
+      console.error('Login error:', err);
+      
+      if (err.response?.status === 429) {
+        const message = err.response?.data?.message || err.message;
+        
+        if (message.includes('Account temporarily locked')) {
+          const minutes = message.match(/\d+/)?.[0] || 25;
+          setErrors({
+            loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
+          });
+          
+          let timeLeft = minutes * 60;
+          const timer = setInterval(() => {
+            timeLeft -= 1;
+            if (timeLeft <= 0) {
+              clearInterval(timer);
+              setErrors({});
+              setLockoutTimer(null);
+            } else {
+              const minutesLeft = Math.floor(timeLeft / 60);
+              const secondsLeft = timeLeft % 60;
+              setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
+            }
+          }, 1000);
+        } else {
+          setErrors({
+            loginError: 'Too many login attempts. Please wait 15 minutes before trying again.'
+          });
+          
+          let timeLeft = 15 * 60;
+          const timer = setInterval(() => {
+            timeLeft -= 1;
+            if (timeLeft <= 0) {
+              clearInterval(timer);
+              setErrors({});
+              setRateLimitTimer(null);
+            } else {
+              const minutesLeft = Math.floor(timeLeft / 60);
+              const secondsLeft = timeLeft % 60;
+              setRateLimitTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
+            }
+          }, 1000);
+        }
+        return;
+      }
+      
+      if (err.isAccountLocked) {
+        const minutes = err.lockoutTime || 25;
+        setErrors({
+          loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
+        });
+        
+        let timeLeft = minutes * 60;
+        const timer = setInterval(() => {
+          timeLeft -= 1;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            setErrors({});
+            setLockoutTimer(null);
+          } else {
+            const minutesLeft = Math.floor(timeLeft / 60);
+            const secondsLeft = timeLeft % 60;
+            setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
+          }
+        }, 1000);
+        
+        return;
+      }
+      
+      setErrors({
+        loginError: err.message || 'Invalid email or password. Please try again.'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isAuthLoading || isLoading) {
-    return <LoginPageSkeleton />;
-  }
-
-  if (!isAuthLoading && isAuthenticated) {
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && !isAuthLoading) {
+      navigate('/home', { replace: true });
+    }
+  }, [isAuthenticated, isAuthLoading, navigate]);
 
   return (
     <div className="min-h-screen bg-[#1C222A] flex flex-col xl:flex-row">
@@ -194,23 +265,27 @@ export const LoginPage = () => {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-center">
-              <a
-                href="/forgot-password"
-                className="text-blue-400 hover:underline text-sm"
-              >
-                Forgot Password?
-              </a>
-            </div>
-
-            {errors.form && (
-              <p className="text-red-500 text-sm mt-1 mb-2 text-center">
-                {errors.form}
-              </p>
+            {/* Login Error Message */}
+            {errors.loginError && (
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <p className="text-red-500 text-sm font-medium text-center">
+                  {errors.loginError}
+                </p>
+                {lockoutTimer && (
+                  <p className="text-yellow-500 text-sm font-medium">
+                    Account lockout time remaining: {lockoutTimer}
+                  </p>
+                )}
+                {rateLimitTimer && (
+                  <p className="text-yellow-500 text-sm font-medium">
+                    Rate limit time remaining: {rateLimitTimer}
+                  </p>
+                )}
+              </div>
             )}
 
-            {errors.form?.includes('Email not verified') && (
+            {/* Email Verification Error */}
+            {errors.loginError?.includes('Email not verified') && (
               <div className="text-center mt-2">
                 <button
                   onClick={() =>
@@ -225,6 +300,16 @@ export const LoginPage = () => {
               </div>
             )}
 
+            {/* Forgot Password Link */}
+            <div className="flex justify-center">
+              <a
+                href="/forgot-password"
+                className="text-blue-400 hover:underline text-sm"
+              >
+                Forgot Password?
+              </a>
+            </div>
+
             {/* Login Button */}
             <div className="flex justify-center mt-6">
               <motion.div
@@ -232,21 +317,31 @@ export const LoginPage = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                  className={`bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto relative min-w-[120px] ${
+                    isLoading || rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
+                  }`}
                   type="submit"
-                  disabled={isLoading || isAuthLoading}
+                  disabled={isLoading || rateLimitTimer || lockoutTimer}
                 >
-                  {isLoading || isAuthLoading ? 'Logging in...' : 'Log in'}
+                  <span className={isLoading ? 'invisible' : ''}>Log in</span>
+                  {isLoading && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      Logging in...
+                    </span>
+                  )}
                 </Button>
               </motion.div>
-            </div>
+            </div>  
           </form>
 
           {/* Google Sign-in Button */}
           <div className="flex justify-center mt-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                className={`bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto ${
+                  rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
+                }`}
+                disabled={rateLimitTimer || lockoutTimer}
                 onClick={() =>
                   (window.location.href =
                     'http://localhost:5000/api/auth/google')

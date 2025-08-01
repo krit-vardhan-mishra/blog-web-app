@@ -11,13 +11,15 @@ const router = express.Router();
 
 console.debug('Initializing auth routes...');
 
-const authLimiter = rateLimiter(15 * 60 * 1000, 5);
+const loginLimiter = rateLimiter(5 * 60 * 1000, 20);
+const registerLimiter = rateLimiter(30 * 60 * 1000, 10);
+const otpLimiter = rateLimiter(10 * 60 * 1000, 5);
 
 router.post('/set-password', authenticateToken, setPassword);
-router.post('/login', authLimiter, loginUser);
-router.post('/register', authLimiter, registerUser);
-router.post('/verify-signup', authLimiter, verifySignup);
-router.post('/resend-otp', authLimiter, resendOTP);
+router.post('/login', loginLimiter, loginUser);
+router.post('/register', registerLimiter, registerUser);
+router.post('/verify-signup', otpLimiter, verifySignup);
+router.post('/resend-otp', otpLimiter, resendOTP);
 router.post('/verify-password', authenticateToken, verifyPassword);
 router.post('/change-password', authenticateToken, changePassword);
 

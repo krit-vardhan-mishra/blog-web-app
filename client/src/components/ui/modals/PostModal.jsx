@@ -146,7 +146,6 @@ const PostModal = ({
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareData.url);
-        console.log('URL copied to clipboard');
       }
     } catch (error) {
       console.error('Error sharing:', error);
@@ -192,7 +191,6 @@ const PostModal = ({
   const handleCloseEditModal = () => setIsEditModalOpen(false);
 
   const handleUpdateSuccess = (message) => {
-    console.log(message);
     setIsEditModalOpen(false);
   };
 

@@ -21,8 +21,7 @@ export const DeletedPost = ({
   const handleRestore = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Restore clicked for:', title);
-
+    
     if (onRestore) {
       onRestore();
     }
@@ -31,7 +30,6 @@ export const DeletedPost = ({
   const handleDelete = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Delete clicked for:', title);
 
     if (onDelete) {
       onDelete();

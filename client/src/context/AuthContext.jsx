@@ -30,17 +30,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password, rememberMe) => {
-    setIsAuthLoading(true);
     try {
       const response = await authService.login(email, password);
       loginUser({ token: response.token, user: response.user }, rememberMe);
       return response;
     } catch (error) {
-      setUser(null);
-      setToken(null);
+      if (user || token) {
+        setUser(null);
+        setToken(null);
+      }
       throw error;
-    } finally {
-      setIsAuthLoading(false);
     }
   };
 
