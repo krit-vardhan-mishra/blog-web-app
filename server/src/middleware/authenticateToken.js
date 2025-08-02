@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { AUTH } from '../utils/constants.js';
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -14,7 +15,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, AUTH.JWT_SECRET);
 
     // Check if user exists in database
     const foundUser = await User.findById(decoded.id);

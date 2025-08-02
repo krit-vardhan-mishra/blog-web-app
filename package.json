@@ -4,14 +4,26 @@
   "description": "A full-featured blogging platform for writing, sharing, and discovering blogs across a wide variety of genres and topics. Supports user authentication, content creation, bookmarking, recommendations, and engagement analytics.",
   "main": "index.js",
   "scripts": {
-    "build" : "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
-    "start": "npm run build && npm run start --prefix server"
+    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+    "start": "npm run build && npm run start --prefix server",
+    "analyze": "npm run build && npx vite-bundle-analyzer client/dist",
+    "build:analyze": "cd client && npm run build -- --analyze",
+    "dev": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/krit-vardhan-mishra/blog-web-app.git"
   },
-  "keywords": [],
+  "keywords": [
+    "blog",
+    "react",
+    "node",
+    "express",
+    "mongodb",
+    "authentication",
+    "content-management"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

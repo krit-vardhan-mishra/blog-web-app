@@ -8,7 +8,7 @@ const getGenreColor = (genre) => {
     'Blockchain & Crypto': 'yellow-700',
     'Book Reviews': 'lime-500',
     'Business': 'blue-500',
-    'Career Advice': 'indigo-300',
+    'Career Advice': 'gray-400',
     'Cinema': 'violet-500',
     'Coding & Development': 'purple-600',
     'Comics & Graphic Novels': 'yellow-600',

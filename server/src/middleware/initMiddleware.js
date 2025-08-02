@@ -3,6 +3,7 @@ import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
 import MongoStore from 'connect-mongo';
+import { AUTH, DATABASE, SERVER } from '../utils/constants.js';
 
 export default function initMiddleware(app) {
   app.use(
@@ -18,15 +19,15 @@ export default function initMiddleware(app) {
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'your-secret-key',
+      secret: AUTH.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URI,
+        mongoUrl: DATABASE.MONGODB_URI,
         ttl: 14 * 24 * 60 * 60,
       }),
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: SERVER.NODE_ENV === 'PRODUCTION',
         maxAge: 1000 * 60 * 60 * 24,
       },
     })

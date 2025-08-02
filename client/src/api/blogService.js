@@ -66,11 +66,11 @@ const blogService = {
   fetchForHomePage: async () => {
     try {
       const response = await blogService.fetchAll(
-        {}, 
-        { page: 1, limit: 12 }, 
+        {},
+        { page: 1, limit: 12 },
         { sortType: 'homepage' }
       );
-      
+
       if (response.blogs && response.blogs.length > 0) {
         const shuffled = [...response.blogs].sort(() => 0.5 - Math.random());
         return {
@@ -79,7 +79,7 @@ const blogService = {
           pagination: response.pagination
         };
       }
-      
+
       return { blogs: [], totalFetched: 0, pagination: null };
     } catch (error) {
       console.error('❌ Error fetching blogs for homepage:', error.message);
@@ -90,8 +90,8 @@ const blogService = {
   fetchForExplore: async (filters = {}, page = 1) => {
     try {
       return await blogService.fetchAll(
-        filters, 
-        { page, limit: 12 }, 
+        filters,
+        { page, limit: 12 },
         { sortType: 'explore' }
       );
     } catch (error) {
@@ -114,7 +114,6 @@ const blogService = {
     try {
       const queryParams = new URLSearchParams();
 
-      // Add filters to query params
       if (filters.genre && filters.genre !== 'All') {
         queryParams.append('genre', filters.genre);
       }
@@ -153,6 +152,22 @@ const blogService = {
     } catch (error) {
       console.error('❌ Error fetching blogs by user ID:', error.message);
       throw error;
+    }
+  },
+
+  getUserBlogsStats: async (userId) => {
+    try {
+      const response = await apiClient.get(`/blogs/user/${userId}/stats`);
+      return response;
+    } catch (error) {
+      console.error('❌ Error fetching user blog stats:', error.message);
+      // Return default values if stats endpoint fails
+      return {
+        totalBlogs: 0,
+        totalViews: 0,
+        lastUpdated: null,
+        success: false
+      };
     }
   },
 
@@ -403,7 +418,7 @@ const blogService = {
   fetchWithPriority: async (priorityType, filters = {}, pagination = { page: 1, limit: 12 }) => {
     try {
       const sortOptions = {};
-      
+
       switch (priorityType) {
         case 'engagement':
           sortOptions.prioritizeEngagement = true;

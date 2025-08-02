@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import OTP from '../models/OTP.js';
 import sendOTPEmail from '../utils/sendOTPEmail.js';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { AUTH, SERVER } from '../utils/constants.js';
 
 const otpRateLimiter = new RateLimiterMemory({
   points: 3,
@@ -71,7 +72,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign({
       id: user._id,
       email: user.email
-    }, process.env.JWT_SECRET, {
+    }, AUTH.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -184,7 +185,7 @@ export const verifySignup = async (req, res) => {
     const token = jwt.sign({
       id: user._id,
       email: user.email
-    }, process.env.JWT_SECRET, {
+    }, AUTH.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -335,19 +336,19 @@ export const googleAuthCallback = (req, res) => {
 
   if (req.query.error) {
     console.error('Google OAuth error:', req.query.error);
-    return res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
+    return res.redirect(`${SERVER.CLIENT_URL}/login?error=google_auth_failed`);
   }
 
   if (!req.user) {
     console.error('No user returned from Google auth');
-    return res.redirect(`${process.env.CLIENT_URL}/login?error=no_user`);
+    return res.redirect(`${SERVER.CLIENT_URL}/login?error=no_user`);
   }
 
   try {
     const token = jwt.sign({
       id: req.user._id,
       email: req.user.email
-    }, process.env.JWT_SECRET, {
+    }, AUTH.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -358,12 +359,12 @@ export const googleAuthCallback = (req, res) => {
       authMethod: req.user.authMethod
     };
 
-    const redirectUrl = `${process.env.CLIENT_URL}/google-auth?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`;
+    const redirectUrl = `${SERVER.CLIENT_URL}/google-auth?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`;
     console.debug('Redirecting to:', redirectUrl);
 
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google auth callback error:', error);
-    return res.redirect(`${process.env.CLIENT_URL}/login?error=token_generation_failed`);
+    return res.redirect(`${SERVER.CLIENT_URL}/login?error=token_generation_failed`);
   }
 };

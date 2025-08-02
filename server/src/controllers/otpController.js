@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import OTP from '../models/OTP.js';
 import bcrypt from 'bcryptjs';
 import sendOTPEmail from '../utils/sendOTPEmail.js';
+import { SERVER } from '../utils/constants.js';
 
 export const forgotPassword = async (req, res) => {
   try {
@@ -82,7 +83,7 @@ export const forgotPassword = async (req, res) => {
     res.status(statusCode).json({
       success: false,
       message: errorMessage,
-      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+      ...(SERVER.NODE_ENV === 'DEVELOPMENT' && { debug: error.message })
     });
   }
 };
@@ -145,7 +146,7 @@ export const verifyResetOtp = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'An error occurred while verifying OTP',
-      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+      ...(SERVER.NODE_ENV === 'DEVELOPMENT' && { debug: error.message })
     });
   }
 };
@@ -231,7 +232,7 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'An error occurred while resetting password',
-      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+      ...(SERVER.NODE_ENV === 'DEVELOPMENT' && { debug: error.message })
     });
   }
 };

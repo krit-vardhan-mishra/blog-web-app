@@ -49,9 +49,10 @@ app.use("/api/auth", otpRoutes);
 
 if (NODE_ENV === "PRODUCTION") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.get("*", (res, req) => {
+
+  app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../client", "dist", "index.html"));
-  })
+  });
 }
 
 app.use((err, _, res, req) => {
@@ -69,7 +70,7 @@ app.use((err, _, res, req) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: NODE_ENV === 'development' ? err.message : undefined
+    error: NODE_ENV === 'DEVELOPMENT' ? err.message : undefined
   });
 });
 

@@ -136,15 +136,50 @@ export const myPostsLoader = async () => {
   if (cached) return cached;
 
   try {
-    const data = await blogService.fetchAll();
-    const allBlogs = data.blogs || data || [];
-    const userBlogs = allBlogs.filter(blog =>
-      (blog.author?.id || blog.author?._id) === user.id && !blog.isDeleted
+    const userBlogsResponse = await blogService.fetchByUserId(
+      user.id,
+      {},
+      { page: 1, limit: 6 }
     );
-    const result = { blogs: userBlogs, user, error: null };
+
+    let totalBlogs = 0;
+    let totalViews = 0;
+
+    if (userBlogsResponse.pagination?.totalBlogs) {
+      totalBlogs = userBlogsResponse.pagination.totalBlogs;
+      totalViews = (userBlogsResponse.blogs || []).reduce((sum, blog) => sum + (blog.views || 0), 0);
+    }
+
+    try {
+      const statsResponse = await blogService.getUserBlogsStats(user.id);
+      if (statsResponse.success) {
+        totalBlogs = statsResponse.totalBlogs || 0;
+        totalViews = statsResponse.totalViews || 0;
+      }
+    } catch (statsError) {
+      console.warn('Stats endpoint failed, using pagination data:', statsError);
+    }
+
+    const result = {
+      blogs: userBlogsResponse.blogs || [],
+      pagination: userBlogsResponse.pagination || null,
+      totalBlogs,
+      totalViews,
+      user,
+      error: null
+    };
+
     dataCache.set(cacheKey, result);
     return result;
   } catch (error) {
-    return { blogs: [], user, error: error.message };
+    console.error('MyPosts loader failed:', error);
+    return {
+      blogs: [],
+      pagination: null,
+      totalBlogs: 0,
+      totalViews: 0,
+      user,
+      error: error.message
+    };
   }
 };

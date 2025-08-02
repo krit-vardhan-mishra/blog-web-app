@@ -1,85 +1,191 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import blogService from '../api/blogService';
 
 export const useMyPosts = (initialData = null) => {
     const { user, token } = useAuth();
+    const isMountedRef = useRef(true);
+    const initializationRef = useRef(false);
 
-    // State management
     const [state, setState] = useState({
         showNotificationBanner: false,
         notificationMessage: '',
         isEditPostOpen: false,
         isCreatePostOpen: false,
-        isLoading: !initialData,
+        isLoading: initialData ? false : true, 
         isStatModalOpen: false,
         isAllStatsOpen: false,
         selectedStat: null,
         isPostModalOpen: false,
         selectedBlogForModal: null,
-        allBlogs: initialData?.blogs || [],
+        userBlogs: initialData?.blogs || [],
+        pagination: initialData?.pagination || null,
+        totalBlogs: initialData?.totalBlogs || 0,
+        totalViews: initialData?.totalViews || 0,
         lastUpdated: null,
         isConfirmOpen: false,
         selectedBlogId: null,
         blogToEdit: null,
+        isLoadingMore: false,
+        hasNextPage: initialData?.pagination?.hasNextPage || false,
     });
 
-    // Helper function to update state
-    const updateState = useCallback((updates) => {
-        setState(prev => ({ ...prev, ...updates }));
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
-    // Memoized calculations - filter user's non-deleted blogs
-    const userBlogs = useMemo(() => {
-        if (!Array.isArray(state.allBlogs)) {
-            console.warn('state.allBlogs is not an array:', state.allBlogs);
-            return [];
+    const updateState = useCallback((updates) => {
+        if (isMountedRef.current) {
+            setState(prev => ({ ...prev, ...updates }));
+        }
+    }, []);
+
+    const fetchUserBlogs = useCallback(async (page = 1, append = false) => {
+        if (!user?.id || !isMountedRef.current) return;
+        
+        const startTime = Date.now();
+        if (!append) {
+            updateState({ isLoading: true });
+        } else {
+            updateState({ isLoadingMore: true });
         }
 
-        return state.allBlogs.filter(
-            (blog) => blog.author?._id === user?.id && !blog.isDeleted
-        );
-    }, [state.allBlogs, user?.id]);
+        try {
+            const response = await blogService.fetchByUserId(
+                user.id,
+                {},
+                { page, limit: 6 }
+            );
+
+            if (!isMountedRef.current) return;
+
+            const newBlogs = response.blogs || [];
+            const newPagination = response.pagination;
+
+            const elapsed = Date.now() - startTime;
+            const minLoadTime = process.env.NODE_ENV === 'development' ? 300 : 0;
+            const remainingTime = minLoadTime - elapsed;
+
+            if (remainingTime > 0 && !append) {
+                await new Promise(resolve => setTimeout(resolve, remainingTime));
+            }
+
+            if (isMountedRef.current) {
+                updateState({
+                    userBlogs: append ? [...state.userBlogs, ...newBlogs] : newBlogs,
+                    pagination: newPagination,
+                    hasNextPage: newPagination?.hasNextPage || false,
+                    isLoading: false,
+                    isLoadingMore: false,
+                });
+            }
+
+        } catch (error) {
+            console.error('Failed to fetch user blogs:', error);
+
+            if (!isMountedRef.current) return;
+
+            const elapsed = Date.now() - startTime;
+            const minLoadTime = process.env.NODE_ENV === 'development' ? 300 : 0;
+            const remainingTime = minLoadTime - elapsed;
+
+            if (remainingTime > 0 && !append) {
+                await new Promise(resolve => setTimeout(resolve, remainingTime));
+            }
+
+            updateState({
+                userBlogs: append ? state.userBlogs : [],
+                isLoading: false,
+                isLoadingMore: false
+            });
+        }
+    }, [user?.id, updateState, state.userBlogs]);
+
+    useEffect(() => {
+        if (initializationRef.current) return;
+        
+        const initializeComponent = async () => {
+            initializationRef.current = true;
+            
+            if (initialData) {
+                if (isMountedRef.current) {
+                    updateState({ 
+                        isLoading: false,
+                        userBlogs: initialData.blogs || [],
+                        pagination: initialData.pagination || null,
+                        totalBlogs: initialData.totalBlogs || 0,
+                        totalViews: initialData.totalViews || 0,
+                        hasNextPage: initialData.pagination?.hasNextPage || false
+                    });
+                }
+            } else if (user?.id && token) {
+                // Only fetch if we don't have initial data and have user info
+                await fetchUserBlogs(1, false);
+            } else {
+                // No user or token, set loading to false
+                updateState({ isLoading: false });
+            }
+        };
+
+        // Add a small delay to ensure DOM is ready, but shorter in production
+        const initDelay = process.env.NODE_ENV === 'development' ? 100 : 0;
+        const timeoutId = setTimeout(initializeComponent, initDelay);
+        
+        return () => clearTimeout(timeoutId);
+    }, [user?.id, token, initialData, fetchUserBlogs, updateState]);
+
+    const userBlogs = useMemo(() => {
+        return state.userBlogs.filter(blog => !blog.isDeleted);
+    }, [state.userBlogs]);
 
     const stats = useMemo(() => {
-        const userBlogsCount = userBlogs.length;
-        const totalViews = userBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
-
         return [
-            { title: 'Your Blogs', count: userBlogsCount, subtitle: 'Published posts' },
-            { title: 'Total Views', count: totalViews, subtitle: 'Page views' },
+            { title: 'Your Blogs', count: state.totalBlogs, subtitle: 'Published posts' },
+            { title: 'Total Views', count: state.totalViews, subtitle: 'Page views' },
             {
                 title: 'Last Updated',
                 count: state.lastUpdated || 'Never',
                 subtitle: 'Recent activity',
             },
         ];
-    }, [userBlogs, state.lastUpdated]);
+    }, [state.totalBlogs, state.totalViews, state.lastUpdated]);
 
-    // Fetch all blogs data
+    const loadMoreBlogs = useCallback(async () => {
+        if (state.hasNextPage && !state.isLoadingMore && state.pagination?.currentPage) {
+            await fetchUserBlogs(state.pagination.currentPage + 1, true);
+        }
+    }, [state.hasNextPage, state.isLoadingMore, state.pagination?.currentPage, fetchUserBlogs]);
+
     const fetchAllBlogsData = useCallback(async () => {
-        updateState({ isLoading: true });
-        const start = Date.now();
-
+        if (!user?.id || !isMountedRef.current) return;
+        
         try {
-            const data = await blogService.fetchAll();
-            const duration = Date.now() - start;
-            const minDelay = 500;
-
-            if (duration < minDelay) {
-                await new Promise((res) => setTimeout(res, minDelay - duration));
+            try {
+                const statsResponse = await blogService.getUserBlogsStats(user.id);
+                if (statsResponse.success && isMountedRef.current) {
+                    updateState({
+                        totalBlogs: statsResponse.totalBlogs || 0,
+                        totalViews: statsResponse.totalViews || 0,
+                    });
+                }
+            } catch (statsError) {
+                console.warn('Failed to fetch stats:', statsError);
             }
 
-            const blogsData = data.blogs || data || [];
-            updateState({ allBlogs: blogsData, isLoading: false });
+            await fetchUserBlogs(1, false);
         } catch (error) {
-            console.error('Failed to fetch blogs', error);
-            updateState({ allBlogs: [], isLoading: false });
+            console.error('Failed to refresh data:', error);
+            // Ensure loading state is cleared even on error
+            updateState({ isLoading: false });
         }
-    }, [updateState]);
+    }, [user?.id, fetchUserBlogs, updateState]);
 
     // Update last updated time
     const updateLastUpdatedTime = useCallback(() => {
+        if (!isMountedRef.current) return;
+        
         const now = new Date();
         const timeString = now.toLocaleTimeString('en-US', {
             hour: '2-digit',
@@ -120,7 +226,7 @@ export const useMyPosts = (initialData = null) => {
 
         handleViewIncrement: useCallback((blogId, newViews) => {
             updateState(prev => ({
-                allBlogs: prev.allBlogs.map((blog) =>
+                userBlogs: prev.userBlogs.map((blog) =>
                     blog._id === blogId || blog.id === blogId
                         ? { ...blog, views: newViews }
                         : blog
@@ -156,20 +262,26 @@ export const useMyPosts = (initialData = null) => {
         }, [updateState]),
 
         handlePostDeleteSuccess: useCallback(async (blogId) => {
+            if (!isMountedRef.current) return;
+            
             try {
                 await blogService.delete(blogId, token);
-                updateState(prev => ({
-                    allBlogs: prev.allBlogs.filter((b) => b._id !== blogId),
-                    notificationMessage: 'Post moved to trash successfully!',
-                    showNotificationBanner: true
-                }));
-                updateLastUpdatedTime();
+                if (isMountedRef.current) {
+                    updateState(prev => ({
+                        userBlogs: prev.userBlogs.filter((b) => b._id !== blogId),
+                        notificationMessage: 'Post moved to trash successfully!',
+                        showNotificationBanner: true
+                    }));
+                    updateLastUpdatedTime();
+                }
             } catch (error) {
                 console.error('Failed to move blog to trash:', error);
-                updateState({
-                    notificationMessage: 'Failed to move the post to trash.',
-                    showNotificationBanner: true
-                });
+                if (isMountedRef.current) {
+                    updateState({
+                        notificationMessage: 'Failed to move the post to trash.',
+                        showNotificationBanner: true
+                    });
+                }
             }
         }, [token, updateState, updateLastUpdatedTime]),
     };
@@ -182,6 +294,8 @@ export const useMyPosts = (initialData = null) => {
         stats,
         updateState,
         fetchAllBlogsData,
+        fetchUserBlogs,
+        loadMoreBlogs,
         updateLastUpdatedTime,
         ...handlers,
     };

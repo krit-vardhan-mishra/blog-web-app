@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { HomeIcon, Trash2, SettingsIcon, LogOut } from 'lucide-react';
 import Header from '../components/Header';
@@ -13,6 +13,47 @@ import PostsSection from '@/components/PostsSection';
 import { BlogProvider } from '@/context/BlogContext';
 import { useLoaderData } from 'react-router';
 
+// Kuch nahi hua toh skeleton code hta dena
+
+const InfiniteScrollHandler = ({ hasNextPage, isLoadingMore, onLoadMore }) => {
+  const observerRef = useRef(null);
+  const targetRef = useRef(null);
+
+  const handleIntersect = useCallback((entries) => {
+    const [entry] = entries;
+    if (entry.isIntersecting && hasNextPage && !isLoadingMore) {
+      onLoadMore();
+    }
+  }, [hasNextPage, isLoadingMore, onLoadMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleIntersect, {
+      threshold: 0.1,
+      rootMargin: '100px',
+    });
+
+    if (targetRef.current) {
+      observer.observe(targetRef.current);
+    }
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [handleIntersect]);
+
+  return (
+    <div ref={targetRef} className="h-10 flex items-center justify-center">
+      {isLoadingMore && (
+        <div className="text-gray-400">Loading more posts...</div>
+      )}
+    </div>
+  );
+};
+
 export const MyPosts = () => {
   const loaderData = useLoaderData();
 
@@ -22,6 +63,8 @@ export const MyPosts = () => {
     token,
     stats,
     userBlogs,
+    hasNextPage,
+    isLoadingMore,
     showNotificationBanner,
     notificationMessage,
     selectedStat,
@@ -36,6 +79,7 @@ export const MyPosts = () => {
     selectedBlogForModal,
     updateState,
     fetchAllBlogsData,
+    loadMoreBlogs,
     handleStatClick,
     handleEditPost,
     handleDeleteClick,
@@ -93,7 +137,7 @@ export const MyPosts = () => {
       token: token,
       refreshBlogs: fetchAllBlogsData,
     }}>
-      <div className="bg-[#1A1C20] text-white flex flex-col flex-1">
+      <div className="bg-[#1A1C20] text-white min-h-screen flex flex-col flex-1">
         {/* Header */}
         <Header
           title="Your Posts"
@@ -133,6 +177,15 @@ export const MyPosts = () => {
               mode="my-posts"
               postsCount={userBlogs.length}
             />
+
+            {/* Infinite Scroll Handler */}
+            {userBlogs.length > 0 && (
+              <InfiniteScrollHandler
+                hasNextPage={hasNextPage}
+                isLoadingMore={isLoadingMore}
+                onLoadMore={loadMoreBlogs}
+              />
+            )}
           </motion.div>
         </div>
 

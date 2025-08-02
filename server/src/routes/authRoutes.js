@@ -6,6 +6,7 @@ import {
 } from '../controllers/authController.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import authenticateToken from '../middleware/authenticateToken.js';
+import { SERVER } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.get('/google/callback',
   (err, req, res, next) => {
     if (err) {
       console.error('Passport authentication error:', err);
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
+      return res.redirect(`${SERVER.CLIENT_URL}/login?error=auth_failed`);
     }
     next();
   },

@@ -270,7 +270,7 @@ export const COLOR_MAPPINGS = {
         'Productivity': 'bg-cyan-600',
         'Life Lessons': 'bg-emerald-600',
         'Freelancing': 'bg-blue-300',
-        'Career Advice': 'bg-indigo-300',
+        'Career Advice': 'bg-gray-400',
         'Job Search': 'bg-amber-400',
         'Workplace Culture': 'bg-zinc-500',
         'Remote Work': 'bg-cyan-300',

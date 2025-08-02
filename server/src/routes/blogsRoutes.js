@@ -16,6 +16,7 @@ import {
   getUserStats
 } from '../controllers/blogController.js';
 import authenticateToken from '../middleware/authenticateToken.js';
+import { SERVER } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.use((error, req, res, next) => {
 
   res.status(500).json({
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    error: SERVER.NODE_ENV === 'DEVELOPMENT' ? error.message : undefined
   });
 });
 

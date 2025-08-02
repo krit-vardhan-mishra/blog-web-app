@@ -7,7 +7,7 @@ export const genres = [
     { value: 'Blockchain & Crypto', label: 'Blockchain & Crypto', icon: '🪙', color: 'bg-yellow-700' },
     { value: 'Book Reviews', label: 'Book Reviews', icon: '📚', color: 'bg-lime-500' },
     { value: 'Business', label: 'Business', icon: '💼', color: 'bg-blue-600' },
-    { value: 'Career Advice', label: 'Career Advice', icon: '📋', color: 'bg-indigo-300' },
+    { value: 'Career Advice', label: 'Career Advice', icon: '📋', color: 'bg-gray-400' },
     { value: 'Cinema', label: 'Cinema', icon: '🎞️', color: 'bg-violet-500' },
     { value: 'Coding & Development', label: 'Coding & Development', icon: '👨‍💻', color: 'bg-purple-600' },
     { value: 'Comics & Graphic Novels', label: 'Comics & Graphic Novels', icon: '📖', color: 'bg-yellow-600' },

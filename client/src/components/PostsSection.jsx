@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { BinocularsIcon, Plus } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import OptimizedPostDetails from './OptimizedPostDetails.jsx';
-import PostDetails from './PostDetails.jsx';
 
 const PostsSection = ({
   // Common props
@@ -16,7 +15,6 @@ const PostsSection = ({
   itemVariants,
   isRefreshing = false,
 
-  // Mode-specific props
   mode = 'recent',
   postsCount,
   showViewAll = false,
@@ -57,23 +55,6 @@ const PostsSection = ({
     </motion.div>
   );
 };
-
-// Sub-components
-const PostsSectionSkeleton = () => (
-  <div className="py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700 animate-pulse">
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-      {[...Array(3)].map((_, index) => (
-        <div key={index} className="bg-gray-700 rounded-lg shadow-lg overflow-hidden h-64">
-          <div className="h-40 bg-gray-600 animate-pulse"></div>
-          <div className="p-4">
-            <div className="h-4 bg-gray-600 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-600 rounded w-1/2"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 const SectionHeader = ({ mode, postsCount, showExploreLink }) => (
   <div className='flex flex-row w-full justify-between mb-6'>
@@ -125,7 +106,7 @@ const PostsGrid = ({
   mode
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {posts.map((blog) => mode === 'recent' ? (
+    {posts.map((blog) => (
       <OptimizedPostDetails
         key={blog._id || blog.id}
         blog={blog}
@@ -135,19 +116,7 @@ const PostsGrid = ({
         onEdit={() => onEdit(blog)}
         onDelete={() => onDelete(blog.id || blog._id)}
         onOpenModal={onOpenModal}
-        onToggleBookmark={onToggleBookmark}
-      />
-    ) : (
-      <PostDetails
-        key={blog.id || blog._id}
-        author={blog.author}
-        userId={user?.id}
-        blog={blog}
-        token={token}
-        onDelete={() => onDelete(blog.id || blog._id)}
-        onEdit={() => onEdit(blog)}
-        onOpenModal={onOpenModal}
-        initialViews={blog.views}
+        onToggleBookmark={mode === 'recent' || onToggleBookmark ? onToggleBookmark : null}
       />
     ))}
   </div>

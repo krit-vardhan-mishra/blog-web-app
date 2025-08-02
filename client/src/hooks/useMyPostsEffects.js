@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export const useMyPostsEffects = ({
   user,
@@ -13,6 +13,7 @@ export const useMyPostsEffects = ({
   setNotificationMessage,
   setShowNotificationBanner
 }) => {
+  const hasLoadedInitialData = useRef(false);
 
   // Load last updated time from localStorage
   useEffect(() => {
@@ -22,9 +23,10 @@ export const useMyPostsEffects = ({
     }
   }, [user?.id, updateState]);
 
-  // Fetch data when token is available
+  // Fetch data when token is available (only once)
   useEffect(() => {
-    if (token) {
+    if (token && !hasLoadedInitialData.current) {
+      hasLoadedInitialData.current = true;
       fetchAllBlogsData();
     }
   }, [token, fetchAllBlogsData]);

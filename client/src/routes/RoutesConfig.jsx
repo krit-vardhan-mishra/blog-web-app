@@ -1,3 +1,4 @@
+import React, { lazy, Suspense } from 'react';
 import {
   Route,
   createRoutesFromElements,
@@ -6,23 +7,7 @@ import {
 import PublicRoute from './PublicRoute';
 import PrivateRoute from './PrivateRoute';
 import MainLayout from '../components/MainLayout';
-
-import LandingPage from '../pages/LandingPage';
-import ExplorePage from '../pages/ExplorePage';
-import UserDetail from '../pages/UserDetail';
-import BlogDetail from '../pages/BlogDetail';
-import SignupPage from '../pages/SignupPage';
-import LoginPage from '../pages/LoginPage';
-import VerifySignupPage from '../pages/VerifySignupPage';
-import ForgotPasswordPage from '../pages/ForgotPasswordPage';
-import VerifyOTPPage from '../pages/VerifyOTPPage';
-import ResetPasswordPage from '../pages/ResetPasswordPage';
-import SetPasswordPage from '../pages/SetPasswordPage';
-import HomePage from '../pages/HomePage';
-import MyPosts from '../pages/MyPosts';
-import DeletedBlogs from '../pages/DeletedBlogs';
-import AccountSetting from '../pages/AccountSetting';
-import NotFound from '../pages/NotFound';
+import RouterErrorBoundary from '@/components/RouterErrorBoundary';
 import GoogleAuthHandler from '../context/GoogleAuthHandler';
 
 import {
@@ -36,48 +21,147 @@ import {
   homePageLoader,
   myPostsLoader,
 } from './protectedLoaders';
-import RouterErrorBoundary from '@/components/RouterErrorBoundary';
+
+const PageLoadingSpinner = () => (
+  <div className="min-h-screen bg-[#1A1C20] flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+      <p className="text-gray-400 text-lg">Loading...</p>
+    </div>
+  </div>
+);
+
+const LandingPage = lazy(() => import('../pages/LandingPage'));
+const ExplorePage = lazy(() => import('../pages/ExplorePage'));
+const UserDetail = lazy(() => import('../pages/UserDetail'));
+const BlogDetail = lazy(() => import('../pages/BlogDetail'));
+const SignupPage = lazy(() => import('../pages/SignupPage'));
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const VerifySignupPage = lazy(() => import('../pages/VerifySignupPage'));
+const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage'));
+const VerifyOTPPage = lazy(() => import('../pages/VerifyOTPPage'));
+const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage'));
+const SetPasswordPage = lazy(() => import('../pages/SetPasswordPage'));
+const HomePage = lazy(() => import('../pages/HomePage'));
+const MyPosts = lazy(() => import('../pages/MyPosts'));
+const DeletedBlogs = lazy(() => import('../pages/DeletedBlogs'));
+const AccountSetting = lazy(() => import('../pages/AccountSetting'));
+const NotFound = lazy(() => import('../pages/NotFound'));
 
 const cachedExploreLoader = createCachedLoader(exploreLoader);
 const cachedBlogDetailLoader = createCachedLoader(blogDetailLoader);
 const cachedUserDetailLoader = createCachedLoader(userDetailLoader);
 
+const SuspenseWrapper = ({ children }) => (
+  <Suspense fallback={<PageLoadingSpinner />}>
+    {children}
+  </Suspense>
+);
+
 const routes = createRoutesFromElements(
   <>
     {/* Root route with error boundary */}
-    <Route 
-      path="/" 
+    <Route
+      path="/"
       errorElement={<RouterErrorBoundary />}
     >
       {/* Public Routes */}
       <Route element={<PublicRoute />}>
-        <Route index element={<LandingPage />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="signup" element={<SignupPage />} />
+        <Route 
+          index 
+          element={
+            <SuspenseWrapper>
+              <LandingPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="login" 
+          element={
+            <SuspenseWrapper>
+              <LoginPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="signup" 
+          element={
+            <SuspenseWrapper>
+              <SignupPage />
+            </SuspenseWrapper>
+          } 
+        />
         <Route path="google-auth" element={<GoogleAuthHandler />} />
-        <Route path="forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="verify-otp" element={<VerifyOTPPage />} />
-        <Route path="verify-signup" element={<VerifySignupPage />} />
-        <Route path="reset-password" element={<ResetPasswordPage />} />
-        <Route path="set-password" element={<SetPasswordPage />} />
+        <Route 
+          path="forgot-password" 
+          element={
+            <SuspenseWrapper>
+              <ForgotPasswordPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="verify-otp" 
+          element={
+            <SuspenseWrapper>
+              <VerifyOTPPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="verify-signup" 
+          element={
+            <SuspenseWrapper>
+              <VerifySignupPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="reset-password" 
+          element={
+            <SuspenseWrapper>
+              <ResetPasswordPage />
+            </SuspenseWrapper>
+          } 
+        />
+        <Route 
+          path="set-password" 
+          element={
+            <SuspenseWrapper>
+              <SetPasswordPage />
+            </SuspenseWrapper>
+          } 
+        />
       </Route>
 
       {/* Public Loadable Routes */}
-      <Route 
-        path="explore" 
-        element={<ExplorePage />} 
+      <Route
+        path="explore"
+        element={
+          <SuspenseWrapper>
+            <ExplorePage />
+          </SuspenseWrapper>
+        }
         loader={cachedExploreLoader}
         errorElement={<RouterErrorBoundary />}
       />
-      <Route 
-        path="user/:userId" 
-        element={<UserDetail />} 
+      <Route
+        path="user/:userId"
+        element={
+          <SuspenseWrapper>
+            <UserDetail />
+          </SuspenseWrapper>
+        }
         loader={cachedUserDetailLoader}
         errorElement={<RouterErrorBoundary />}
       />
-      <Route 
-        path="blog/:blogId" 
-        element={<BlogDetail />} 
+      <Route
+        path="blog/:blogId"
+        element={
+          <SuspenseWrapper>
+            <BlogDetail />
+          </SuspenseWrapper>
+        }
         loader={cachedBlogDetailLoader}
         errorElement={<RouterErrorBoundary />}
       />
@@ -85,33 +169,56 @@ const routes = createRoutesFromElements(
       {/* Private Routes */}
       <Route element={<PrivateRoute />}>
         <Route element={<MainLayout />}>
-          <Route 
-            path="home" 
-            element={<HomePage />} 
+          <Route
+            path="home"
+            element={
+              <SuspenseWrapper>
+                <HomePage />
+              </SuspenseWrapper>
+            }
             loader={homePageLoader}
             errorElement={<RouterErrorBoundary />}
           />
-          <Route 
-            path="your-posts" 
-            element={<MyPosts />} 
+          <Route
+            path="your-posts"
+            element={
+              <SuspenseWrapper>
+                <MyPosts />
+              </SuspenseWrapper>
+            }
             loader={myPostsLoader}
             errorElement={<RouterErrorBoundary />}
           />
-          <Route 
-            path="deleted" 
-            element={<DeletedBlogs />}
+          <Route
+            path="deleted"
+            element={
+              <SuspenseWrapper>
+                <DeletedBlogs />
+              </SuspenseWrapper>
+            }
             errorElement={<RouterErrorBoundary />}
           />
-          <Route 
-            path="account-setting" 
-            element={<AccountSetting />}
+          <Route
+            path="account-setting"
+            element={
+              <SuspenseWrapper>
+                <AccountSetting />
+              </SuspenseWrapper>
+            }
             errorElement={<RouterErrorBoundary />}
           />
         </Route>
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<NotFound />} />
+      <Route 
+        path="*" 
+        element={
+          <SuspenseWrapper>
+            <NotFound />
+          </SuspenseWrapper>
+        } 
+      />
     </Route>
   </>
 );

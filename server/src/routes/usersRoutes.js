@@ -12,7 +12,7 @@ import {
 import authenticateToken from '../middleware/authenticateToken.js'; 
 
 const router = express.Router();
-
+    
 router.post('/', createUser);
 router.get('/profile', authenticateToken, getCurrentUserProfile);
 router.put('/profile', authenticateToken, updateUserProfile);

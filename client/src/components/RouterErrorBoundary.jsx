@@ -5,11 +5,10 @@ import { ArrowLeft, Home, RefreshCw, AlertTriangle } from 'lucide-react';
 const RouterErrorBoundary = () => {
   const error = useRouteError();
   const navigate = useNavigate();
+  const NODE_ENV = "DEVELOPMENT";
 
-  // Determine error details
   const getErrorDetails = () => {
     if (error?.status) {
-      // HTTP errors (404, 500, etc.)
       switch (error.status) {
         case 404:
           return {
@@ -44,7 +43,6 @@ const RouterErrorBoundary = () => {
       }
     }
 
-    // JavaScript errors
     if (error instanceof Error) {
       return {
         title: "Application Error",
@@ -54,7 +52,6 @@ const RouterErrorBoundary = () => {
       };
     }
 
-    // Fallback for unknown errors
     return {
       title: "Unknown Error",
       message: "An unexpected error occurred.",
@@ -108,7 +105,7 @@ const RouterErrorBoundary = () => {
         </p>
 
         {/* Error Details (Development Only) */}
-        {process.env.NODE_ENV === 'development' && error && (
+        {NODE_ENV === 'DEVELOPMENT' && error && (
           <details className="mb-8 text-left">
             <summary className="cursor-pointer text-gray-400 hover:text-gray-200 mb-2">
               Show Error Details

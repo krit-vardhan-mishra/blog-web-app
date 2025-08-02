@@ -8,6 +8,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #1A1C20;
+  color: white;
+  height: 100%;
+}
+
 .about-section {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
