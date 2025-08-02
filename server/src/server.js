@@ -1,30 +1,34 @@
 import express from 'express';
-import connectDB from './config/db.js';
 import usersRoutes from './routes/usersRoutes.js';
 import blogsRoutes from './routes/blogsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
 import initMiddleware from './middleware/initMiddleware.js';
 import './config/passport.js';
+import connectDB from './config/db.js';
 import cron from 'node-cron';
 import User from './models/User.js';
 import OTP from './models/OTP.js';
 import passport from 'passport';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { SERVER, GOOGLE_AUTH } from './utils/constants.js';
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const { PORT, NODE_ENV } = SERVER;
 const { CLIENT_URL } = GOOGLE_AUTH;
-const __dirname = path.resolve();
 
 app.set('trust proxy', true);
 
 await connectDB()
-  .then(() => console.log("Database connected"))
-  .catch(err => console.error("Database connection error:", err));
+  .then(() => console.log('Database connected'))
+  .catch(err => console.error('Database connection error:', err));
 
-if (NODE_ENV !== "DEVELOPMENT") {
+if (NODE_ENV !== 'DEVELOPMENT') {
   initMiddleware(app);
 }
 
@@ -42,26 +46,23 @@ cron.schedule('0 0 * * *', async () => {
   );
 });
 
-app.use("/api/users", usersRoutes);
-app.use("/api/blogs", blogsRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/auth", otpRoutes);
+// API routes
+app.use('/api/users', usersRoutes);
+app.use('/api/blogs', blogsRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/auth', otpRoutes);
 
-if (NODE_ENV === "PRODUCTION") {
-  app.use(express.static(path.join(__dirname, "../client/dist")));
+if (NODE_ENV === 'PRODUCTION') {
+  app.use(express.static(path.join(__dirname, '..', '..', 'client', 'dist')));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client", "dist", "index.html"));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'client', 'dist', 'index.html'));
   });
 }
 
-app.use((err, _, res, req) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-app.use((err, _, res, req) => {
-  console.error('Global error handler:', err);
+// Error handler – API
+app.use((err, req, res, next) => {
+  console.error('Global error:', err);
 
   if (err.oauthError) {
     return res.redirect(`${CLIENT_URL}/login?error=oauth_${err.oauthError.code}`);
@@ -74,6 +75,7 @@ app.use((err, _, res, req) => {
   });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.debug(`Server running at Date: ${new Date().toLocaleTimeString()}`);
+  console.debug(`Server running at http://localhost:${PORT} on ${new Date().toLocaleTimeString()}`);
 });
