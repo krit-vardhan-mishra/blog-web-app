@@ -156,8 +156,7 @@ export const AccountSetting = () => {
       try {
         const response = await userService.deleteAccount(
           user.id,
-          deleteBlogsChoice,
-          token
+          deleteBlogsChoice
         );
 
         if (response.success) {

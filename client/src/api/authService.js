@@ -1,4 +1,4 @@
-import apiClient from './apiService.js';
+import apiClient, { getBaseURL } from './apiService.js';
 
 const authService = {
   register: async (firstName, lastName, email, password, age) => {
@@ -19,17 +19,26 @@ const authService = {
     return apiClient.post('/auth/resend-otp', { email, type });
   },
 
-  login: async (email, password) => {
+  login: async (email, password, rememberMe = false) => {
     if (!email || !password) {
       throw new Error('Email and password are required');
     }
 
     const response = await apiClient.post('/auth/login', { email, password });
+    
     if (response.token) {
-      localStorage.setItem('token', response.token);
+      if (rememberMe) {
+        localStorage.setItem('token', response.token);
+      } else {
+        sessionStorage.setItem('token', response.token);
+      }
     }
     if (response.user) {
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(response.user));
+      }
     }
 
     return response;
@@ -38,6 +47,8 @@ const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   },
 
   getCurrentUser: () => {
@@ -84,8 +95,8 @@ const passwordResetService = {
 };
 
 export const setPassword = async (newPassword) => {
-  const token = localStorage.getItem('authToken');
-  const res = await fetch('/api/auth/set-password', {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const res = await fetch(`${getBaseURL()}/api/auth/set-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

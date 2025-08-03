@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, rememberMe) => {
     try {
-      const response = await authService.login(email, password);
+      const response = await authService.login(email, password, rememberMe);
       loginUser({ token: response.token, user: response.user }, rememberMe);
       return response;
     } catch (error) {

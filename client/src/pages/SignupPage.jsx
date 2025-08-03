@@ -9,6 +9,7 @@ import { SignupPageSkeleton } from '../skeleton/pages/SignupPageSkeleton';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getBaseURL } from '../api/apiService';
 
 export const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -130,7 +131,7 @@ export const SignupPage = () => {
     console.debug('Initiating Google signup...');
     // Clear any previous error from URL
     navigate('/signup', { replace: true });
-    const googleAuthUrl = 'http://localhost:5000/api/auth/google';
+    const googleAuthUrl = `${getBaseURL()}/api/auth/google`;
     console.debug('Redirecting to Google auth URL:', googleAuthUrl);
     window.location.href = googleAuthUrl;
   };

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const MODE = import.meta.env.VITE_NODE_ENV || 'PRODUCTION';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (MODE === 'PRODUCTION' ? '/api' : 'http://localhost:5000/api');
+const MODE = import.meta.env.VITE_NODE_ENV || 'DEVELOPMENT';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (MODE === 'production' || MODE === 'PRODUCTION' ? '/api' : 'http://localhost:5000/api');
+
+export const getBaseURL = () => {
+  return API_BASE_URL.replace('/api', '');
+};
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -18,9 +22,23 @@ const apiClient = axios.create({
 // Request interceptor to add token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const authEndpoints = [
+      '/auth/login', 
+      '/auth/register', 
+      '/auth/forgot-password', 
+      '/auth/verify-reset-otp', 
+      '/auth/reset-password',
+      '/auth/resend-otp',
+      '/auth/verify-signup',
+      '/auth/google'
+    ];
+    const isAuthEndpoint = authEndpoints.some(endpoint => config.url.includes(endpoint));
+    
+    if (!isAuthEndpoint) {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -76,18 +94,34 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      
+      const authPages = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'];
+      const currentPath = window.location.pathname;
+      const isOnAuthPage = authPages.some(page => currentPath.includes(page));
+      
+      if (!isOnAuthPage) {
         window.location.href = '/login';
       }
+      
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
     if (error.response?.status === 403) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      
+      const authPages = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-otp'];
+      const currentPath = window.location.pathname;
+      const isOnAuthPage = authPages.some(page => currentPath.includes(page));
+      
+      if (!isOnAuthPage) {
         window.location.href = '/login';
       }
+      
       return Promise.reject(
         new Error('Access denied. Please check your permissions.')
       );

@@ -24,8 +24,9 @@ export const VerifySignupPage = () => {
   }, [email, navigate, resendTimer]);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const storedUserJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
+    const storedUser = storedUserJSON ? JSON.parse(storedUserJSON) : null;
 
     if (storedToken) {
       setToken(storedToken);
@@ -47,8 +48,16 @@ export const VerifySignupPage = () => {
     setErrors({});
     try {
       const response = await authService.verifySignup(email, otp);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      // Check if token was stored in localStorage or sessionStorage to maintain consistency
+      const isRemembered = localStorage.getItem('token') !== null;
+      
+      if (isRemembered) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      } else {
+        sessionStorage.setItem('token', response.token);
+        sessionStorage.setItem('user', JSON.stringify(response.user));
+      }
       navigate('/home');
     } catch (error) {
       setErrors({ form: error.message });

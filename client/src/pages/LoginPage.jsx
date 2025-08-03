@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getBaseURL } from '../api/apiService';
 
 export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -342,10 +343,10 @@ export const LoginPage = () => {
                   rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
                 }`}
                 disabled={rateLimitTimer || lockoutTimer}
-                onClick={() =>
-                  (window.location.href =
-                    'http://localhost:5000/api/auth/google')
-                }
+                onClick={() => {
+                  const googleAuthUrl = `${getBaseURL()}/api/auth/google`;
+                  window.location.href = googleAuthUrl;
+                }}
               >
                 Sign in with Google
               </Button>
