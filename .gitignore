@@ -5,3 +5,4 @@ client/.prettierignore
 .vscode/
 .vscode
 REFACTORING_SUMMARY.md
+.env
