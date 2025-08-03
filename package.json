@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "description": "A full-featured blogging platform for writing, sharing, and discovering blogs across a wide variety of genres and topics. Supports user authentication, content creation, bookmarking, recommendations, and engagement analytics.",
   "main": "index.js",
-  "scripts": {
-    "postinstall": "npm install --prefix client && npm install --prefix server",
-    "build": "npm install --prefix client && npm install --prefix server && npm run build --prefix client",
-    "start": "npm run start --prefix server"
+ "scripts": {
+    "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "npm run start --prefix backend"
   },
   "repository": {
     "type": "git",
