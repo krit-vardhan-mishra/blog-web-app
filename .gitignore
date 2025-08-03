@@ -4,3 +4,4 @@ client/.prettierignore
 .vscode/settings.json
 .vscode/
 .vscode
+REFACTORING_SUMMARY.md
