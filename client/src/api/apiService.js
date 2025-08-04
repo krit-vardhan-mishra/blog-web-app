@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-<<<<<<< HEAD
 const isProduction = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -33,7 +32,6 @@ if (!isProduction()) {
   console.log('🔧 API Configuration:', {
     isProduction: isProduction(),
     apiBaseUrl: API_BASE_URL,
-    baseUrl: getBaseURL(),
     hostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
     origin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
   });
@@ -42,15 +40,6 @@ if (!isProduction()) {
 export const getBaseURL = () => {
   if (isProduction()) {
     return typeof window !== 'undefined' ? window.location.origin : 'https://blog-web-app-ngmh.onrender.com';
-=======
-const MODE = import.meta.env.VITE_NODE_ENV || 'DEVELOPMENT';
-const API_BASE_URL = MODE === 'PRODUCTION' 
-  ? '/api' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api');
-
-export const getBaseURL = () => {
-  if (MODE === 'PRODUCTION') {
-    return window.location.origin; 
->>>>>>> 1eecd27bbb035a8caab73f0e1f37e30e83dbcc0b
   }
   return API_BASE_URL.replace('/api', '');
 };
