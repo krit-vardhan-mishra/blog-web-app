@@ -344,7 +344,7 @@ export const LoginPage = () => {
                 }`}
                 disabled={rateLimitTimer || lockoutTimer}
                 onClick={() => {
-                  const googleAuthUrl = `/api/auth/google`;
+                  const googleAuthUrl = `${getBaseURL()}/api/auth/google`;
                   window.location.href = googleAuthUrl;
                 }}
               >

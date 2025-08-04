@@ -6,3 +6,4 @@ client/.prettierignore
 .vscode
 REFACTORING_SUMMARY.md
 .env
+DEPLOYMENT_FIXES.md

@@ -8,7 +8,7 @@ import { AUTH, DATABASE, SERVER } from '../utils/constants.js';
 export default function initMiddleware(app) {
   app.use(
     cors({
-      origin: 'http://localhost:5173',
+      origin: process.env.CORS_ORIGIN || SERVER.CLIENT_URL,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,

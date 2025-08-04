@@ -8,8 +8,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SignupPageSkeleton } from '../skeleton/pages/SignupPageSkeleton';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { getBaseURL } from '../api/apiService';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(true);

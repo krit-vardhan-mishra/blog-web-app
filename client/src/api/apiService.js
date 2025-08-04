@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const MODE = import.meta.env.VITE_NODE_ENV || 'PRODUCTION';
-const API_BASE_URL = (MODE === 'production' || MODE === 'PRODUCTION') ? '/api' : 'http://localhost:5000/api';
+const MODE = import.meta.env.VITE_NODE_ENV || 'DEVELOPMENT';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (MODE === 'PRODUCTION' ? '/api' : 'http://localhost:5000/api');
 
 export const getBaseURL = () => {
   return API_BASE_URL.replace('/api', '');
@@ -19,19 +19,9 @@ const apiClient = axios.create({
   }
 });
 
-// Request interceptor to add token
 apiClient.interceptors.request.use(
   (config) => {
-    const authEndpoints = [
-      '/auth/login', 
-      '/auth/register', 
-      '/auth/forgot-password', 
-      '/auth/verify-reset-otp', 
-      '/auth/reset-password',
-      '/auth/resend-otp',
-      '/auth/verify-signup',
-      '/auth/google'
-    ];
+    const authEndpoints = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-reset-otp', '/auth/reset-password'];
     const isAuthEndpoint = authEndpoints.some(endpoint => config.url.includes(endpoint));
     
     if (!isAuthEndpoint) {
