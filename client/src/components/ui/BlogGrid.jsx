@@ -71,10 +71,10 @@ const BlogGrid = ({
   // Enhanced hover animation for blog cards
   const cardHoverVariants = {
     hover: {
-      scale: 1.03,
-      rotateY: 2,
-      y: -8,
-      rotateX: 2,
+      scale: 1.02,
+      rotateY: 1,
+      y: -4,
+      rotateX: 1,
       transition: { 
         type: "spring", 
         stiffness: 400, 
@@ -88,7 +88,7 @@ const BlogGrid = ({
   if (filteredBlogs.length === 0) {
     return (
       <motion.div
-        className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700 shadow-xl"
+        className="text-center py-8 sm:py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700 shadow-xl mx-2 sm:mx-0"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -105,10 +105,10 @@ const BlogGrid = ({
             ease: "easeInOut"
           }}
         >
-          <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
         </motion.div>
-        <h3 className="text-xl font-semibold mb-2">No Blogs Found</h3>
-        <p className="text-gray-400">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2">No Blogs Found</h3>
+        <p className="text-gray-400 text-sm sm:text-base px-4">
           Try adjusting your filters or search terms.
         </p>
       </motion.div>
@@ -117,7 +117,7 @@ const BlogGrid = ({
 
   return (
     <motion.div
-      className="columns-1 md:columns-2 lg:columns-3 xl:columns-3 gap-6 space-y-6"
+      className="columns-1 sm:columns-2 lg:columns-3 xl:columns-3 gap-4 sm:gap-6 space-y-4 sm:space-y-6 px-2 sm:px-0"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -141,8 +141,8 @@ const BlogGrid = ({
             animate={isNewBlog ? {
               boxShadow: [
                 "0 0 0px rgba(59, 130, 246, 0)",
-                "0 0 20px rgba(59, 130, 246, 0.4)",
-                "0 0 40px rgba(59, 130, 246, 0.2)",
+                "0 0 15px rgba(59, 130, 246, 0.3)",
+                "0 0 30px rgba(59, 130, 246, 0.15)",
                 "0 0 0px rgba(59, 130, 246, 0)"
               ]
             } : {}}

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye, UserIcon, Tag, Target, Bookmark, Clock } from 'lucide-react';
@@ -98,40 +99,39 @@ const PostDetails = ({
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       whileHover={{
-        y: -4,
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+        y: -2,
+        boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)',
       }}
       onClick={() => onOpenModal(blog)}
-      className="bg-gray-800/50 rounded-lg p-6 shadow-md 
-                  border-t-[4px] hover:border-t-[8px] border-blue-500
-                  hover:scale-105 hover:bg-[#282c34]
+      className="bg-gray-800/50 rounded-lg p-4 sm:p-6 shadow-md 
+                  border-t-[3px] sm:border-t-[4px] hover:border-t-[6px] sm:hover:border-t-[8px] border-blue-500
+                  hover:scale-[1.02] sm:hover:scale-105 hover:bg-[#282c34]
                   transition-all duration-200 ease-in-out
-                  relative cursor-pointer group"
+                  relative cursor-pointer group mx-2 sm:mx-0"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-lg" />
 
       {/* Header with actions */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors duration-200 pr-4">
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-300 transition-colors duration-200 pr-2 sm:pr-4">
             {title}
           </h3>
         </div>
 
-        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="flex items-center space-x-1 sm:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {/* Bookmark button for non-authors */}
           {!isAuthor && onToggleBookmark && (
             <motion.button
               onClick={handleBookmarkToggle}
-              className={`p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked
+              className={`p-1.5 sm:p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked
                 ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                 : 'bg-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white'
                 }`}
               aria-label={bookmarkState.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
             >
-              <Bookmark size={16} fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
+              <Bookmark size={14} className="sm:w-4 sm:h-4" fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
             </motion.button>
-
           )}
 
           {/* Author actions */}

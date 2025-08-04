@@ -133,7 +133,6 @@ const PostModal = ({
     }
   };
 
-
   const handleShare = async () => {
     const shareData = {
       title: title,
@@ -201,7 +200,7 @@ const PostModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4"
+          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-2 sm:p-4"
           onClick={handleModalClose}
         >
           <motion.div
@@ -209,31 +208,31 @@ const PostModal = ({
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="bg-[#1A1C20] rounded-lg shadow-2xl w-full max-w-4xl h-full max-h-[90vh] flex flex-col overflow-hidden relative"
+            className="bg-[#1A1C20] rounded-lg shadow-2xl w-full max-w-4xl h-full max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-start p-6 border-b border-gray-700">
-              <div className="flex-1 pr-4">
-                <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+            <div className="flex justify-between items-start p-4 sm:p-6 border-b border-gray-700">
+              <div className="flex-1 pr-2 sm:pr-4">
+                <h2 className="text-lg sm:text-2xl font-bold text-white mb-2 line-clamp-2">{title}</h2>
 
                 {/* Metadata badges */}
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white bg-${getGenreColor(genre)}`}>
+                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
+                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-white bg-${getGenreColor(genre)}`}>
                     {genre}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(readingDifficulty)}`}>
+                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getDifficultyColor(readingDifficulty)}`}>
                     {getDifficultyIcon(readingDifficulty)} {readingDifficulty}
                   </span>
                   {averageReadTime > 0 && (
-                    <span className="px-3 py-1 rounded-full text-sm font-medium text-blue-400 bg-blue-900/30 flex items-center">
-                      <Clock size={14} className="mr-1" />
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-blue-400 bg-blue-900/30 flex items-center">
+                      <Clock size={12} className="mr-1" />
                       {formatReadTime(averageReadTime)} read
                     </span>
                   )}
                   {engagementScore > 0 && (
-                    <span className="px-3 py-1 rounded-full text-sm font-medium text-purple-400 bg-purple-900/30 flex items-center">
-                      <Target size={14} className="mr-1" />
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-purple-400 bg-purple-900/30 flex items-center">
+                      <Target size={12} className="mr-1" />
                       {Math.round(engagementScore)} engagement
                     </span>
                   )}
@@ -241,27 +240,32 @@ const PostModal = ({
 
                 {/* Tags */}
                 {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {tags.map((tag, index) => (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {tags.slice(0, 3).map((tag, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300"
                       >
-                        <Tag size={10} className="mr-1" />
+                        <Tag size={8} className="mr-1" />
                         {tag}
                       </span>
                     ))}
+                    {tags.length > 3 && (
+                      <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-400 sm:hidden">
+                        +{tags.length - 3} more
+                      </span>
+                    )}
                   </div>
                 )}
 
-                <div className="flex items-center text-sm text-blue-300 mt-2">
-                  <Calendar size={14} className="mr-1" />
+                <div className="flex items-center text-xs sm:text-sm text-blue-300 mt-2">
+                  <Calendar size={12} className="mr-1" />
                   <span>{formatDate(createdAt)}</span>
                 </div>
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 {/* Share button */}
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -270,7 +274,7 @@ const PostModal = ({
                   className="p-2 rounded-full bg-gray-700 hover:bg-blue-600 text-white transition-all duration-200"
                   aria-label="Share"
                 >
-                  <Share2 size={20} />
+                  <Share2 size={16} className="sm:w-5 sm:h-5" />
                 </motion.button>
 
                 {/* Bookmark button (for non-authors) */}
@@ -283,7 +287,7 @@ const PostModal = ({
                       }`}
                     aria-label={bookmarkState.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
-                    <Bookmark size={20} fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
+                    <Bookmark size={16} className="sm:w-5 sm:h-5" fill={bookmarkState.isBookmarked ? 'currentColor' : 'none'} />
                   </motion.button>
                 )}
 
@@ -296,7 +300,7 @@ const PostModal = ({
                   className="p-2 rounded-full bg-gray-700 hover:bg-red-600 text-white transition-all duration-200"
                   aria-label="Close"
                 >
-                  <X size={24} />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 </motion.button>
               </div>
             </div>
@@ -310,48 +314,48 @@ const PostModal = ({
                 }}
                 style={{
                   height: '100%',
-                  maxHeight: 'calc(90vh - 200px)',
+                  maxHeight: 'calc(95vh - 200px)',
                   overflowY: 'auto',
                   WebkitOverflowScrolling: 'touch',
                 }}
-                className="px-6 py-4"
+                className="px-4 sm:px-6 py-4"
               >
                 <div
-                  className="text-gray-300 whitespace-pre-line text-base leading-relaxed"
+                  className="text-gray-300 whitespace-pre-line text-sm sm:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: parseEmojisEnhanced(content) }}
                 />
               </SimpleBar>
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-700 flex justify-between items-center bg-gray-800/50">
+            <div className="p-4 sm:p-6 border-t border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-800/50 space-y-3 sm:space-y-0">
               <div className="flex flex-col">
                 <NavLink
                   to={`/user/${author?._id || author?.id}`}
-                  className="flex items-center mb-2 hover:text-blue-400 transition-colors duration-200 text-gray-200"
+                  className="flex items-center hover:text-blue-400 transition-colors duration-200 text-gray-200"
                 >
-                  <UserIcon className="mr-2" size={18} />
+                  <UserIcon className="mr-2" size={16} />
                   <div>
-                    <div className="font-medium">Author: {name}</div>
+                    <div className="font-medium text-sm sm:text-base">Author: {name}</div>
                     {email && (
-                      <div className="text-sm text-gray-500">{email}</div>
+                      <div className="text-xs sm:text-sm text-gray-500">{email}</div>
                     )}
                   </div>
                 </NavLink>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-between w-full sm:w-auto sm:space-x-4">
                 {/* Stats */}
-                <div className="flex items-center space-x-4 text-sm text-gray-400">
+                <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm text-gray-400">
                   {bookmarkState.bookmarkCount > 0 && (
                     <div className="flex items-center text-yellow-400">
-                      <Bookmark size={16} className="mr-1" />
+                      <Bookmark size={14} className="mr-1" />
                       <span>{bookmarkState.bookmarkCount}</span>
                     </div>
                   )}
 
                   <div className="flex items-center text-blue-400">
-                    <Eye size={16} className="mr-1" />
+                    <Eye size={14} className="mr-1" />
                     <span>{currentViews} Views</span>
                   </div>
                 </div>
@@ -364,7 +368,7 @@ const PostModal = ({
                         e.stopPropagation();
                         handleEdit();
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition duration-200"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm transition duration-200"
                     >
                       Edit
                     </Button>
@@ -373,7 +377,7 @@ const PostModal = ({
                         e.stopPropagation();
                         onDelete?.();
                       }}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition duration-200"
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm transition duration-200"
                     >
                       Delete
                     </Button>
