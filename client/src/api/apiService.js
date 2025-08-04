@@ -1,9 +1,13 @@
 import axios from 'axios';
 
 const MODE = import.meta.env.VITE_NODE_ENV || 'DEVELOPMENT';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (MODE === 'PRODUCTION' ? '/api' : 'http://localhost:5000/api');
+const API_BASE_URL = MODE === 'PRODUCTION' 
+  ? '/api' : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api');
 
 export const getBaseURL = () => {
+  if (MODE === 'PRODUCTION') {
+    return window.location.origin; 
+  }
   return API_BASE_URL.replace('/api', '');
 };
 

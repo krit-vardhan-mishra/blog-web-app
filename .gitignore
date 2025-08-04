@@ -7,3 +7,4 @@ client/.prettierignore
 REFACTORING_SUMMARY.md
 .env
 DEPLOYMENT_FIXES.md
+.env.production
