@@ -6,11 +6,43 @@ import MongoStore from 'connect-mongo';
 import { AUTH, DATABASE, SERVER } from '../utils/constants.js';
 
 export default function initMiddleware(app) {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://blog-web-app-ngmh.onrender.com',
+    SERVER.CLIENT_URL
+  ].filter(Boolean);
+
+  const uniqueOrigins = [...new Set(allowedOrigins)];
+
+  console.log('Allowed CORS origins:', uniqueOrigins);
+  console.log('Server environment:', SERVER.NODE_ENV);
+
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN || SERVER.CLIENT_URL,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        console.log('CORS request from origin:', origin);
+        
+        // Check if origin is allowed
+        if (uniqueOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        // In production, be more restrictive
+        if (SERVER.NODE_ENV === 'PRODUCTION') {
+          console.error('CORS blocked origin:', origin);
+          return callback(new Error(`Origin ${origin} not allowed by CORS`));
+        }
+        
+        // In development, allow all origins
+        console.log('Development mode: allowing origin', origin);
+        return callback(null, true);
+      },
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
       credentials: true,
     })
   );
@@ -29,6 +61,8 @@ export default function initMiddleware(app) {
       cookie: {
         secure: SERVER.NODE_ENV === 'PRODUCTION',
         maxAge: 1000 * 60 * 60 * 24,
+        sameSite: SERVER.NODE_ENV === 'PRODUCTION' ? 'none' : 'lax',
+        domain: SERVER.NODE_ENV === 'PRODUCTION' ? SERVER.COOKIE_DOMAIN : undefined,
       },
     })
   );

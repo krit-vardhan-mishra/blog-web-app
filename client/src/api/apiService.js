@@ -1,9 +1,47 @@
 import axios from 'axios';
 
-const MODE = import.meta.env.VITE_NODE_ENV || 'DEVELOPMENT';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (MODE === 'PRODUCTION' ? '/api' : 'http://localhost:5000/api');
+const isProduction = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isRenderDomain = hostname.includes('onrender.com');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    if (isRenderDomain || !isLocalhost) {
+      return true;
+    }
+  }
+  
+  const envMode = import.meta.env.VITE_NODE_ENV || import.meta.env.NODE_ENV || 'DEVELOPMENT';
+  return envMode === 'PRODUCTION' || envMode === 'production';
+};
+
+const getApiBaseUrl = () => {
+  if (isProduction()) {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/api`;
+    }
+    return 'https://blog-web-app-ngmh.onrender.com/api';
+  }
+  
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+if (!isProduction()) {
+  console.log('🔧 API Configuration:', {
+    isProduction: isProduction(),
+    apiBaseUrl: API_BASE_URL,
+    baseUrl: getBaseURL(),
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
+    origin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
+  });
+}
 
 export const getBaseURL = () => {
+  if (isProduction()) {
+    return typeof window !== 'undefined' ? window.location.origin : 'https://blog-web-app-ngmh.onrender.com';
+  }
   return API_BASE_URL.replace('/api', '');
 };
 
@@ -23,6 +61,16 @@ apiClient.interceptors.request.use(
   (config) => {
     const authEndpoints = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/verify-reset-otp', '/auth/reset-password'];
     const isAuthEndpoint = authEndpoints.some(endpoint => config.url.includes(endpoint));
+    
+    if (!isProduction()) {
+      console.log('🚀 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        baseURL: config.baseURL,
+        fullUrl: `${config.baseURL}${config.url}`,
+        isAuthEndpoint
+      });
+    }
     
     if (!isAuthEndpoint) {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');

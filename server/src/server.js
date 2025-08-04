@@ -28,22 +28,25 @@ await connectDB()
   .then(() => console.log('Database connected'))
   .catch(err => console.error('Database connection error:', err));
 
-if (NODE_ENV !== 'DEVELOPMENT') {
-  initMiddleware(app);
-}
+initMiddleware(app); 
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 cron.schedule('0 0 * * *', async () => {
-  await OTP.deleteMany({
-    createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-  });
+  try {
+    await OTP.deleteMany({
+      createdAt: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    });
 
-  await User.updateMany(
-    { blockExpires: { $lt: new Date() } },
-    { $set: { loginAttempts: 0, blockExpires: null } }
-  );
+    await User.updateMany(
+      { blockExpires: { $lt: new Date() } },
+      { $set: { loginAttempts: 0, blockExpires: null } }
+    );
+    console.log('Daily cleanup completed');
+  } catch (err) {
+    console.error('Cron job error:', err);
+  }
 });
 
 // API routes
@@ -51,6 +54,26 @@ app.use('/api/users', usersRoutes);
 app.use('/api/blogs', blogsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', otpRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    environment: NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API is working',
+    clientUrl: CLIENT_URL,
+    nodeEnv: NODE_ENV,
+    origin: req.get('origin'),
+    host: req.get('host')
+  });
+});
 
 if (NODE_ENV === 'PRODUCTION') {
   app.use(express.static(path.join(__dirname, '..', '..', 'client', 'dist')));
@@ -60,7 +83,6 @@ if (NODE_ENV === 'PRODUCTION') {
   });
 }
 
-// Error handler – API
 app.use((err, req, res, next) => {
   console.error('Global error:', err);
 
@@ -75,7 +97,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.debug(`Server running at http://localhost:${PORT} on ${new Date().toLocaleTimeString()}`);
+  console.log(`
+  Server running in ${NODE_ENV} mode
+  API: http://localhost:${PORT}
+  Client: ${CLIENT_URL}
+  Time: ${new Date().toLocaleTimeString()}
+  `);
 });
