@@ -7,6 +7,10 @@ client/.prettierignore
 REFACTORING_SUMMARY.md
 .env
 DEPLOYMENT_FIXES.md
+<<<<<<< HEAD
 .env.production
 blog-web-app.env
 DEPLOYMENT_GUIDE.md
+=======
+.env.production
+>>>>>>> 1eecd27bbb035a8caab73f0e1f37e30e83dbcc0b
