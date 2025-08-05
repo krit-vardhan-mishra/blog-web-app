@@ -1,0 +1,47 @@
+/* AuthPage Animations */
+.auth-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-form-container {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* Smooth transitions for form elements */
+.auth-input {
+  transition: all 0.2s ease-in-out;
+}
+
+.auth-input:focus {
+  transform: translateZ(0);
+}
+
+/* Hardware acceleration for animations */
+.animate-slide {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Ensure no scrollbars during animation */
+.auth-page {
+  overflow-x: hidden;
+}
+
+@media (max-width: 1279px) {
+  .auth-page {
+    overflow-x: hidden;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide {
+    animation: none !important;
+    transition: none !important;
+  }
+}
