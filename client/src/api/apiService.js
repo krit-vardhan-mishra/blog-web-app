@@ -146,6 +146,13 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
+      // Check if this is an email verification required scenario
+      if (error.response?.data?.requiresVerification) {
+        // Don't redirect for email verification - let the frontend handle it
+        return Promise.reject(error);
+      }
+      
+      // For other 403 errors, handle normally
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       sessionStorage.removeItem('token');

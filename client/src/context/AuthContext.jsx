@@ -23,17 +23,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       setIsAuthLoading(true);
       
       const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
-      
       const userJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
       const storedUser = safeJSONParse(userJSON);
 
       if (storedToken && storedToken !== 'undefined' && storedUser) {
-        setToken(storedToken);
-        setUser(storedUser);
+        try {
+          const response = await authService.validateToken(storedToken);
+          if (response.valid) {
+            setToken(storedToken);
+            setUser(storedUser);
+          } else {
+            console.log('Token validation failed, clearing auth data');
+            clearAuthData();
+          }
+        } catch (error) {
+          console.error('Token validation error:', error);
+          setToken(storedToken);
+          setUser(storedUser);
+        }
       } else {
         clearAuthData();
       }

@@ -56,14 +56,17 @@ export default function initMiddleware(app) {
       saveUninitialized: false,
       store: MongoStore.create({
         mongoUrl: DATABASE.MONGODB_URI,
-        ttl: 14 * 24 * 60 * 60,
+        ttl: 30 * 24 * 60 * 60, 
+        touchAfter: 24 * 3600,
       }),
       cookie: {
         secure: SERVER.NODE_ENV === 'PRODUCTION',
-        maxAge: 1000 * 60 * 60 * 24,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30, 
         sameSite: SERVER.NODE_ENV === 'PRODUCTION' ? 'none' : 'lax',
         domain: SERVER.NODE_ENV === 'PRODUCTION' ? SERVER.COOKIE_DOMAIN : undefined,
       },
+      name: 'blog-session',
     })
   );
 

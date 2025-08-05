@@ -24,6 +24,14 @@ router.post('/resend-otp', otpLimiter, resendOTP);
 router.post('/verify-password', authenticateToken, verifyPassword);
 router.post('/change-password', authenticateToken, changePassword);
 
+router.get('/validate-token', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    valid: true,
+    user: req.user
+  });
+});
+
 router.get('/google',
   (req, res, next) => {
     console.debug('Initiating Google OAuth flow...');

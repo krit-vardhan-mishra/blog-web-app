@@ -13,6 +13,7 @@ import passport from 'passport';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SERVER, GOOGLE_AUTH } from './utils/constants.js';
+import { selfPing } from './utils/keepAlive.js';
 
 const app = express();
 
@@ -60,7 +61,10 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     environment: NODE_ENV,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    userAgent: req.get('User-Agent')
   });
 });
 
@@ -104,4 +108,9 @@ app.listen(PORT, '0.0.0.0', () => {
   Client: ${CLIENT_URL}
   Time: ${new Date().toLocaleTimeString()}
   `);
+  
+  if (NODE_ENV === 'PRODUCTION') {
+    console.log('Initializing keep-alive service...');
+    selfPing();
+  }
 });

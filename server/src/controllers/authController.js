@@ -137,7 +137,6 @@ export const registerUser = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      // Check if user exists but email is not verified
       if (!existingUser.isEmailVerified) {
         return res.status(409).json({
           success: false,

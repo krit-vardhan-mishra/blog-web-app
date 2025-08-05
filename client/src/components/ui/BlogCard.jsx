@@ -127,7 +127,7 @@ const BlogCard = memo(({ blog, index, handleBlogClick, handleAuthorClick }) => {
             onClick={(e) => handleAuthorClick(e, blog.author?._id || blog.author?.id)}
           >
             <User className="w-3 h-3 text-blue-400 flex-shrink-0" />
-            <span className="truncate">{blog.author?.name || 'Anonymous'}</span>
+            <span className="truncate">{blog.author?.name || 'Deleted User'}</span>
             <span className="text-gray-500 ml-1 flex-shrink-0">{formatDate(blog.createdAt)}</span>
           </div>
 

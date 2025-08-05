@@ -122,6 +122,30 @@ export const SignupPage = () => {
       loginUser(data, rememberMe);
       navigate('/verify-signup', { state: { email: formData.email } });
     } catch (err) {
+      console.error('Registration error:', err);
+      
+      // Handle case where user exists but email not verified
+      if (err.response?.status === 409 && err.response?.data?.requiresLogin) {
+        setErrors({ 
+          form: err.response.data.message + ' Click below to go to login page.' 
+        });
+        
+        // Show a button to redirect to login
+        setTimeout(() => {
+          const loginButton = document.createElement('button');
+          loginButton.innerHTML = 'Go to Login';
+          loginButton.className = 'text-blue-400 hover:underline ml-2';
+          loginButton.onclick = () => navigate('/login');
+          
+          const errorElement = document.querySelector('.signup-error');
+          if (errorElement) {
+            errorElement.appendChild(loginButton);
+          }
+        }, 100);
+        
+        return;
+      }
+      
       setErrors({ form: err.message });
     } finally {
       setIsSubmitting(false);
@@ -354,9 +378,22 @@ export const SignupPage = () => {
             </div>
 
             {errors.form && (
-              <p className="text-red-500 text-sm mt-1 mb-2 text-center">
-                {errors.form}
-              </p>
+              <div className="signup-error">
+                <p className="text-red-500 text-sm mt-1 mb-2 text-center">
+                  {errors.form}
+                </p>
+                {errors.form.includes('Please try logging in') && (
+                  <div className="text-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/login')}
+                      className="text-blue-400 hover:underline text-sm"
+                    >
+                      Go to Login Page
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Signup Button */}

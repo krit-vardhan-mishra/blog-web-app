@@ -24,24 +24,37 @@ const authService = {
       throw new Error('Email and password are required');
     }
 
-    const response = await apiClient.post('/auth/login', { email, password });
-    
-    if (response.token) {
-      if (rememberMe) {
-        localStorage.setItem('token', response.token);
-      } else {
-        sessionStorage.setItem('token', response.token);
+    try {
+      const response = await apiClient.post('/auth/login', { email, password });
+      
+      if (response.token) {
+        if (rememberMe) {
+          localStorage.setItem('token', response.token);
+        } else {
+          sessionStorage.setItem('token', response.token);
+        }
       }
-    }
-    if (response.user) {
-      if (rememberMe) {
-        localStorage.setItem('user', JSON.stringify(response.user));
-      } else {
-        sessionStorage.setItem('user', JSON.stringify(response.user));
+      if (response.user) {
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        } else {
+          sessionStorage.setItem('user', JSON.stringify(response.user));
+        }
       }
-    }
 
-    return response;
+      return response;
+    } catch (error) {
+      // Check if this is an email verification error
+      if (error.response?.status === 403 && error.response?.data?.requiresVerification) {
+        // Re-throw the error with the original response data
+        const verificationError = new Error(error.response.data.message);
+        verificationError.response = error.response;
+        throw verificationError;
+      }
+      
+      // For other errors, handle normally
+      throw error;
+    }
   },
 
   logout: () => {
@@ -52,7 +65,7 @@ const authService = {
   },
 
   getCurrentUser: () => {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
 
@@ -65,6 +78,20 @@ const authService = {
     } catch (error) {
       console.error('Password verification error:', error);
       throw error;
+    }
+  },
+
+  validateToken: async (token) => {
+    try {
+      const response = await apiClient.get('/auth/validate-token', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return { valid: true, user: response.user };
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      return { valid: false };
     }
   },
 

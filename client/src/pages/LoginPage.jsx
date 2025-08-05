@@ -12,7 +12,7 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(false);
-  const { login, user, token, isAuthLoading, isAuthenticated } = useAuth();
+  const { login, isAuthLoading, isAuthenticated } = useAuth();
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     email: '',
