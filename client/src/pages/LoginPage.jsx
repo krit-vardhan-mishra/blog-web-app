@@ -81,6 +81,18 @@ export const LoginPage = () => {
     } catch (err) {
       console.error('Login error:', err);
       
+      // Handle email verification required scenario
+      if (err.response?.status === 403 && err.response?.data?.requiresVerification) {
+        const email = err.response.data.email || formData.email;
+        navigate('/verify-signup', { 
+          state: { 
+            email: email,
+            message: 'Please verify your email to complete login. We\'ve sent a new verification code to your email.'
+          } 
+        });
+        return;
+      }
+      
       if (err.response?.status === 429) {
         const message = err.response?.data?.message || err.message;
         
@@ -290,13 +302,13 @@ export const LoginPage = () => {
               <div className="text-center mt-2">
                 <button
                   onClick={() =>
-                    navigate('/resend-verification', {
+                    navigate('/verify-signup', {
                       state: { email: formData.email },
                     })
                   }
                   className="text-blue-400 hover:underline"
                 >
-                  Resend verification email
+                  Verify your email now
                 </button>
               </div>
             )}

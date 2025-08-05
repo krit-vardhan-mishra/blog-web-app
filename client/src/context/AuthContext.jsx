@@ -10,19 +10,34 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!token;
 
+  const safeJSONParse = (jsonString) => {
+    if (!jsonString || jsonString === 'undefined' || jsonString === 'null') {
+      return null;
+    }
+    try {
+      return JSON.parse(jsonString);
+    } catch (e) {
+      console.error("Failed to parse JSON:", e, "Input:", jsonString);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = () => {
       setIsAuthLoading(true);
-      const token =
-        localStorage.getItem('token') || sessionStorage.getItem('token');
-      const userJSON =
-        localStorage.getItem('user') || sessionStorage.getItem('user');
-      const user = userJSON ? JSON.parse(userJSON) : null;
+      
+      const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      const userJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
+      const storedUser = safeJSONParse(userJSON);
 
-      if (token && user) {
-        setToken(token);
-        setUser(user);
+      if (storedToken && storedToken !== 'undefined' && storedUser) {
+        setToken(storedToken);
+        setUser(storedUser);
+      } else {
+        clearAuthData();
       }
+      
       setIsAuthLoading(false);
     };
 
@@ -36,8 +51,7 @@ export const AuthProvider = ({ children }) => {
       return response;
     } catch (error) {
       if (user || token) {
-        setUser(null);
-        setToken(null);
+        clearAuthData();
       }
       throw error;
     }
@@ -55,8 +69,7 @@ export const AuthProvider = ({ children }) => {
       );
       return response;
     } catch (error) {
-      setUser(null);
-      setToken(null);
+      clearAuthData();
       throw error;
     } finally {
       setIsAuthLoading(false);
@@ -64,15 +77,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginUser = ({ token, user }, rememberMe = false) => {
-    if (rememberMe) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      sessionStorage.setItem('token', token);
-      sessionStorage.setItem('user', JSON.stringify(user));
+    if (!token || !user) {
+      console.error('Invalid token or user data provided to loginUser');
+      return;
     }
-    setToken(token);
-    setUser(user);
+
+    try {
+      const userString = JSON.stringify(user);
+      
+      if (rememberMe) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', userString);
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+      } else {
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', userString);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      
+      setToken(token);
+      setUser(user);
+    } catch (error) {
+      console.error('Error storing auth data:', error);
+    }
   };
 
   const logout = async () => {
@@ -101,11 +130,17 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        user, isAuthLoading,
-        isAuthenticated, token,
-        login, register,
-        logout, loginUser,
-        setUser, logoutUser,
+        user,
+        isAuthLoading,
+        isAuthenticated,
+        token,
+        login,
+        register,
+        logout,
+        loginUser,
+        setUser,
+        setToken,
+        logoutUser,
       }}
     >
       {children}

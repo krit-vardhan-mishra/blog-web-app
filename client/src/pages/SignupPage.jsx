@@ -5,14 +5,15 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import authService from '../api/authService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SignupPageSkeleton } from '../skeleton/pages/SignupPageSkeleton';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { getBaseURL } from '../api/apiService';
 import 'react-toastify/dist/ReactToastify.css';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export const SignupPage = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true); 
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { loginUser } = useAuth();
@@ -71,7 +72,7 @@ export const SignupPage = () => {
 
   useEffect(() => {
     document.title = 'Signup - Blog App';
-    const timer = setTimeout(() => setIsLoading(false), 300);
+    const timer = setTimeout(() => setIsPageLoading(false), 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -110,7 +111,7 @@ export const SignupPage = () => {
     if (!validate()) return;
 
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       const data = await authService.register(
         formData.firstName,
         formData.lastName,
@@ -123,7 +124,7 @@ export const SignupPage = () => {
     } catch (err) {
       setErrors({ form: err.message });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -136,8 +137,23 @@ export const SignupPage = () => {
     window.location.href = googleAuthUrl;
   };
 
-  if (isLoading) {
-    return <SignupPageSkeleton />;
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-[#1C222A] flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (isSubmitting) {
+    return (
+      <div className="min-h-screen bg-[#1C222A] flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="text-white mt-4 text-lg">Creating your account...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -180,6 +196,7 @@ export const SignupPage = () => {
                   className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                   placeholder="Enter your first name"
                   required
+                  disabled={isSubmitting}
                 />
                 {errors.firstName && (
                   <p className="text-red-500 text-sm mt-1">
@@ -211,6 +228,7 @@ export const SignupPage = () => {
                   className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                   placeholder="Enter your last name"
                   required
+                  disabled={isSubmitting}
                 />
                 {errors.lastName && (
                   <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -240,6 +258,7 @@ export const SignupPage = () => {
                   className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                   placeholder="Enter your email"
                   required
+                  disabled={isSubmitting}
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -269,6 +288,7 @@ export const SignupPage = () => {
                   className="w-full p-3 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                   placeholder="Enter your age"
                   required
+                  disabled={isSubmitting}
                 />
                 {errors.age && (
                   <p className="text-red-500 text-sm mt-1">{errors.age}</p>
@@ -299,6 +319,7 @@ export const SignupPage = () => {
                     className="w-full p-3 pr-10 bg-[#1C222A] text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 hover:border-white hover:border-2 transition duration-200"
                     placeholder="Enter your password"
                     required
+                    disabled={isSubmitting}
                   />
                   <div
                     className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
@@ -325,6 +346,7 @@ export const SignupPage = () => {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-5 w-5 bg-[#1C222A] border border-gray-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-white hover:border-2 transition duration-200"
+                disabled={isSubmitting}
               />
               <label htmlFor="remember" className="text-white">
                 <b>Remember Me</b>
@@ -340,15 +362,15 @@ export const SignupPage = () => {
             {/* Signup Button */}
             <div className="flex justify-center mt-6">
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
+                whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
               >
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? 'Signing up...' : 'Sign up'}
+                  {isSubmitting ? 'Signing up...' : 'Sign up'}
                 </Button>
               </motion.div>
             </div>
@@ -357,8 +379,9 @@ export const SignupPage = () => {
           <div className="flex justify-center mt-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleGoogleSignup}
+                disabled={isSubmitting}
               >
                 Sign up with Google
               </Button>

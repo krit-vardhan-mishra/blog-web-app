@@ -37,10 +37,38 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    // Check if email is not verified
     if (!user.isEmailVerified) {
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid password'
+        });
+      }
+
+      try {
+        await otpRateLimiter.consume(email);
+      } catch (rateLimiterRes) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many OTP requests. Please try again later.'
+        });
+      }
+
+      const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress || 'unknown';
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      await OTP.deleteMany({ email, type: 'signup' });
+      
+      await OTP.create({ email, otp, type: 'signup', ipAddress });
+      await sendOTPEmail(email, otp, 'signup', ipAddress);
+
       return res.status(403).json({
         success: false,
-        message: 'Email not verified. Please verify your email before logging in.'
+        message: 'Email not verified. Please verify your email before logging in.',
+        requiresVerification: true,
+        email: email
       });
     }
 
@@ -109,6 +137,15 @@ export const registerUser = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      // Check if user exists but email is not verified
+      if (!existingUser.isEmailVerified) {
+        return res.status(409).json({
+          success: false,
+          message: 'User already exists but email not verified. Please try logging in to receive a verification email.',
+          requiresLogin: true
+        });
+      }
+      
       return res.status(409).json({
         success: false,
         message: 'User already exists. Please login instead.'
@@ -228,14 +265,13 @@ export const resendOTP = async (req, res) => {
       });
     }
 
+    const ipAddress = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress || 'unknown';
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await OTP.findOneAndUpdate(
-      { email, type },
-      { otp, createdAt: new Date() },
-      { upsert: true }
-    );
+    
+    await OTP.deleteMany({ email, type });
+    await OTP.create({ email, otp, type, ipAddress });
 
-    await sendOTPEmail(email, otp, type);
+    await sendOTPEmail(email, otp, type, ipAddress);
 
     res.json({
       success: true,

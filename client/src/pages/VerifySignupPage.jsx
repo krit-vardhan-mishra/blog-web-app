@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import authService from '../api/authService';
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 export const VerifySignupPage = () => {
   const [otp, setOtp] = useState('');
@@ -13,6 +14,7 @@ export const VerifySignupPage = () => {
   const { state } = useLocation();
   const email = state?.email;
   const navigate = useNavigate();
+  const { loginUser } = useAuth();
 
   useEffect(() => {
     if (!email) navigate('/signup');
@@ -22,20 +24,6 @@ export const VerifySignupPage = () => {
       return () => clearTimeout(timer);
     }
   }, [email, navigate, resendTimer]);
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const storedUserJSON = localStorage.getItem('user') || sessionStorage.getItem('user');
-    const storedUser = storedUserJSON ? JSON.parse(storedUserJSON) : null;
-
-    if (storedToken) {
-      setToken(storedToken);
-    }
-
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,16 +36,11 @@ export const VerifySignupPage = () => {
     setErrors({});
     try {
       const response = await authService.verifySignup(email, otp);
-      // Check if token was stored in localStorage or sessionStorage to maintain consistency
+      
       const isRemembered = localStorage.getItem('token') !== null;
       
-      if (isRemembered) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      } else {
-        sessionStorage.setItem('token', response.token);
-        sessionStorage.setItem('user', JSON.stringify(response.user));
-      }
+      loginUser({ token: response.token, user: response.user }, isRemembered);
+      
       navigate('/home');
     } catch (error) {
       setErrors({ form: error.message });

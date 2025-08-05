@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Pencil, Trash2, Eye, UserIcon, Tag, Target, Bookmark, Clock } from 'lucide-react';
+import { Pencil, Trash2, Eye, User, Tag, Target, Bookmark, Clock } from 'lucide-react';
 import { NavLink } from 'react-router';
 import getGenreColor from '@/utils/genreColors';
 
@@ -142,20 +141,18 @@ const PostDetails = ({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 hover:scale-110 text-white transition-all duration-200"
-                aria-label="Edit Post"
-              >
-                <Pencil size={16} />
+                className="p-1.5 sm:p-2 rounded-full bg-blue-600 hover:bg-blue-700 hover:scale-110 text-white transition-all duration-200">
+                <Pencil size={14} className="sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="p-2 rounded-full bg-red-700 hover:bg-red-600 hover:scale-110 text-white transition-all duration-200"
+                className="p-1.5 sm:p-2 rounded-full bg-red-700 hover:bg-red-600 hover:scale-110 text-white transition-all duration-200"
                 aria-label="Delete Post"
               >
-                <Trash2 size={16} />
+                <Trash2 size={14} className="sm:w-4 sm:h-4" />
               </button>
             </>
           )}
@@ -163,63 +160,66 @@ const PostDetails = ({
       </div>
 
       {/* Genre and Difficulty badges */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium text-white bg-${getGenreColor(genre)}`}>
           {genre}
         </span>
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(readingDifficulty)}`}>
-          {getDifficultyIcon(readingDifficulty)} {readingDifficulty}
+          {getDifficultyIcon(readingDifficulty)} 
+          <span className="hidden sm:inline ml-1">{readingDifficulty}</span>
         </span>
         {averageReadTime > 0 && (
           <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-400 bg-blue-900/30 flex items-center">
-            <Clock size={12} className="mr-1" />
-            {formatReadTime(averageReadTime)} read
+            <Clock size={10} className="mr-1" />
+            {formatReadTime(averageReadTime)}
+            <span className="hidden sm:inline ml-1">read</span>
           </span>
         )}
         {engagementScore > 0 && (
-          <span className="px-3 py-1 rounded-full text-sm font-medium text-purple-400 bg-purple-900/30 flex items-center">
-            <Target size={14} className="mr-1" />
-            {Math.round(engagementScore)} engagement
+          <span className="px-2 py-1 rounded-full text-xs font-medium text-purple-400 bg-purple-900/30 flex items-center">
+            <Target size={12} className="mr-1" />
+            {Math.round(engagementScore)}
+            <span className="hidden sm:inline ml-1">engagement</span>
           </span>
         )}
       </div>
 
       {/* Tags */}
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {tags.slice(0, 3).map((tag, index) => (
+        <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
+          {tags.slice(0, 2).map((tag, index) => (
             <span
               key={index}
               className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors duration-200"
             >
-              <Tag size={10} className="mr-1" />
-              {tag}
+              <Tag size={8} className="mr-1" />
+              <span className="truncate max-w-[80px] sm:max-w-none">{tag}</span>
             </span>
           ))}
-          {tags.length > 3 && (
+          {tags.length > 2 && (
             <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-400">
-              +{tags.length - 3} more
+              +{tags.length - 2}
             </span>
           )}
         </div>
       )}
 
       {/* Content preview */}
-      <p className="text-gray-300 text-sm mb-4 line-clamp-3 group-hover:text-gray-200 transition-colors duration-200">
+      <p className="text-gray-300 text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 group-hover:text-gray-200 transition-colors duration-200">
         {content}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center justify-between text-gray-400 text-xs">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-gray-400 text-xs space-y-2 sm:space-y-0">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="flex items-center group-hover:scale-105 transition-transform duration-200">
             <NavLink
               to={`/user/${author?._id || author?.id}`}
               onClick={(e) => e.stopPropagation()}
               className="flex hover:text-blue-400 transition-colors duration-200"
             >
-              <UserIcon size={14} className="mr-1 text-blue-400" />
-              {author ? author.name : 'Unknown'}
+              <User size={12} className="mr-1 text-blue-400 flex-shrink-0" />
+              <span className="truncate">{author ? author.name : 'Unknown'}</span>
             </NavLink>
           </div>
 
@@ -228,16 +228,16 @@ const PostDetails = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between sm:justify-end space-x-3">
           {bookmarkState.bookmarkCount > 0 && (
             <div className="flex items-center text-yellow-400">
-              <Bookmark size={12} className="mr-1" />
+              <Bookmark size={10} className="mr-1" />
               <span>{bookmarkState.bookmarkCount}</span>
             </div>
           )}
 
           <div className="flex items-center hover:text-gray-300 transition-colors duration-200">
-            <Eye size={14} className="mr-1" />
+            <Eye size={12} className="mr-1" />
             <span>{views || 0}</span>
           </div>
         </div>
