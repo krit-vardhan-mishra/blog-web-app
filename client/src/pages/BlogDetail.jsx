@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import EditPostModal from '../components/ui/modals/EditPostModal';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
+import SharePreview from '../components/SharePreview';
 import { motion } from 'framer-motion';
 import getGenreColor from '@/utils/genreColors';
 
@@ -143,8 +144,8 @@ const BlogDetail = () => {
               scrollDepth: maxScrollDepth,
               completedReading: maxScrollDepth > 0.7 && timeSpent > 30
             },
-            userId: userId || null, 
-            isAnonymous: !userId 
+            userId: userId || null,
+            isAnonymous: !userId
           });
         }
       } catch (error) {
@@ -207,7 +208,7 @@ const BlogDetail = () => {
     }
 
     return () => clearTimeout(timer);
-  }, [blog, blogId]); // Removed token dependency
+  }, [blog, blogId]);
 
   const handleEdit = () => {
     setIsEditModalOpen(true);
@@ -224,7 +225,6 @@ const BlogDetail = () => {
     });
     setIsEditModalOpen(false);
 
-    // Refresh the blog data
     const fetchUpdatedBlog = async () => {
       try {
         const result = await blogService.fetchById(blogId);
@@ -253,7 +253,6 @@ const BlogDetail = () => {
         type: 'success',
       });
 
-      // Navigate back after a short delay
       setTimeout(() => {
         navigate(-1);
       }, 2000);
@@ -364,8 +363,8 @@ const BlogDetail = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={handleBookmarkToggle}
                 className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 h-10 w-10 ${isBookmarked
-                    ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                    : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
+                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                  : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
                   }`}
                 aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
               >
@@ -452,7 +451,7 @@ const BlogDetail = () => {
                 onClick={() => navigate(`/user/${author._id || author.id}`)}
               >
                 <UserIcon size={16} />
-                <span>{author.name}</span>
+                <span>{author.name || 'Deleted User'}</span>
               </span>
             )}
 

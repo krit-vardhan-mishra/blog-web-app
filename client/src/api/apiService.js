@@ -141,8 +141,8 @@ apiClient.interceptors.response.use(
       if (!isOnAuthPage) {
         window.location.href = '/login';
       }
-      
-      return Promise.reject(new Error('Session expired. Please log in again.'));
+
+      return Promise.reject(new Error('Check the entered details, Session expired. Please log in again.'));
     }
 
     if (error.response?.status === 403) {

@@ -25,7 +25,7 @@ export const AuthPage = () => {
   const [isLoginMode, setIsLoginMode] = useState(location.pathname === '/login');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
   const [lockoutTimer, setLockoutTimer] = useState(null);
   const [rateLimitTimer, setRateLimitTimer] = useState(null);

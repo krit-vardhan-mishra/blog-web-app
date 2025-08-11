@@ -144,7 +144,7 @@ export const Footer = ({ isLoading = false }) => {
               </motion.a>
 
               <motion.a
-                href="https://github.com/krit-vardhan-mishra/"
+                href="https://github.com/krit-vardhan-mishra/blog-web-app"
                 target="_blank"
                 rel="noreferrer"
                 variants={iconVariants}

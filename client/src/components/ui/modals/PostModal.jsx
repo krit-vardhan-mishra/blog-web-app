@@ -124,6 +124,11 @@ const PostModal = ({
   const handleBookmarkToggle = async (e) => {
     e.stopPropagation();
 
+    if (!onToggleBookmark) {
+      console.warn('onToggleBookmark function not provided');
+      return;
+    }
+
     const result = await onToggleBookmark(blogId);
     if (result?.success) {
       setBookmarkState({
@@ -278,7 +283,7 @@ const PostModal = ({
                 </motion.button>
 
                 {/* Bookmark button (for non-authors) */}
-                {!isAuthor && userId && (
+                {!isAuthor && userId && onToggleBookmark && (
                   <motion.button
                     onClick={handleBookmarkToggle}
                     className={`p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked

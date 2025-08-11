@@ -13,8 +13,6 @@ import PostsSection from '@/components/PostsSection';
 import { BlogProvider } from '@/context/BlogContext';
 import { useLoaderData } from 'react-router';
 
-// Kuch nahi hua toh skeleton code hta dena
-
 const InfiniteScrollHandler = ({ hasNextPage, isLoadingMore, onLoadMore }) => {
   const observerRef = useRef(null);
   const targetRef = useRef(null);
@@ -225,6 +223,7 @@ export const MyPosts = () => {
           onEdit={handleEditPost}
           onDelete={handleDeleteClick}
           onViewIncrement={handleViewIncrement}
+          onToggleBookmark={null}
 
           // Confirm Delete Modal
           isConfirmOpen={isConfirmOpen}

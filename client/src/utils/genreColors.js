@@ -73,7 +73,7 @@ const getColorValue = (tailwindColor) => {
     'yellow-700': '#a16207',
     'lime-500': '#84cc16',
     'blue-500': '#3b82f6',
-    'indigo-300': '#a5b4fc',
+    'gray-400': '#9ca3af',
     'violet-500': '#8b5cf6',
     'purple-600': '#9333ea',
     'yellow-600': '#ca8a04',
@@ -127,5 +127,43 @@ const getColorValue = (tailwindColor) => {
   return colorMap[tailwindColor] || '#4b5563';
 };
 
+// Calculate luminance to determine if a color is light or dark
+const getLuminance = (hex) => {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16) / 255;
+  const g = parseInt(hex.substr(2, 2), 16) / 255;
+  const b = parseInt(hex.substr(4, 2), 16) / 255;
+  
+  // Apply gamma correction
+  const rs = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+  const gs = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+  const bs = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+  
+  // Calculate luminance
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+// Get contrast colors based on background
+const getContrastColors = (backgroundColor) => {
+  const luminance = getLuminance(backgroundColor);
+  const isDark = luminance < 0.5;
+  
+  return {
+    text: isDark ? '#ffffff' : '#000000',
+    secondaryText: isDark ? '#e5e5e5' : '#333333',
+    accent: isDark ? '#ffffff' : '#000000',
+    border: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'
+  };
+};
+
+// Truncate text with ellipsis
+const truncateText = (text, maxLength) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
+};
+
 export default getGenreColor;
-export { getColorValue };
+export { getColorValue, getContrastColors, truncateText };

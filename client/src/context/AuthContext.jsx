@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (email, password, rememberMe) => {
+  const login = async (email, password, rememberMe = true) => {
     try {
       const response = await authService.login(email, password, rememberMe);
       loginUser({ token: response.token, user: response.user }, rememberMe);
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginUser = ({ token, user }, rememberMe = false) => {
+  const loginUser = ({ token, user }, rememberMe = true) => {
     if (!token || !user) {
       console.error('Invalid token or user data provided to loginUser');
       return;

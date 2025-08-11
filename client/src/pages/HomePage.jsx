@@ -13,7 +13,6 @@ import StatsSection from '../components/StatsSection.jsx';
 import ModalManager from '../components/ModalManager.jsx';
 import NotificationBannerManager from '../components/NotificationBannerManager.jsx';
 import FloatingActionButton from '../components/ui/FloatingActionButton.jsx';
-import HomePageSkeleton from '../skeleton/pages/HomePageSkeleton.jsx';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -145,10 +144,6 @@ export const HomePage = () => {
       transition: { duration: 0.5 },
     },
   };
-
-  if (isLoading) {
-    return <HomePageSkeleton />;
-  }
 
   return (
     <BlogProvider value={blogContextValue}>
