@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { HomeIcon, Trash2, SettingsIcon, LogOut } from 'lucide-react';
-import Header from '../components/Header';
+
 import StatsSection from '../components/StatsSection.jsx';
 import NotificationBannerManager from '../components/NotificationBannerManager.jsx';
 import MyPostsSkeleton from '../skeleton/pages/MyPostsSkeleton';
@@ -11,6 +11,7 @@ import ModalManager from '@/components/ModalManager';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import PostsSection from '@/components/PostsSection';
 import { BlogProvider } from '@/context/BlogContext';
+import { useSearch } from '@/context/SearchContext';
 import { useLoaderData } from 'react-router';
 
 const InfiniteScrollHandler = ({ hasNextPage, isLoadingMore, onLoadMore }) => {
@@ -54,6 +55,7 @@ const InfiniteScrollHandler = ({ hasNextPage, isLoadingMore, onLoadMore }) => {
 
 export const MyPosts = () => {
   const loaderData = useLoaderData();
+  const { updateSearchData } = useSearch();
 
   const {
     isLoading,
@@ -103,6 +105,11 @@ export const MyPosts = () => {
     setShowNotificationBanner: (show) => updateState({ showNotificationBanner: show }),
   });
 
+  // Update search data when user blogs change
+  React.useEffect(() => {
+    updateSearchData(userBlogs, []);
+  }, [userBlogs, updateSearchData]);
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -137,15 +144,7 @@ export const MyPosts = () => {
     }}>
       <div className="bg-[#1A1C20] text-white min-h-screen flex flex-col flex-1">
         {/* Header */}
-        <Header
-          title="Your Posts"
-          icons={[
-            { icon: HomeIcon, link: '/home' },
-            { icon: Trash2, link: '/deleted' },
-            { icon: SettingsIcon, link: '/account-setting' },
-            { icon: LogOut, link: '/login' },
-          ]}
-        />
+        
 
         {/* Main content area */}
         <div className="flex-1">

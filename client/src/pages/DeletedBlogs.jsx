@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Trash2, HomeIcon, AlertTriangle } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Header from '../components/Header';
+
 import DeletedPost from '../components/DeletedPost';
 import NotifyBanner from '../components/ui/NotifyBanner';
-import Footer from '../components/Footer';
 import DeletedBlogsSkeleton from '../skeleton/pages/DeletedBlogsSkeleton';
 import PermanentDeleteDialog from '../components/ui/modals/PermanentDeleteDialog';
 import blogService from '../api/blogService';
@@ -20,7 +19,6 @@ export const DeletedBlogs = () => {
   const [notificationMessage, setNotificationMessage] = useState('');
   const [deletedPosts, setDeletedPosts] = useState([]);
 
-  // Animation variants - ADDED to match UserDetail/MyPosts
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -135,14 +133,7 @@ export const DeletedBlogs = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-white flex flex-col">
-      <Header
-        title="Your Deleted Posts"
-        className="text-red-600"
-        icons={[
-          { icon: HomeIcon, link: '/home' },
-          { icon: Trash2, link: '#' },
-        ]}
-      />
+
 
       {/* Main content area */}
       <div className="flex-1">
@@ -153,7 +144,7 @@ export const DeletedBlogs = () => {
           animate="visible"
         >
           {/* Stats Container - Updated to match UserDetail/MyPosts style */}
-          <motion.div 
+          <motion.div
             className="bg-gray-800/50 backdrop-blur-md rounded-lg p-6 mb-6 border border-gray-700"
             variants={itemVariants}
           >
@@ -201,9 +192,14 @@ export const DeletedBlogs = () => {
                 animate={{ opacity: 1 }}
                 className="text-center py-12 bg-gray-800/50 backdrop-blur-md rounded-lg border border-gray-700"
               >
-                <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <motion.div
+                  initial={{ rotate: -10 }}
+                  animate={{ rotate: 10 }}
+                  transition={{ duration: 0.3, repeat: Infinity, repeatType: 'reverse' }}
+                  className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
                   <Trash2 className="w-8 h-8 text-gray-400" />
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-semibold mb-2 text-gray-300">Trash is Empty</h3>
                 <p className="text-gray-500">
                   No deleted blog posts found. Deleted posts will appear here.

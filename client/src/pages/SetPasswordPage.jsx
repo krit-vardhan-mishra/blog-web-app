@@ -19,7 +19,6 @@ export const SetPasswordPage = () => {
     if (!token) {
       navigate('/login');
     } else {
-      // stash token in local storage (or context) so our API calls pick it up:
       localStorage.setItem('authToken', token);
     }
   }, [token, navigate]);
@@ -37,8 +36,8 @@ export const SetPasswordPage = () => {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      await passwordResetService.setPassword(password); // new API call
-      navigate('/dashboard'); // or wherever
+      await passwordResetService.setPassword(password);
+      navigate('/home');
     } catch (err) {
       setErrors({ form: err.message });
     } finally {

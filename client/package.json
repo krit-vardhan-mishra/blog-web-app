@@ -34,7 +34,7 @@
     "emoji-js": "^3.8.1",
     "emoji-mart": "^5.6.0",
     "express": "^5.1.0",
-    "framer-motion": "^12.23.9",
+    "framer-motion": "^12.23.12",
     "googleapis": "^152.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.522.0",
@@ -57,6 +57,7 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "twemoji": "^14.0.2",
+    "usehooks-ts": "^3.1.1",
     "zod": "^4.0.10"
   },
   "devDependencies": {
@@ -65,7 +66,9 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^9.25.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",

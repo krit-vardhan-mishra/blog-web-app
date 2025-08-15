@@ -2,17 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   User, Calendar, Mail,
-  Clock, BookOpen, Eye,
-  ArrowLeft, UserCheck, UserX,
+  Clock, BookOpen, Eye, UserCheck, UserX,
   Shield, AlertCircle, Info,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Header from '../components/Header';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import blogService from '../api/blogService';
 import userService from '../api/userService';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/Button';
 
 const UserDetail = () => {
   const { userId } = useParams();
@@ -27,7 +23,6 @@ const UserDetail = () => {
   const [notification, setNotification] = useState(null);
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState(null);
-  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     document.title = user ? `${user.name} - User Profile` : 'User Profile';
@@ -146,43 +141,60 @@ const UserDetail = () => {
   };
 
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
       transition: {
-        duration: 0.6,
-        staggerChildren: 0.1,
+        duration: 0.5,
+        staggerChildren: 0.15,
+        ease: 'easeIn',
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5 },
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.1, 0.25, 1], // Custom cubic-bezier for a smooth effect
+      },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
+    hidden: { opacity: 0, y: 20, scale: 0.9 },
     visible: {
       opacity: 1,
+      y: 0,
       scale: 1,
-      transition: { duration: 0.4 },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
     hover: {
-      scale: 1.02,
-      transition: { duration: 0.2 },
+      scale: 1.03,
+      boxShadow: '0px 10px 30px -5px rgba(0, 0, 0, 0.3)',
+      transition: { duration: 0.3 },
+    },
+  };
+
+  const blogListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
     },
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f0f23] text-white">
-        <Header title="User Profile" isLoading={true} />
+        
         <div className="max-w-6xl mx-auto p-6">
           <div className="animate-pulse">
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
@@ -203,7 +215,7 @@ const UserDetail = () => {
   if (error || !user) {
     return (
       <div className="min-h-screen bg-[#0f0f23] text-white">
-        <Header title="User Profile" icons={[{ icon: ArrowLeft, link: -1 }]} />
+        
         <div className="max-w-6xl mx-auto p-6">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -231,27 +243,7 @@ const UserDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-white">
-      <Header title="User Profile" icons={[{ icon: ArrowLeft, link: -1 }]}
-        customElements={[
-          !isAuthenticated && (
-            <div className="flex gap-3" key="auth-buttons">
-              <Button
-                type="login"
-                className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
-                onClick={() => navigate('/login')}
-              >
-                Login
-              </Button>
-              <Button
-                type="signup"
-                className="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
-                onClick={() => navigate('/signup')}
-              >
-                Signup
-              </Button>
-            </div>
-          ),
-        ]} />
+      
 
       <motion.div
         className="max-w-6xl mx-auto p-6"
@@ -441,7 +433,7 @@ const UserDetail = () => {
             </div>
           ) : userBlogs.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userBlogs.map((blog) => (
                   <motion.div
                     key={blog._id}
@@ -469,7 +461,7 @@ const UserDetail = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Loading more blogs indicator */}
               {loadingMore && (

@@ -3,7 +3,7 @@ import FeaturesSidebar from '../components/FeaturesSidebar';
 import { Button } from '../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, Form } from 'react-router-dom'; // Import Form
 import { useAuth } from '../context/AuthContext';
 
 import authService from '../api/authService';
@@ -14,13 +14,29 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { getBaseURL } from '@/api/apiService';
 
+// Variants for Framer Motion animations
+const formContainerVariants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08, // Slightly faster stagger for form fields
+    },
+  },
+};
+
+const formItemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
+
 export const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, loginUser, isAuthLoading, isAuthenticated } = useAuth();
   const isDesktop = useMediaQuery('(min-width: 1280px)'); // xl breakpoint
-  
+
   // Determine initial mode based on route
   const [isLoginMode, setIsLoginMode] = useState(location.pathname === '/login');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,24 +65,24 @@ export const AuthPage = () => {
     if (isDesktop) {
       return {
         loginEnter: { y: '100%', opacity: 0 },
-        loginVisible: { 
-          y: 0, 
+        loginVisible: {
+          y: 0,
           opacity: 1,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
-        loginExit: { 
-          y: '-100%', 
+        loginExit: {
+          y: '-100%',
           opacity: 0,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
         signupEnter: { y: '-100%', opacity: 0 },
-        signupVisible: { 
-          y: 0, 
+        signupVisible: {
+          y: 0,
           opacity: 1,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
-        signupExit: { 
-          y: '100%', 
+        signupExit: {
+          y: '100%',
           opacity: 0,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
@@ -74,24 +90,24 @@ export const AuthPage = () => {
     } else {
       return {
         loginEnter: { x: '100%', opacity: 0 },
-        loginVisible: { 
-          x: 0, 
+        loginVisible: {
+          x: 0,
           opacity: 1,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
-        loginExit: { 
-          x: '-100%', 
+        loginExit: {
+          x: '-100%',
           opacity: 0,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
         signupEnter: { x: '-100%', opacity: 0 },
-        signupVisible: { 
-          x: 0, 
+        signupVisible: {
+          x: 0,
           opacity: 1,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
-        signupExit: { 
-          x: '100%', 
+        signupExit: {
+          x: '100%',
           opacity: 0,
           transition: { type: 'spring', stiffness: 300, damping: 30, duration: 0.6 }
         },
@@ -148,10 +164,10 @@ export const AuthPage = () => {
   useEffect(() => {
     if (errors.form || errors.loginError) {
       const timer = setTimeout(() => {
-        setErrors((prevErrors) => ({ 
-          ...prevErrors, 
-          form: '', 
-          loginError: '' 
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          form: '',
+          loginError: ''
         }));
       }, 5000);
       return () => clearTimeout(timer);
@@ -206,7 +222,7 @@ export const AuthPage = () => {
 
     if (!signupFormData.firstName.trim())
       newErrors.firstName = 'First name is required';
-    if (!signupFormData.lastName.trim()) 
+    if (!signupFormData.lastName.trim())
       newErrors.lastName = 'Last name is required';
     if (!signupFormData.email) newErrors.email = 'Email is required';
     else if (!emailRegex.test(signupFormData.email))
@@ -218,7 +234,7 @@ export const AuthPage = () => {
     if (!signupFormData.age) newErrors.age = 'Age is required';
     else if (isNaN(signupFormData.age) || signupFormData.age <= 0)
       newErrors.age = 'Age must be a positive number';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -234,28 +250,28 @@ export const AuthPage = () => {
       await login(loginFormData.email, loginFormData.password, rememberMe);
     } catch (err) {
       console.error('Login error:', err);
-      
+
       // Handle email verification required scenario
       if (err.response?.status === 403 && err.response?.data?.requiresVerification) {
         const email = err.response.data.email || loginFormData.email;
-        navigate('/verify-signup', { 
-          state: { 
+        navigate('/verify-signup', {
+          state: {
             email: email,
             message: 'Please verify your email to complete login. We\'ve sent a new verification code to your email.'
-          } 
+          }
         });
         return;
       }
-      
+
       if (err.response?.status === 429) {
         const message = err.response?.data?.message || err.message;
-        
+
         if (message.includes('Account temporarily locked')) {
           const minutes = message.match(/\d+/)?.[0] || 25;
           setErrors({
             loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
           });
-          
+
           let timeLeft = minutes * 60;
           const timer = setInterval(() => {
             timeLeft -= 1;
@@ -273,7 +289,7 @@ export const AuthPage = () => {
           setErrors({
             loginError: 'Too many login attempts. Please wait 15 minutes before trying again.'
           });
-          
+
           let timeLeft = 15 * 60;
           const timer = setInterval(() => {
             timeLeft -= 1;
@@ -290,13 +306,13 @@ export const AuthPage = () => {
         }
         return;
       }
-      
+
       if (err.isAccountLocked) {
         const minutes = err.lockoutTime || 25;
         setErrors({
           loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
         });
-        
+
         let timeLeft = minutes * 60;
         const timer = setInterval(() => {
           timeLeft -= 1;
@@ -310,10 +326,10 @@ export const AuthPage = () => {
             setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
           }
         }, 1000);
-        
+
         return;
       }
-      
+
       setErrors({
         loginError: err.message || 'Invalid email or password. Please try again.'
       });
@@ -335,19 +351,18 @@ export const AuthPage = () => {
         signupFormData.password,
         parseInt(signupFormData.age)
       );
-      loginUser(data, rememberMe);
       navigate('/verify-signup', { state: { email: signupFormData.email } });
     } catch (err) {
       console.error('Registration error:', err);
-      
+
       // Handle case where user exists but email not verified
       if (err.response?.status === 409 && err.response?.data?.requiresLogin) {
-        setErrors({ 
-          form: err.response.data.message + ' Click below to go to login page.' 
+        setErrors({
+          form: err.response.data.message + ' Click below to go to login page.'
         });
         return;
       }
-      
+
       setErrors({ form: err.message });
     } finally {
       setIsSubmitting(false);
@@ -410,9 +425,18 @@ export const AuthPage = () => {
                   Login Here
                 </h1>
 
-                <form className="w-full space-y-6" onSubmit={handleLoginSubmit}>
+                <Form // Changed from motion.form to Form
+                  className="w-full space-y-6"
+                  onSubmit={handleLoginSubmit}
+                  variants={formContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
                   {/* Email Input */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
                       htmlFor="email"
@@ -438,10 +462,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Password Input */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110 xl:pt-3"
                       htmlFor="password"
@@ -479,10 +506,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Remember Me Checkbox */}
-                  <div className="flex justify-center">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex justify-center"
+                  >
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -495,11 +525,14 @@ export const AuthPage = () => {
                         <b>Remember Me</b>
                       </label>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Login Error Message */}
                   {errors.loginError && (
-                    <div className="flex flex-col items-center justify-center space-y-2">
+                    <motion.div
+                      variants={formItemVariants}
+                      className="flex flex-col items-center justify-center space-y-2"
+                    >
                       <p className="text-red-500 text-sm font-medium text-center">
                         {errors.loginError}
                       </p>
@@ -513,62 +546,85 @@ export const AuthPage = () => {
                           Rate limit time remaining: {rateLimitTimer}
                         </p>
                       )}
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Forgot Password Link */}
-                  <div className="flex justify-center">
-                    <a
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex justify-center"
+                  >
+                    <motion.a // Applied motion directly to 'a' tag for hover
                       href="/forgot-password"
                       className="text-blue-400 hover:underline text-sm"
+                      whileHover={{ scale: 1.05, color: '#60a5fa' }}
+                      transition={{ duration: 0.2 }}
                     >
                       Forgot Password?
-                    </a>
-                  </div>
+                    </motion.a>
+                  </motion.div>
 
                   {/* Login Button */}
-                  <div className="flex justify-center mt-6">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        className={`bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto relative min-w-[120px] ${
-                          rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
-                        }`}
-                        type="submit"
-                        disabled={rateLimitTimer || lockoutTimer}
-                      >
-                        Log in
-                      </Button>
-                    </motion.div>
-                  </div>  
-                </form>
-
-                {/* Google Sign-in Button */}
-                <div className="flex justify-center mt-4">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      className={`bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto ${
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex justify-center mt-6"
+                  >
+                    <Button // whileHover/whileTap now handled by Button.jsx
+                      className={`bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto relative min-w-[120px] ${
                         rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
                       }`}
+                      type="submit"
                       disabled={rateLimitTimer || lockoutTimer}
-                      onClick={handleGoogleAuth}
+                      whileHover={{ // Enhanced hover
+                        scale: 1.05,
+                        y: -3,
+                        boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
+                        transition: { type: 'spring', stiffness: 300 }
+                      }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      Sign in with Google
+                      Log in
                     </Button>
                   </motion.div>
-                </div>
+                </Form>
 
-                <p className="text-white mt-6 text-center">
+                {/* Google Sign-in Button */}
+                <motion.div
+                  variants={formItemVariants}
+                  className="flex justify-center mt-4"
+                >
+                  <Button // whileHover/whileTap now handled by Button.jsx
+                    className={`bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto ${
+                      rateLimitTimer || lockoutTimer ? 'cursor-not-allowed opacity-75' : ''
+                    }`}
+                    disabled={rateLimitTimer || lockoutTimer}
+                    onClick={handleGoogleAuth}
+                    whileHover={{ // Enhanced hover
+                      scale: 1.05,
+                      y: -3,
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
+                      transition: { type: 'spring', stiffness: 300 }
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Sign in with Google
+                  </Button>
+                </motion.div>
+
+                <motion.p
+                  variants={formItemVariants}
+                  className="text-white mt-6 text-center"
+                >
                   Don't have an account?{' '}
-                  <button 
+                  <motion.button // Applied motion directly to 'button' tag for hover
                     onClick={switchToSignup}
                     className="text-blue-400 hover:underline cursor-pointer"
+                    whileHover={{ scale: 1.05, color: '#60a5fa' }}
+                    transition={{ duration: 0.2 }}
                   >
                     Sign up
-                  </button>
-                </p>
+                  </motion.button>
+                </motion.p>
               </motion.div>
             ) : (
               <motion.div
@@ -586,9 +642,18 @@ export const AuthPage = () => {
                   Sign up Here
                 </h1>
 
-                <form className="w-full space-y-6" onSubmit={handleSignupSubmit}>
+                <Form // Changed from motion.form to Form
+                  className="w-full space-y-6"
+                  onSubmit={handleSignupSubmit}
+                  variants={formContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
                   {/* First Name */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
                       htmlFor="firstName"
@@ -616,10 +681,13 @@ export const AuthPage = () => {
                         </p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Last Name */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
                       htmlFor="lastName"
@@ -645,10 +713,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Email */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
                       htmlFor="email"
@@ -674,10 +745,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Age */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-center space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110"
                       htmlFor="age"
@@ -703,10 +777,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.age}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Password */}
-                  <div className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex flex-col xl:grid xl:grid-cols-4 xl:gap-4 xl:items-start space-y-2 xl:space-y-0"
+                  >
                     <label
                       className="xl:col-span-1 text-white transform transition-transform duration-200 hover:scale-110 xl:pt-3"
                       htmlFor="password"
@@ -744,10 +821,13 @@ export const AuthPage = () => {
                         <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                       )}
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Remember Me Checkbox */}
-                  <div className="flex justify-center space-x-3">
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex justify-center space-x-3"
+                  >
                     <input
                       type="checkbox"
                       id="remember"
@@ -758,63 +838,86 @@ export const AuthPage = () => {
                     <label htmlFor="remember" className="text-white">
                       <b>Remember Me</b>
                     </label>
-                  </div>
+                  </motion.div>
 
                   {errors.form && (
-                    <div className="signup-error">
+                    <motion.div
+                      variants={formItemVariants}
+                      className="signup-error"
+                    >
                       <p className="text-red-500 text-sm mt-1 mb-2 text-center">
                         {errors.form}
                       </p>
                       {errors.form.includes('Please try logging in') && (
                         <div className="text-center mt-2">
-                          <button
+                          <motion.button // Applied motion directly to 'button' tag for hover
                             type="button"
                             onClick={switchToLogin}
                             className="text-blue-400 hover:underline text-sm"
+                            whileHover={{ scale: 1.05, color: '#60a5fa' }}
+                            transition={{ duration: 0.2 }}
                           >
                             Go to Login Page
-                          </button>
+                          </motion.button>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Signup Button */}
-                  <div className="flex justify-center mt-6">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
+                  <motion.div
+                    variants={formItemVariants}
+                    className="flex justify-center mt-6"
+                  >
+                    <Button // whileHover/whileTap now handled by Button.jsx
+                      className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                      type="submit"
+                      whileHover={{ // Enhanced hover
+                        scale: 1.05,
+                        y: -3,
+                        boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
+                        transition: { type: 'spring', stiffness: 300 }
+                      }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
-                        type="submit"
-                      >
-                        Sign up
-                      </Button>
-                    </motion.div>
-                  </div>
-                </form>
-
-                <div className="flex justify-center mt-4">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-                      onClick={handleGoogleAuth}
-                    >
-                      Sign up with Google
+                      Sign up
                     </Button>
                   </motion.div>
-                </div>
+                </Form>
 
-                <p className="text-white mt-6 text-center">
+                <motion.div
+                  variants={formItemVariants}
+                  className="flex justify-center mt-4"
+                >
+                  <Button // whileHover/whileTap now handled by Button.jsx
+                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                    onClick={handleGoogleAuth}
+                    whileHover={{ // Enhanced hover
+                      scale: 1.05,
+                      y: -3,
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
+                      transition: { type: 'spring', stiffness: 300 }
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Sign up with Google
+                  </Button>
+                </motion.div>
+
+                <motion.p
+                  variants={formItemVariants}
+                  className="text-white mt-6 text-center"
+                >
                   Already have an account?{' '}
-                  <button 
+                  <motion.button 
                     onClick={switchToLogin}
                     className="text-blue-400 hover:underline cursor-pointer"
+                    whileHover={{ scale: 1.05, color: '#60a5fa' }}
+                    transition={{ duration: 0.2 }}
                   >
                     Log in
-                  </button>
-                </p>
+                  </motion.button>
+                </motion.p>
               </motion.div>
             )}
           </AnimatePresence>

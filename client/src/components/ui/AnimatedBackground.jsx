@@ -6,35 +6,42 @@ const AnimatedBackground = () => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
+      // Update mouse position, used for subtle parallax effects
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    // Clean up event listener on component unmount
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Gradient Orbs */}
+      {/* Gradient Orb 1: Blue */}
+      {/* Animates position and scale based on mouse movement for a subtle parallax */}
       <motion.div
         className="absolute w-96 h-96 rounded-full opacity-10"
         style={{
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
           filter: 'blur(40px)',
+          left: '10%', // Initial position
+          top: '10%',
         }}
         animate={{
-          x: mousePosition.x * 0.02,
-          y: mousePosition.y * 0.02,
-          scale: [1, 1.1, 1],
+          x: mousePosition.x * 0.02, // Move slightly with mouse X
+          y: mousePosition.y * 0.02, // Move slightly with mouse Y
+          scale: [1, 1.1, 1], // Continuous scaling animation
         }}
         transition={{
           x: { type: "spring", stiffness: 50, damping: 30 },
           y: { type: "spring", stiffness: 50, damping: 30 },
           scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
         }}
-        initial={{ x: -100, y: -100 }}
+        initial={{ x: -100, y: -100 }} // Initial position for entrance
       />
 
+      {/* Gradient Orb 2: Purple */}
+      {/* Similar parallax and scaling, positioned differently */}
       <motion.div
         className="absolute w-80 h-80 rounded-full opacity-8"
         style={{
@@ -44,8 +51,8 @@ const AnimatedBackground = () => {
           top: '20%',
         }}
         animate={{
-          x: mousePosition.x * -0.015,
-          y: mousePosition.y * -0.015,
+          x: mousePosition.x * -0.015, // Moves in opposite direction
+          y: mousePosition.y * -0.015, // Moves in opposite direction
           scale: [1, 1.2, 1],
         }}
         transition={{
@@ -55,6 +62,8 @@ const AnimatedBackground = () => {
         }}
       />
 
+      {/* Gradient Orb 3: Green */}
+      {/* Another orb with unique position and animation */}
       <motion.div
         className="absolute w-64 h-64 rounded-full opacity-6"
         style={{
@@ -76,6 +85,7 @@ const AnimatedBackground = () => {
       />
 
       {/* Floating Particles */}
+      {/* 15 small particles with individual random animations for a starry effect */}
       {[...Array(15)].map((_, i) => (
         <motion.div
           key={i}
@@ -85,21 +95,22 @@ const AnimatedBackground = () => {
             top: `${Math.random() * 100}%`,
           }}
           animate={{
-            y: [0, -30, 0],
-            x: [0, Math.random() * 20 - 10, 0],
-            opacity: [0.2, 0.8, 0.2],
-            scale: [1, 1.5, 1],
+            y: [0, -30, 0], // Vertical floating motion
+            x: [0, Math.random() * 20 - 10, 0], // Horizontal drift
+            opacity: [0.2, 0.8, 0.2], // Fade in/out
+            scale: [1, 1.5, 1], // Pulse in size
           }}
           transition={{
-            duration: 3 + Math.random() * 4,
+            duration: 3 + Math.random() * 4, // Random duration
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: Math.random() * 2, // Random start delay
             ease: "easeInOut"
           }}
         />
       ))}
 
       {/* Grid Pattern */}
+      {/* Static grid that subtly shifts with mouse movement */}
       <div
         className="absolute inset-0 opacity-5"
         style={{
@@ -112,7 +123,8 @@ const AnimatedBackground = () => {
         }}
       />
 
-      {/* Animated Lines */}
+      {/* Animated Lines (SVG) */}
+      {/* Two SVG paths that animate their drawing and erasing */}
       <svg className="absolute inset-0 w-full h-full opacity-10">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">

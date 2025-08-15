@@ -1,33 +1,33 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
-import BlogCard from './BlogCard';
+import BlogCard from './BlogCard'; 
 
-const BlogGrid = ({ 
-  filteredBlogs, 
-  handleBlogClick, 
+const BlogGrid = ({
+  filteredBlogs,
+  handleBlogClick,
   handleAuthorClick,
-  newBlogsCount = 0 
+  newBlogsCount = 0
 }) => {
-  // Animation variants for the grid container
+  // Animation variants for the grid container itself, for a staggered appearance of children
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        duration: 0.3,
-        staggerChildren: 0.08,
+        duration: 0.3, // Overall duration for the container's appearance
+        staggerChildren: 0.08, // Delay between each child's animation
       },
     },
   };
 
-  // Animation variants for individual blog cards
+  // Animation variants for individual blog cards when they initially load
   const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 30,
-      scale: 0.95,
-      rotateX: 10
+    hidden: {
+      opacity: 0,
+      y: 30, // Start 30px below
+      scale: 0.95, // Start slightly smaller
+      rotateX: 10 // Start with a slight 3D rotation
     },
     visible: {
       opacity: 1,
@@ -35,35 +35,35 @@ const BlogGrid = ({
       scale: 1,
       rotateX: 0,
       transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 25,
-        duration: 0.6
+        type: "spring", // Use spring physics for a more natural bounce
+        stiffness: 300, // Stiffer spring for quicker bounce
+        damping: 25, // Less damping for more oscillation
+        duration: 0.6 // Overall duration for individual card animation
       },
     },
   };
 
-  // Special animation for newly loaded blogs during pagination
+  // Special animation for newly loaded blogs during infinite scrolling pagination
   const newBlogVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 50,
-      scale: 0.8,
-      rotateY: 15,
-      filter: "blur(4px)"
+    hidden: {
+      opacity: 0,
+      y: 50, // Start further below
+      scale: 0.8, // Start significantly smaller
+      rotateY: 15, // Add a Y-axis rotation for a unique effect
+      filter: "blur(4px)" // Start blurred
     },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
       rotateY: 0,
-      filter: "blur(0px)",
+      filter: "blur(0px)", // End clear
       transition: {
         type: "spring",
-        stiffness: 200,
+        stiffness: 200, // Softer spring for a more floaty feel
         damping: 20,
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94]
+        ease: [0.25, 0.46, 0.45, 0.94] // Custom bezier curve for a unique easing
       },
     },
   };
@@ -71,20 +71,20 @@ const BlogGrid = ({
   // Enhanced hover animation for blog cards
   const cardHoverVariants = {
     hover: {
-      scale: 1.02,
-      rotateY: 1,
-      y: -4,
-      rotateX: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 400, 
+      scale: 1.02, // Slightly enlarge on hover
+      rotateY: 1, // Subtle Y-axis rotation
+      y: -4, // Lift slightly
+      rotateX: 1, // Subtle X-axis rotation
+      transition: {
+        type: "spring",
+        stiffness: 400, // Quick response on hover
         damping: 25,
         duration: 0.3
       }
     }
   };
 
-  // No results state
+  // State to display when no blogs are found
   if (filteredBlogs.length === 0) {
     return (
       <motion.div
@@ -92,12 +92,13 @@ const BlogGrid = ({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        whileHover={{ scale: 1.01, y: -2 }}
+        whileHover={{ scale: 1.01, y: -2 }} // Gentle hover effect for the no-results box
       >
         <motion.div
+          // Continuous animation for the icon inside the no-results box
           animate={{
-            rotateY: [0, 360],
-            scale: [1, 1.1, 1]
+            rotateY: [0, 360], // Rotate on Y-axis
+            scale: [1, 1.1, 1] // Pulsating scale effect
           }}
           transition={{
             duration: 4,
@@ -118,38 +119,39 @@ const BlogGrid = ({
   return (
     <motion.div
       className="columns-1 sm:columns-2 lg:columns-3 xl:columns-3 gap-4 sm:gap-6 space-y-4 sm:space-y-6 px-2 sm:px-0"
-      variants={containerVariants}
+      variants={containerVariants} // Apply container entrance animation
       initial="hidden"
       animate="visible"
     >
       {filteredBlogs.map((blog, index) => {
+        // Determine if the blog is newly loaded for pagination, apply specific variant
         const isNewBlog = index >= filteredBlogs.length - newBlogsCount;
         const blogVariants = isNewBlog ? newBlogVariants : cardVariants;
-        
+
         return (
           <motion.div
             key={blog._id}
-            variants={blogVariants}
-            {...cardHoverVariants}
-            whileHover="hover"
+            variants={blogVariants} // Apply hidden/visible variants
+            {...cardHoverVariants} // Spread hover variants
+            whileHover="hover" // Enable hover state
             className="break-inside-avoid"
             style={{
-              perspective: "1000px",
-              transformStyle: "preserve-3d"
+              perspective: "1000px", // Enable 3D transform for child elements
+              transformStyle: "preserve-3d" // Keep children in 3D space
             }}
-            // Add a glowing effect for new blogs
+            // Add a subtle glowing effect specifically for new blogs
             animate={isNewBlog ? {
               boxShadow: [
-                "0 0 0px rgba(59, 130, 246, 0)",
-                "0 0 15px rgba(59, 130, 246, 0.3)",
-                "0 0 30px rgba(59, 130, 246, 0.15)",
-                "0 0 0px rgba(59, 130, 246, 0)"
+                "0 0 0px rgba(59, 130, 246, 0)", // Start no glow
+                "0 0 15px rgba(59, 130, 246, 0.3)", // Glow intensely
+                "0 0 30px rgba(59, 130, 246, 0.15)", // Fade out glow
+                "0 0 0px rgba(59, 130, 246, 0)" // End no glow
               ]
             } : {}}
             transition={isNewBlog ? {
               boxShadow: {
-                duration: 2,
-                repeat: 2,
+                duration: 2, // Glow duration
+                repeat: 2, // Repeat twice
                 ease: "easeInOut"
               }
             } : {}}

@@ -6,7 +6,8 @@ import {
 
 import PublicRoute from './PublicRoute';
 import PrivateRoute from './PrivateRoute';
-import MainLayout from '../components/MainLayout';
+import PageLayout from '../components/PageLayout';
+import RootLayout from '../components/RootLayout';
 import RouterErrorBoundary from '@/components/RouterErrorBoundary';
 import GoogleAuthHandler from '../context/GoogleAuthHandler';
 
@@ -21,6 +22,7 @@ import {
   homePageLoader,
   myPostsLoader,
 } from './protectedLoaders';
+import DeletedBlogs from '@/pages/DeletedBlogs';
 
 const PageLoadingSpinner = () => (
   <div className="min-h-screen bg-[#1A1C20] flex items-center justify-center">
@@ -43,7 +45,6 @@ const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage'));
 const SetPasswordPage = lazy(() => import('../pages/SetPasswordPage'));
 const HomePage = lazy(() => import('../pages/HomePage'));
 const MyPosts = lazy(() => import('../pages/MyPosts'));
-const DeletedBlogs = lazy(() => import('../pages/DeletedBlogs'));
 const AccountSetting = lazy(() => import('../pages/AccountSetting'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
@@ -58,81 +59,82 @@ const SuspenseWrapper = ({ children }) => (
 );
 
 const routes = createRoutesFromElements(
-  <>
-    {/* Root route with error boundary */}
-    <Route
-      path="/"
-      errorElement={<RouterErrorBoundary />}
-    >
-      {/* Public Routes */}
-      <Route element={<PublicRoute />}>
-        <Route 
-          index 
-          element={
-            <SuspenseWrapper>
-              <LandingPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="login" 
-          element={
-            <SuspenseWrapper>
-              <AuthPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="signup" 
-          element={
-            <SuspenseWrapper>
-              <AuthPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route path="google-auth" element={<GoogleAuthHandler />} />
-        <Route 
-          path="forgot-password" 
-          element={
-            <SuspenseWrapper>
-              <ForgotPasswordPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="verify-otp" 
-          element={
-            <SuspenseWrapper>
-              <VerifyOTPPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="verify-signup" 
-          element={
-            <SuspenseWrapper>
-              <VerifySignupPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="reset-password" 
-          element={
-            <SuspenseWrapper>
-              <ResetPasswordPage />
-            </SuspenseWrapper>
-          } 
-        />
-        <Route 
-          path="set-password" 
-          element={
-            <SuspenseWrapper>
-              <SetPasswordPage />
-            </SuspenseWrapper>
-          } 
-        />
-      </Route>
+  <Route
+    path="/"
+    element={<RootLayout />}
+    errorElement={<RouterErrorBoundary />}
+  >
+    {/* Public Routes */}
+    <Route element={<PublicRoute />}>
+      <Route 
+        index 
+        element={
+          <SuspenseWrapper>
+            <LandingPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="login" 
+        element={
+          <SuspenseWrapper>
+            <AuthPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="signup" 
+        element={
+          <SuspenseWrapper>
+            <AuthPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route path="google-auth" element={<GoogleAuthHandler />} />
+      <Route 
+        path="forgot-password" 
+        element={
+          <SuspenseWrapper>
+            <ForgotPasswordPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="verify-otp" 
+        element={
+          <SuspenseWrapper>
+            <VerifyOTPPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="verify-signup" 
+        element={
+          <SuspenseWrapper>
+            <VerifySignupPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="reset-password" 
+        element={
+          <SuspenseWrapper>
+            <ResetPasswordPage />
+          </SuspenseWrapper>
+        } 
+      />
+      <Route 
+        path="set-password" 
+        element={
+          <SuspenseWrapper>
+            <SetPasswordPage />
+          </SuspenseWrapper>
+        } 
+      />
+    </Route>
 
+    {/* Routes with Header */}
+    <Route element={<PageLayout />}>
       {/* Public Loadable Routes */}
       <Route
         path="explore"
@@ -167,59 +169,57 @@ const routes = createRoutesFromElements(
 
       {/* Private Routes */}
       <Route element={<PrivateRoute />}>
-        <Route element={<MainLayout />}>
-          <Route
-            path="home"
-            element={
-              <SuspenseWrapper>
-                <HomePage />
-              </SuspenseWrapper>
-            }
-            loader={homePageLoader}
-            errorElement={<RouterErrorBoundary />}
-          />
-          <Route
-            path="your-posts"
-            element={
-              <SuspenseWrapper>
-                <MyPosts />
-              </SuspenseWrapper>
-            }
-            loader={myPostsLoader}
-            errorElement={<RouterErrorBoundary />}
-          />
-          <Route
-            path="deleted"
-            element={
-              <SuspenseWrapper>
-                <DeletedBlogs />
-              </SuspenseWrapper>
-            }
-            errorElement={<RouterErrorBoundary />}
-          />
-          <Route
-            path="account-setting"
-            element={
-              <SuspenseWrapper>
-                <AccountSetting />
-              </SuspenseWrapper>
-            }
-            errorElement={<RouterErrorBoundary />}
-          />
-        </Route>
+        <Route
+          path="home"
+          element={
+            <SuspenseWrapper>
+              <HomePage />
+            </SuspenseWrapper>
+          }
+          loader={homePageLoader}
+          errorElement={<RouterErrorBoundary />}
+        />
+        <Route
+          path="your-posts"
+          element={
+            <SuspenseWrapper>
+              <MyPosts />
+            </SuspenseWrapper>
+          }
+          loader={myPostsLoader}
+          errorElement={<RouterErrorBoundary />}
+        />
+        <Route
+          path="deleted"
+          element={
+            <SuspenseWrapper>
+              <DeletedBlogs />
+            </SuspenseWrapper>
+          }
+          errorElement={<RouterErrorBoundary />}
+        />
+        <Route
+          path="account-setting"
+          element={
+            <SuspenseWrapper>
+              <AccountSetting />
+            </SuspenseWrapper>
+          }
+          errorElement={<RouterErrorBoundary />}
+        />
       </Route>
-
-      {/* Fallback */}
-      <Route 
-        path="*" 
-        element={
-          <SuspenseWrapper>
-            <NotFound />
-          </SuspenseWrapper>
-        } 
-      />
     </Route>
-  </>
+
+    {/* Fallback */}
+    <Route 
+      path="*" 
+      element={
+        <SuspenseWrapper>
+          <NotFound />
+        </SuspenseWrapper>
+      } 
+    />
+  </Route>
 );
 
 export default routes;

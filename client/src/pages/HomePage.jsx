@@ -1,36 +1,20 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  HomeIcon,
-  UserIcon,
-  Search,
-  BinocularsIcon,
-} from 'lucide-react';
-import Header from '../components/Header.jsx';
-import SearchFunctionality from '../components/SearchFunctionality.jsx';
 import UserProfileSection from '../components/UserProfileSection.jsx';
 import StatsSection from '../components/StatsSection.jsx';
 import ModalManager from '../components/ModalManager.jsx';
 import NotificationBannerManager from '../components/NotificationBannerManager.jsx';
 import FloatingActionButton from '../components/ui/FloatingActionButton.jsx';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-} from '../components/ui/dropdown-menu.jsx';
 import { useHomePage } from '../hooks/useHomePage.js';
 import { useEffectsManager } from '../hooks/useEffectsManager.js';
 import '@/css/home-page.css';
 import { usePerformanceOptimizations } from '@/hooks/usePerformanceOptimization.js';
 import { BlogProvider } from '@/context/BlogContext.jsx';
-import { useDebouncedSearch } from '@/hooks/useDebouncedSearch.js';
+import { useSearch } from '@/context/SearchContext.jsx';
 import PostsSection from '@/components/PostsSection.jsx';
 import Footer from '@/components/Footer.jsx';
 
 export const HomePage = () => {
-  const searchInputRef = useRef(null);
 
   const {
     isLoading,
@@ -88,14 +72,13 @@ export const HomePage = () => {
   });
 
   const {
-    isSearchActive,
-    searchQuery,
-    searchResults,
-    searchLoading,
-    handleSearchToggle,
-    handleSearchChange,
-    handleSearchResultClick,
-  } = useDebouncedSearch(allBlogs, allUsers);
+    updateSearchData,
+  } = useSearch();
+
+  // Update search data when blogs/users change
+  React.useEffect(() => {
+    updateSearchData(allBlogs, allUsers);
+  }, [allBlogs, allUsers, updateSearchData]);
 
   useEffectsManager({
     user,
@@ -150,69 +133,7 @@ export const HomePage = () => {
       <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
 
         {/* Header */}
-        <Header
-          title="Home"
-          icons={[
-            { icon: HomeIcon, link: '/home' },
-            { icon: Search, onClick: handleSearchToggle },
-            { icon: BinocularsIcon, link: '/explore' }
-          ]}
-          customElements={[
-            <DropdownMenu key="user-dropdown">
-              <DropdownMenuTrigger asChild>
-                <button>
-                  <UserIcon className="text-white hover:text-blue-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 mr-6 mt-3">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate(`/user/${user.id}`)}>
-                  Your Account
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/your-posts')}>
-                  Your Posts
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/account-setting')}>
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    logout();
-                    navigate('/login', { replace: true });
-                  }}
-                  style={{
-                    '--hover-bg': '#7f1d1d',
-                    '--hover-text': '#ffffff',
-                  }}
-                  className="hover:bg-[--hover-bg] hover:text-[--hover-text] focus:bg-[--hover-bg] focus:text-[--hover-text]"
-                >
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>,
-          ]}
-        />
-
-        {/* Search Functionality */}
-        <SearchFunctionality
-          isSearchActive={isSearchActive}
-          searchQuery={searchQuery}
-          searchResults={searchResults}
-          searchLoading={searchLoading}
-          searchInputRef={searchInputRef}
-          onSearchToggle={handleSearchToggle}
-          onSearchChange={handleSearchChange}
-          onSearchResultClick={(result) => {
-            if (result.type === 'blog') {
-              navigate(`/blog/${result._id || result.id}`);
-            } else if (result.type === 'user') {
-              navigate(`/user/${result._id || result.id}`);
-            }
-            handleSearchToggle();
-          }}
-          onPerformSearch={() => { }}
-          allBlogs={allBlogs}
-        />
+        
 
         {/* Main Content */}
         <motion.main

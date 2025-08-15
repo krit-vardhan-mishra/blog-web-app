@@ -106,9 +106,10 @@ const authService = {
           },
         }
       );
-      return response.data;
+      return response;
     } catch (error) {
-      throw error.response?.data?.message || 'Failed to change password';
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to change password';
+      throw errorMessage;
     }
   },
 };
@@ -119,6 +120,20 @@ const passwordResetService = {
     apiClient.post('/auth/verify-reset-otp', { email, otp }),
   resetPassword: (email, otp, newPassword) =>
     apiClient.post('/auth/reset-password', { email, otp, newPassword }),
+  setPassword: async (newPassword) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const res = await fetch(`${getBaseURL()}/api/auth/set-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to set password');
+    return data;
+  }
 };
 
 export const setPassword = async (newPassword) => {

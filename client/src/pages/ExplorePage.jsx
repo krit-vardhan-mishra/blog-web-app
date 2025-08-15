@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLoaderData } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
-import Header from '../components/Header';
-import { Button } from '../components/ui/Button';
-import { useAuth } from '../context/AuthContext';
-import NotifyBanner from '../components/ui/NotifyBanner';
-import AnimatedBackground from '../components/ui/AnimatedBackground';
-import FloatingIcons from '../components/ui/FloatingIcons';
-import SearchSection from '../components/ui/SearchSection';
-import CategoryFilter from '../components/ui/CategoryFilter';
-import BlogGrid from '../components/ui/BlogGrid';
-import LoadingStates from '../components/ui/LoadingStates';
-import useInfiniteScroll from '../hooks/useInfiniteScroll';
+import { useSearch } from '@/context/SearchContext';
+import useInfiniteScroll from '@/hooks/useInfiniteScroll';
+import AnimatedBackground from '@/components/ui/AnimatedBackground';
+import FloatingIcons from '@/components/ui/FloatingIcons';
+import SearchSection from '@/components/ui/SearchSection';
+import CategoryFilter from '@/components/ui/CategoryFilter';
+import BlogGrid from '@/components/ui/BlogGrid';
+import LoadingStates from '@/components/ui/LoadingStates';
+import NotifyBanner from '@/components/ui/NotifyBanner';
 import '@/css/explore-page.css';
 
 const ExplorePage = () => {
@@ -22,10 +19,9 @@ const ExplorePage = () => {
   const [notification, setNotification] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { updateSearchData } = useSearch();
   const navigate = useNavigate();
 
-  // Use custom hook for infinite scroll and pagination
   const {
     blogs,
     pagination,
@@ -44,6 +40,10 @@ const ExplorePage = () => {
       });
     }
   }, [loaderError]);
+
+  useEffect(() => {
+    updateSearchData(blogs, []);
+  }, [blogs, updateSearchData]);
 
   const filteredBlogs = useMemo(() => {
     let filtered = blogs;
@@ -116,61 +116,29 @@ const ExplorePage = () => {
     }
   };
 
+  // Variants for the main content container
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
+      y: 0,
       transition: {
-        duration: 0.2,
-        staggerChildren: 0.03,
+        duration: 0.5,
+        staggerChildren: 0.1, // Stagger children animations
       },
     },
   };
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col relative overflow-hidden">
-      {/* Animated Background */}
+      {/* Animated Background for subtle visual interest */}
       <AnimatedBackground />
+      {/* Floating Icons for decorative elements */}
       <FloatingIcons />
 
-      {/* Content with higher z-index */}
+      {/* Main content wrapper with increased z-index to appear above background elements */}
       <div className="relative z-10">
-        <Header
-          title="Explore"
-          icons={[{ icon: Search, onClick: handleSearchToggle }]}
-          customElements={[
-            !isAuthenticated && (
-              <div className="flex gap-3" key="auth-buttons">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    type="login"
-                    className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-                    onClick={() => navigate('/login')}
-                  >
-                    Login
-                  </Button>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    type="signup"
-                    className="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-all duration-200 shadow-lg hover:shadow-green-500/25"
-                    onClick={() => navigate('/signup')}
-                  >
-                    Signup
-                  </Button>
-                </motion.div>
-              </div>
-            ),
-          ]}
-        />
-
-        {/* Search Input Section */}
+        {/* Search Input Section with motion for active/inactive states */}
         <SearchSection
           isSearchActive={isSearchActive}
           searchQuery={searchQuery}
@@ -179,13 +147,14 @@ const ExplorePage = () => {
           handleSearchSubmit={handleSearchSubmit}
         />
 
+        {/* Main content area with entrance animation */}
         <motion.div
           className="flex-1 max-w-7xl mx-auto p-6 w-full"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Category Filter Section */}
+          {/* Category Filter Section with its own entrance animation and interactivity */}
           <CategoryFilter
             selectedCategory={selectedCategory}
             handleCategoryChange={handleCategoryChange}
@@ -196,7 +165,7 @@ const ExplorePage = () => {
             searchQuery={searchQuery}
           />
 
-          {/* Blog Grid */}
+          {/* Blog Grid, with staggered children animations for individual cards */}
           <BlogGrid
             filteredBlogs={filteredBlogs}
             handleBlogClick={handleBlogClick}
@@ -204,15 +173,15 @@ const ExplorePage = () => {
             newBlogsCount={newBlogsCount}
           />
 
-          {/* Loading States */}
+          {/* Loading and End-of-Content States with subtle animations */}
           <LoadingStates
             loading={loading}
             pagination={pagination}
-            blogsLength={blogs.length}
+            blogsLength={filteredBlogs.length} // Use filteredBlogs.length for accurate count
           />
         </motion.div>
 
-        {/* Notification */}
+        {/* Notification Banner with entry and exit animations */}
         {notification && (
           <NotifyBanner
             message={notification.message}

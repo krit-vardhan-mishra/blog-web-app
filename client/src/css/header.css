@@ -84,6 +84,38 @@
   }
 }
 
+/* Glow effect for active icons */
+@keyframes iconGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+/* Shimmer effect for labels */
+@keyframes labelShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Separator line animation */
+@keyframes separatorGrow {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  100% {
+    height: 32px;
+    opacity: 1;
+  }
+}
+
 /* Animation classes */
 .search-expand {
   animation: searchExpand 0.4s ease-out forwards;
@@ -107,4 +139,123 @@
 
 .search-input-active {
   animation: pulse 2s infinite;
+}
+
+.icon-glow {
+  animation: iconGlow 2s ease-in-out infinite;
+}
+
+.label-shimmer {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.8) 0%, 
+    rgba(255, 255, 255, 1) 50%, 
+    rgba(255, 255, 255, 0.8) 100%);
+  background-size: 200% 100%;
+  animation: labelShimmer 2s ease-in-out infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.separator-grow {
+  animation: separatorGrow 0.4s ease-out forwards;
+}
+
+/* Enhanced hover effects */
+.nav-button-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-button-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.nav-button-container:hover::before {
+  left: 100%;
+}
+
+/* Glassmorphism effect for navigation container */
+.nav-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* User dropdown enhanced styles */
+.user-dropdown-trigger {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Dropdown menu enhanced styles */
+.dropdown-menu-enhanced {
+  background: rgba(31, 41, 55, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dropdown-menu-item {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.dropdown-menu-item:hover {
+  transform: translateX(4px);
+  background: rgba(75, 85, 99, 0.8);
+}
+
+/* Label animation for active tabs */
+.active-label {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+  background-size: 200% 100%;
+  animation: labelShimmer 3s ease-in-out infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 8px 12px;
+    border-radius: 20px;
+  }
+  
+  .active-label {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    space-x: 4px;
+  }
+  
+  .separator-line {
+    margin: 0 8px;
+  }
 }
