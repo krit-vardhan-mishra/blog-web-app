@@ -1,10 +1,20 @@
 import axios from 'axios';
 
 const isProduction = () => {
+  // Check if running in Capacitor
+  const isCapacitor = typeof window !== 'undefined' && window.Capacitor;
+  
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const isRenderDomain = hostname.includes('onrender.com');
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isCapacitorLocalhost = hostname === 'localhost' && isCapacitor;
+    
+    // If it's Capacitor with localhost, check environment variable
+    if (isCapacitorLocalhost) {
+      const envMode = import.meta.env.VITE_NODE_ENV || import.meta.env.NODE_ENV || 'DEVELOPMENT';
+      return envMode === 'PRODUCTION' || envMode === 'production';
+    }
     
     if (isRenderDomain || !isLocalhost) {
       return true;
@@ -17,10 +27,8 @@ const isProduction = () => {
 
 const getApiBaseUrl = () => {
   if (isProduction()) {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/api`;
-    }
-    return 'https://blog-web-app-ngmh.onrender.com/api';
+    // In production, always use the explicit API URL for Capacitor apps
+    return import.meta.env.VITE_API_BASE_URL || 'https://blog-web-app-ngmh.onrender.com/api';
   }
   
   return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';

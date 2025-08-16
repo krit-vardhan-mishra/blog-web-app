@@ -7,16 +7,41 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-script/
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.production.local
+.env.test
 
+# Build outputs
 dist
 dist-ssr
 *.local
+build/
 
+# Dependencies
 node_modules/
 
+# Backend (if any backend files are in client)
 backend/.env
 backend/node_modules/
+
+# Android specific
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/debug/
+
+# APK files (except release APK for GitHub)
+*.apk
+!android/app/release/app-release.apk
+*.aab
+
+# Capacitor
+.capacitor/
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +53,11 @@ backend/node_modules/
 *.njsproj
 *.sln
 *.sw?
+
+# Scripts (as marked in current gitignore)
+script/
+
+# Temporary and cache files
+.cache/
+.vite/
+.eslintcache

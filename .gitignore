@@ -1,16 +1,147 @@
-client/src/api/blogService_backup.js
-TAG_SEARCH_IMPLEMENTATION.md
-client/.prettierignore
-.vscode/settings.json
-.vscode/
-.vscode
-REFACTORING_SUMMARY.md
+# ==========================================
+# ENVIRONMENT & CONFIGURATION FILES
+# ==========================================
 .env
-DEPLOYMENT_FIXES.md
+.env.local
+.env.development
 .env.production
+.env.production.local
+.env.test
+.env.staging
 blog-web-app.env
+server/.env
+client/.env*
+
+# ==========================================
+# NODE.JS & NPM
+# ==========================================
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+yarn.lock
+package-lock.json
+
+# ==========================================
+# BUILD OUTPUTS & DIST
+# ==========================================
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.cache/
+.vite/
+client/dist/
+server/dist/
+
+# ==========================================
+# LOGS & TEMPORARY FILES
+# ==========================================
+logs/
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# EDITOR & IDE FILES
+# ==========================================
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# ==========================================
+# ANDROID & CAPACITOR
+# ==========================================
+client/android/app/build/
+client/android/build/
+client/android/.gradle/
+client/android/local.properties
+client/android/app/debug/
+client/android/app/src/main/assets/public/
+client/android/gradle/
+client/android/gradlew
+client/android/gradlew.bat
+
+# APK and AAB files (except release APK for GitHub)
+*.apk
+!client/android/app/release/app-release.apk
+*.aab
+*.keystore
+*.jks
+
+# Exclude Android generated files but keep source
+!client/android/app/src/main/java/
+!client/android/app/src/main/res/
+!client/android/app/src/androidTest/
+!client/android/app/src/test/
+
+# ==========================================
+# SENSITIVE & SECURITY FILES
+# ==========================================
+*.key
+*.pem
+*.p12
+*.p8
+secrets.json
+config/keys.js
+google-credentials.json
+firebase-config.json
+
+# ==========================================
+# DATABASE & BACKUP FILES
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+*.backup
+*.dump
+
+# ==========================================
+# DOCUMENTATION & NOTES (Optional)
+# ==========================================
+TAG_SEARCH_IMPLEMENTATION.md
+REFACTORING_SUMMARY.md
+DEPLOYMENT_FIXES.md
 DEPLOYMENT_GUIDE.md
-.env.production
 RENDER_DEPLOYMENT_FIXES.md
 RENDER_FIXES_COMPLETE.md
 IMPROVEMENTS_SUMMARY.md
+
+# ==========================================
+# BACKUP & OLD FILES
+# ==========================================
+client/src/api/blogService_backup.js
+*.backup
+*.old
+*.bak
+
+# ==========================================
+# TESTING & COVERAGE
+# ==========================================
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+
+# ==========================================
+# MISCELLANEOUS
+# ==========================================
+client/.prettierignore
+.eslintcache
+*.tsbuildinfo
+.turbo/

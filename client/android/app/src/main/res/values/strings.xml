@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Blog Web App</string>
+    <string name="title_activity_main">Blog Web App</string>
+    <string name="package_name">com.justforfun.app</string>
+    <string name="custom_url_scheme">com.justforfun.app</string>
+</resources>

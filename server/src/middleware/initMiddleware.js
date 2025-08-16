@@ -9,6 +9,8 @@ export default function initMiddleware(app) {
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://10.135.170.87:5173',
+    'http://10.135.170.87:3000',
     'https://blog-web-app-ngmh.onrender.com',
     SERVER.CLIENT_URL
   ].filter(Boolean);
