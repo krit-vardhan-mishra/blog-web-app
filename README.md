@@ -22,7 +22,7 @@ A full-featured blogging platform for writing, sharing, and discovering blogs ac
 ## Technology Stack
 
 - **Frontend**
-  - React (with hooks and context)
+  - React
   - React Router
   - Tailwind CSS for styling
   - SimpleBar for custom scrollbars
@@ -36,7 +36,6 @@ A full-featured blogging platform for writing, sharing, and discovering blogs ac
 - **Other**
   - JWT for authentication
   - Lucide Icons
-  - Emoji parsing utilities
 
 ---
 
@@ -44,54 +43,6 @@ A full-featured blogging platform for writing, sharing, and discovering blogs ac
 
 A sample of supported genres:
 - Lifestyle, Business, Entertainment, Science, Art, Sports, Technology, Health, Travel, Food, Education, Love & Relationships, Poetry, Cinema, Film Reviews, Music, Theatre, Photography, Dance, Comics & Graphic Novels, Fiction, Non-Fiction, Short Stories, Book Reviews, Writing Tips, Creative Writing, Culture & Traditions, History, Philosophy, Politics, Feminism, Spirituality, Mindfulness, Minimalism, Motivational, Productivity, Life Lessons, Freelancing, Career Advice, Job Search, Workplace Culture, Remote Work, Startup Life, AI & Machine Learning, Coding & Development, Gadgets & Reviews, Cybersecurity, Blockchain & Crypto, Adventure, Backpacking, Digital Nomad Life, Local Guides, Cultural Exchange, Parenting, Mental Health, Self-Improvement, Personal Journals
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18+ recommended)
-- MongoDB (local or Atlas cluster)
-
-### Installation
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/krit-vardhan-mishra/blog-web-app.git
-   cd blog-web-app
-   ```
-
-2. **Install dependencies:**
-   ```sh
-   # For server
-   cd server
-   npm install
-
-   # For client
-   cd ../client
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-
-   - Copy `.env.example` to `.env` in both `server/` and `client/` directories and fill in the required values (e.g. MongoDB URI, JWT secret, API URLs).
-
-4. **Run the app:**
-
-   - Start backend server:
-     ```sh
-     cd server
-     npm run dev
-     ```
-
-   - Start frontend app:
-     ```sh
-     cd ../client
-     npm run dev
-     ```
-
-   - Visit `http://localhost:5173` (or as indicated in the terminal) to use the app.
 
 ---
 
@@ -115,125 +66,6 @@ A sample of supported genres:
 2. **Commit and push** your changes.
 3. **Open a Pull Request** describing your changes.
 
-Please follow the existing code style and add relevant tests where possible.
-
----
-
-## 📁 Project Structure
-> *Note: For a more detailed structure, please refer to the files and folders in the repository.*
-
-```
-blog-web-app/
-├── client/
-│   ├── public/
-│   |   └── notebook-icon.svg 
-│   ├── src/
-│   │   ├── api/
-│   │   │   ├── apiService.js
-│   │   │   ├── authService.js
-│   │   │   ├── blogService.js
-│   │   │   └── userService.js
-|   |   |
-│   │   ├── components/
-|   |   |   ├──ui
-|   |   |   |  ├── modals
-|   |   |   |  |   └── ...
-|   |   |   |  └── ...
-│   │   │   ├── Header.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   └── ...
-|   |   |
-│   │   ├── pages/
-│   │   │   ├── Home.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   └── ...
-|   |   |
-│   │   ├── context/
-│   │   │   ├── AuthContext.jsx
-│   │   │   ├── BlogContext.jsx
-│   │   │   └── GoogleAuthHandler.jsx
-|   |   |
-│   │   ├── css/
-│   │   │   └── ...
-|   |   |
-│   │   ├── hooks/
-│   │   │   └── ...
-|   |   |
-│   │   ├── lib/
-│   │   │   └── utils.js
-|   |   |
-│   │   ├── pages/
-│   │   │   ├── HomePage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── SignPage.jsx
-│   │   │   └── ...
-|   |   |
-│   │   ├── routes/
-│   │   │   ├── AppRoute.jsx
-│   │   │   ├── PrivateRoute.jsx
-│   │   │   └── PublicRoute.jsx
-|   |   |
-│   │   ├── skeleton/
-│   │   │   └── ...
-|   |   |
-│   │   ├── utils/
-│   │   │   └── ...
-|   |   |
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   ├── index.css
-│   │   └── ...
-|   | 
-│   ├── index.html
-|   | 
-│   └──  package.json
-|
-├── server/
-|   ├──src/
-|   |    ├── config/
-│   │    |     ├── db.js
-│   │    |     └── passport.js
-|   |    |     
-│   |    ├── controllers/
-│   │    |   ├── authController.js
-│   │    |   ├── blogController.js
-│   │    |   ├── otpController.js
-│   │    |   └── userController.js
-│   │    |   
-│   |    ├── middleware/
-│   │    |   ├── authenticateToken.js
-│   │    |   ├── initMiddleware.js
-│   │    |   └── rateLimiter.js
-│   │    |   
-│   |    ├── models/
-│   |    │   ├── Blog.js
-│   │    |   ├── OTP.js
-│   │    |   └── User.js 
-│   │    |   
-│   |    ├── routes/
-│   |    │   ├── authRoutes.js
-│   |    │   ├── blogsRoutes.js
-│   |    │   ├── otpRoutes.js
-│   |    │   └── usersRoutes.js
-│   │    |   
-│   |    ├── utils/
-│   |    │   ├── engagementUtils.js
-│   |    │   └── sendOTPEmail.js
-│   |    └── server.js
-│   │    
-│   ├── .env
-│   └── package.json
-│   
-└──  README.md
-
-```
-
-## License
-
-This project is open-source. See [LICENSE](LICENSE) for details.
-
 ---
 
 ## Acknowledgements
@@ -245,3 +77,8 @@ This project is open-source. See [LICENSE](LICENSE) for details.
 ## Contact
 
 For questions or feedback, open an issue or contact [krit-vardhan-mishra](https://github.com/krit-vardhan-mishra).
+
+---
+
+> - [Project Live Link](https://blog-web-app-ngmh.onrender.com/)
+> - And You can also try the android application too, get the application from release section.
