@@ -127,15 +127,6 @@ const PostDetails = ({
     >
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-lg" />
 
-      {/* Long press indicator for mobile */}
-      {isMobile && isLongPressing && (
-        <div className="absolute top-2 right-2 z-20">
-          <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-            📱 Hold to preview
-          </div>
-        </div>
-      )}
-
       {/* Header with actions */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">

@@ -2,7 +2,6 @@
 
 # Built application files (except release APK for GitHub distribution)
 *.apk
-!app/release/app-release.apk
 *.aar
 *.ap_
 *.aab

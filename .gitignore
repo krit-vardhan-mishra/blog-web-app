@@ -55,7 +55,6 @@ Thumbs.db
 # ==========================================
 .vscode/
 .vscode/*
-!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -79,16 +78,9 @@ client/android/gradlew.bat
 
 # APK and AAB files (except release APK for GitHub)
 *.apk
-!client/android/app/release/app-release.apk
 *.aab
 *.keystore
 *.jks
-
-# Exclude Android generated files but keep source
-!client/android/app/src/main/java/
-!client/android/app/src/main/res/
-!client/android/app/src/androidTest/
-!client/android/app/src/test/
 
 # ==========================================
 # SENSITIVE & SECURITY FILES
@@ -145,3 +137,6 @@ client/.prettierignore
 .eslintcache
 *.tsbuildinfo
 .turbo/
+client/android/app/release/app-release.apk
+client/android/app/release/baselineProfiles/0/app-release.dm
+client/android/

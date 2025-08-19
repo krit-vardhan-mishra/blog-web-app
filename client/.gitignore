@@ -37,7 +37,6 @@ android/app/debug/
 
 # APK files (except release APK for GitHub)
 *.apk
-!android/app/release/app-release.apk
 *.aab
 
 # Capacitor
@@ -45,7 +44,6 @@ android/app/debug/
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
