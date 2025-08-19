@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Eye, UserIcon, Tag, Target, Bookmark, Clock, Calendar, Share2 } from 'lucide-react';
+import { X, Eye, UserIcon, Tag, Target, Bookmark, Clock, Calendar, Share2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import blogService from '../../../api/blogService';
-import { NavLink } from 'react-router';
+import { NavLink } from 'react-router-dom'; // Changed to react-router-dom for NavLink
 import { formatDate } from '../../../utils/utilityFunctions';
 import { parseEmojisEnhanced } from '../../../utils/emojiParser';
 import { getScrollDepth } from '../../../utils/scrollUtils';
@@ -44,6 +44,7 @@ const PostModal = ({
   const scrollPositions = useRef([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentViews, setCurrentViews] = useState(views);
+  const [showDetails, setShowDetails] = useState(false);
 
   const [bookmarkState, setBookmarkState] = useState({
     isBookmarked: interactionMetrics.bookmarks?.includes(userId) || false,
@@ -216,57 +217,20 @@ const PostModal = ({
             className="bg-[#1A1C20] rounded-lg shadow-2xl w-full max-w-4xl h-full max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Simplified Header */}
             <div className="flex justify-between items-start p-4 sm:p-6 border-b border-gray-700">
               <div className="flex-1 pr-2 sm:pr-4">
                 <h2 className="text-lg sm:text-2xl font-bold text-white mb-2 line-clamp-2">{title}</h2>
 
-                {/* Metadata badges */}
-                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-2">
-                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-white bg-${getGenreColor(genre)}`}>
-                    {genre}
-                  </span>
-                  <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getDifficultyColor(readingDifficulty)}`}>
-                    {getDifficultyIcon(readingDifficulty)} {readingDifficulty}
-                  </span>
-                  {averageReadTime > 0 && (
-                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-blue-400 bg-blue-900/30 flex items-center">
-                      <Clock size={12} className="mr-1" />
-                      {formatReadTime(averageReadTime)} read
-                    </span>
-                  )}
-                  {engagementScore > 0 && (
-                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-purple-400 bg-purple-900/30 flex items-center">
-                      <Target size={12} className="mr-1" />
-                      {Math.round(engagementScore)} engagement
-                    </span>
-                  )}
-                </div>
-
-                {/* Tags */}
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {tags.slice(0, 3).map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300"
-                      >
-                        <Tag size={8} className="mr-1" />
-                        {tag}
-                      </span>
-                    ))}
-                    {tags.length > 3 && (
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-400 sm:hidden">
-                        +{tags.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center text-xs sm:text-sm text-blue-300 mt-2">
-                  <Calendar size={12} className="mr-1" />
-                  <span>{formatDate(createdAt)}</span>
-                </div>
+                {/* Details toggle button */}
+                <motion.button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="flex items-center text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-200 mt-2"
+                >
+                  <Info size={14} className="mr-1" />
+                  <span>{showDetails ? 'Hide Details' : 'Show Details'}</span>
+                  {showDetails ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
+                </motion.button>
               </div>
 
               {/* Action buttons */}
@@ -287,8 +251,8 @@ const PostModal = ({
                   <motion.button
                     onClick={handleBookmarkToggle}
                     className={`p-2 rounded-full transition-all duration-200 ${bookmarkState.isBookmarked
-                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                      : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
+                        ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                        : 'bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white'
                       }`}
                     aria-label={bookmarkState.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
@@ -310,6 +274,58 @@ const PostModal = ({
               </div>
             </div>
 
+            {/* Expandable Details Section */}
+            <AnimatePresence>
+              {showDetails && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="border-b border-gray-700 bg-gray-800/30 px-4 sm:px-6 overflow-hidden"
+                >
+                  <div className="py-3 sm:py-4">
+                    {/* Metadata badges */}
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3">
+                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-white bg-${getGenreColor(genre)}`}>
+                        {genre}
+                      </span>
+                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getDifficultyColor(readingDifficulty)}`}>
+                        {getDifficultyIcon(readingDifficulty)} {readingDifficulty}
+                      </span>
+                      {averageReadTime > 0 && (
+                        <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-blue-400 bg-blue-900/30 flex items-center">
+                          <Clock size={12} className="mr-1" />
+                          {formatReadTime(averageReadTime)} read
+                        </span>
+                      )}
+                      {engagementScore > 0 && (
+                        <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-purple-400 bg-purple-900/30 flex items-center">
+                          <Target size={12} className="mr-1" />
+                          {Math.round(engagementScore)} engagement
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tags */}
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-700 text-gray-300"
+                          >
+                            <Tag size={8} className="mr-1" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Content */}
             <div className="flex-1 min-h-0">
               <SimpleBar
@@ -319,7 +335,7 @@ const PostModal = ({
                 }}
                 style={{
                   height: '100%',
-                  maxHeight: 'calc(95vh - 200px)',
+                  maxHeight: showDetails ? 'calc(95vh - 300px)' : 'calc(95vh - 200px)',
                   overflowY: 'auto',
                   WebkitOverflowScrolling: 'touch',
                 }}
@@ -332,19 +348,23 @@ const PostModal = ({
               </SimpleBar>
             </div>
 
-            {/* Footer */}
+            {/* Simplified Footer */}
             <div className="p-4 sm:p-6 border-t border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-800/50 space-y-3 sm:space-y-0">
-              <div className="flex flex-col">
+              <div className="flex items-center">
                 <NavLink
                   to={`/user/${author?._id || author?.id}`}
                   className="flex items-center hover:text-blue-400 transition-colors duration-200 text-gray-200"
                 >
                   <UserIcon className="mr-2" size={16} />
                   <div>
-                    <div className="font-medium text-sm sm:text-base">Author: {name}</div>
-                    {email && (
-                      <div className="text-xs sm:text-sm text-gray-500">{email}</div>
-                    )}
+                    <div className="font-medium text-sm sm:text-base">{name}</div>
+                    <div className="flex items-center text-xs sm:text-sm text-blue-300">
+                      <Calendar size={12} className="mr-1" />
+                      <span>{formatDate(createdAt)}</span>
+                      <span className="mx-2 text-gray-500">•</span>
+                      <Eye size={12} className="mr-1" />
+                      <span>{currentViews} Views</span>
+                    </div>
                   </div>
                 </NavLink>
               </div>
@@ -358,11 +378,6 @@ const PostModal = ({
                       <span>{bookmarkState.bookmarkCount}</span>
                     </div>
                   )}
-
-                  <div className="flex items-center text-blue-400">
-                    <Eye size={14} className="mr-1" />
-                    <span>{currentViews} Views</span>
-                  </div>
                 </div>
 
                 {/* Author actions */}

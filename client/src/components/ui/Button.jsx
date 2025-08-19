@@ -37,7 +37,7 @@ const buttonVariants = cva(
 const Button = React.forwardRef(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const BaseComp = asChild ? Slot : 'button';
-    const Comp = motion(BaseComp);
+    const Comp = motion.create(BaseComp);
 
     return (
       <Comp
