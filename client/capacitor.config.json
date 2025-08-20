@@ -11,6 +11,15 @@
     },
     "CapacitorCookies": {
       "enabled": true
+    },
+    "Share": {
+      "enabled": true
+    },
+    "Filesystem": {
+      "enabled": true
+    },
+    "App": {
+      "enabled": true
     }
   }
 }

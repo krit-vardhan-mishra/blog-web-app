@@ -66,21 +66,18 @@ Thumbs.db
 # ==========================================
 # ANDROID & CAPACITOR
 # ==========================================
-client/android/app/build/
-client/android/build/
-client/android/.gradle/
-client/android/local.properties
-client/android/app/debug/
-client/android/app/src/main/assets/public/
-client/android/gradle/
-client/android/gradlew
-client/android/gradlew.bat
+# Ignore entire Android folder and all its contents
+client/android/
+android/
 
-# APK and AAB files (except release APK for GitHub)
+# Additional Android-specific files (if any exist outside the main folder)
 *.apk
 *.aab
 *.keystore
 *.jks
+
+# Capacitor build files
+.capacitor/
 
 # ==========================================
 # SENSITIVE & SECURITY FILES
@@ -137,6 +134,4 @@ client/.prettierignore
 .eslintcache
 *.tsbuildinfo
 .turbo/
-client/android/app/release/app-release.apk
-client/android/app/release/baselineProfiles/0/app-release.dm
-client/android/
+client/.prettierignore

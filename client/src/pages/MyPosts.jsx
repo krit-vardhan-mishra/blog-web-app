@@ -10,7 +10,6 @@ import { useMyPostsEffects } from '../hooks/useMyPostsEffects.js';
 import ModalManager from '@/components/ModalManager';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import PostsSection from '@/components/PostsSection';
-import { BlogProvider } from '@/context/BlogContext';
 import { useSearch } from '@/context/SearchContext';
 import { useLoaderData } from 'react-router';
 
@@ -136,13 +135,7 @@ export const MyPosts = () => {
   }
 
   return (
-    <BlogProvider value={{
-      allBlogs: userBlogs,
-      user: user,
-      token: token,
-      refreshBlogs: fetchAllBlogsData,
-    }}>
-      <div className="bg-[#1A1C20] text-white min-h-screen flex flex-col flex-1">
+    <div className="bg-[#1A1C20] text-white min-h-screen flex flex-col flex-1">
         {/* Header */}
         
 
@@ -241,7 +234,6 @@ export const MyPosts = () => {
           onCloseNotification={() => updateState({ showNotificationBanner: false })}
         />
       </div>
-    </BlogProvider>
   );
 };
 

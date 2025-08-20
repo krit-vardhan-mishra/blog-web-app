@@ -1,114 +1,146 @@
 import React from 'react';
-import { NotebookPen } from 'lucide-react';
-import { getColorValue, getContrastColors, truncateText } from '../utils/genreColors';
-import '../css/share-preview.css';
+import { NotebookPen, Eye } from 'lucide-react';
 
-const SharePreview = ({ 
-  blog, 
-  author, 
-  genre,
-  className = "",
-  size = "default" // default, story, post
-}) => {
-  const backgroundColor = getColorValue(genre);
-  const colors = getContrastColors(backgroundColor);
-  const isDarkBackground = colors.text === '#ffffff';
-  
-  // Responsive sizing for different social media formats
-  const sizeClasses = {
-    default: "w-[350px] h-[180px]",
-    story: "w-[180px] h-[320px]", // 9:16 ratio for stories
-    post: "w-[320px] h-[320px]"   // 1:1 ratio for posts
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const truncateText = (text, maxLength) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
+const SharePreview = ({ blog, className = "", size = "default" }) => {
+  const { author, content, title, views, createdAt, genre } = blog;
+  const authorName = author?.name || 'Deleted User';
+
+  // Size configurations
+  const sizeConfig = {
+    default: { width: '320px', height: '569px' },
+    story: { width: '360px', height: '640px' },
+    post: { width: '400px', height: '400px' }
   };
-  
-  const maxTitleLength = size === 'story' ? 35 : 55;
-  const maxContentLength = size === 'story' ? 80 : 130;
-  const maxAuthorLength = 28;
-  
-  const truncatedTitle = truncateText(blog?.title || '', maxTitleLength);
-  const truncatedContent = truncateText(blog?.content || '', maxContentLength);
-  const truncatedAuthor = truncateText(author?.name || 'Unknown Author', maxAuthorLength);
+
+  const currentSize = sizeConfig[size] || sizeConfig.default;
+
+  const themeColors = {
+    background: '#1a1a2e',
+    cardBg: '#121212',
+    border: 'rgba(255, 255, 255, 0.08)',
+    text: '#e0e0e0',
+    secondaryText: '#8899a6',
+    accent: '#8b5cf6',
+  };
+
+  const truncatedTitle = truncateText(title || '', size === 'post' ? 60 : 80);
+  const truncatedContent = size === 'post' 
+    ? truncateText(content || '', 150) 
+    : (content || 'No content available for this blog post.');
 
   return (
-    <div 
-      className={`share-preview-container ${isDarkBackground ? 'dark-bg' : 'light-bg'} border-2 rounded-xl ${sizeClasses[size]} p-4 relative ${className}`}
-      style={{ 
-        backgroundColor,
-        borderColor: colors.border,
-        color: colors.text,
-        // Add text shadow for better readability
-        textShadow: isDarkBackground 
-          ? '0 1px 3px rgba(0, 0, 0, 0.8)' 
-          : '0 1px 3px rgba(255, 255, 255, 0.8)'
+    <div
+      className={`share-preview-container rounded-xl overflow-hidden shadow-xl relative transition-all duration-300 ease-in-out flex flex-col ${className}`}
+      style={{
+        width: currentSize.width,
+        height: currentSize.height,
+        background: themeColors.cardBg,
+        border: `1px solid ${themeColors.border}`,
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+        color: themeColors.text,
       }}
     >
-      {/* Background overlay for better text readability */}
+      {/* Header section with title */}
       <div 
-        className="absolute inset-0 rounded-xl"
-        style={{
-          background: isDarkBackground 
-            ? 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)'
+        className="p-5 pb-3 border-b flex-shrink-0" 
+        style={{ 
+          borderColor: themeColors.border,
+          backgroundColor: themeColors.cardBg 
         }}
-      />
-      
-      <div className="relative z-10">
-        <div className="share-preview-icon">
-          <NotebookPen 
-            size={20} 
-            style={{ 
-              color: colors.accent,
-              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
-            }}
-          />
+      >
+        {genre && (
+          <div className="mb-2">
+            <span 
+              className="text-xs px-2 py-1 rounded-full font-medium"
+              style={{ 
+                backgroundColor: themeColors.accent + '20',
+                color: themeColors.accent,
+                border: `1px solid ${themeColors.accent}40`
+              }}
+            >
+              {genre}
+            </span>
+          </div>
+        )}
+        <h3
+          className="font-extrabold text-xl mb-2 leading-tight"
+          style={{ 
+            color: themeColors.text,
+            fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+            fontSize: size === 'post' ? '18px' : '20px'
+          }}
+        >
+          {truncatedTitle}
+        </h3>
+      </div>
+
+      {/* Main content area */}
+      <div className="flex-1 px-5 py-3 relative overflow-hidden">
+        <div
+          className={`text-sm leading-relaxed h-full overflow-hidden ${size === 'post' ? 'whitespace-pre-wrap' : 'whitespace-pre-wrap'}`}
+          style={{
+            color: themeColors.text,
+            fontSize: size === 'post' ? '12px' : '14px',
+            lineHeight: '1.5',
+            background: 'transparent',
+            ...(size !== 'post' && {
+              maskImage: `linear-gradient(to bottom, black 0%, black 70%, transparent 100%)`,
+              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black 70%, transparent 100%)`,
+            })
+          }}
+        >
+          {size === 'post' ? truncatedContent : content || 'No content available for this blog post.'}
         </div>
-        
-        {/* Content container */}
-        <div className={`share-preview-content ${size === 'story' ? 'pr-2' : 'pr-8'}`}>
-          {/* Title */}
-          <h4 
-            className={`share-preview-title font-bold ${size === 'story' ? 'text-base' : 'text-lg'}`}
-            style={{ 
-              color: colors.text,
-              textShadow: isDarkBackground 
-                ? '0 2px 4px rgba(0, 0, 0, 0.8)' 
-                : '0 2px 4px rgba(255, 255, 255, 0.8)'
-            }}
-          >
-            {truncatedTitle}
-          </h4>
-          
-          {/* Content */}
-          <p 
-            className={`share-preview-text ${size === 'story' ? 'text-xs' : 'text-sm'} mt-2`}
-            style={{ 
-              color: colors.secondaryText,
-              textShadow: isDarkBackground 
-                ? '0 1px 3px rgba(0, 0, 0, 0.7)' 
-                : '0 1px 3px rgba(255, 255, 255, 0.7)'
-            }}
-          >
-            {truncatedContent}
-          </p>
-          
-          {/* Author at bottom */}
+      </div>
+
+      {/* Footer section */}
+      <div 
+        className="px-5 py-3 border-t flex-shrink-0" 
+        style={{ 
+          borderColor: themeColors.border,
+          backgroundColor: themeColors.cardBg
+        }}
+      >
+        <div className="flex justify-between items-center">
+          {/* Left Section - Author and Date */}
+          <div className="flex-1">
+            <p 
+              className="flex items-center font-semibold text-sm mb-1" 
+              style={{ color: themeColors.text }}
+            >
+              <NotebookPen size={14} className="mr-2" />
+              {authorName}
+            </p>
+            <p 
+              className="text-xs" 
+              style={{ color: themeColors.secondaryText }}
+            >
+              {formatDate(createdAt)}
+            </p>
+          </div>
+
+          {/* Right Section - Views */}
           <div 
-            className={`share-preview-author ${size === 'story' ? 'text-xs' : 'text-xs'} absolute bottom-4 left-4 right-4`}
-            style={{ 
-              color: colors.accent,
-              borderColor: colors.border,
-              textShadow: isDarkBackground 
-                ? '0 1px 2px rgba(0, 0, 0, 0.8)' 
-                : '0 1px 2px rgba(255, 255, 255, 0.8)',
-              background: isDarkBackground 
-                ? 'rgba(0, 0, 0, 0.2)' 
-                : 'rgba(255, 255, 255, 0.2)',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              backdropFilter: 'blur(4px)'
-            }}
+            className="flex items-center" 
+            style={{ color: themeColors.secondaryText }}
           >
-            by {truncatedAuthor}
+            <Eye size={16} className="mr-1" />
+            <span className="text-xs font-medium">{views || 0}</span>
           </div>
         </div>
       </div>

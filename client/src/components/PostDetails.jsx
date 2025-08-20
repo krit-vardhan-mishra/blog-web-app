@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Pencil, Trash2, Eye, User, Bookmark } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router';
+import ShareButton from './ShareButton';
 
 const PostDetails = ({
   blog,
@@ -135,7 +136,17 @@ const PostDetails = ({
           </h3>
         </div>
 
-        <div className="flex items-center space-x-1 sm:space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className={`flex items-center space-x-1 sm:space-x-2 transition-opacity duration-200 ${
+          isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}>
+          {/* Share button - always visible for all users */}
+          <ShareButton 
+            blog={blog} 
+            size="small" 
+            variant="ghost" 
+            showPlatformOptions={true}
+          />
+
           {/* Bookmark button for non-authors */}
           {!isAuthor && onToggleBookmark && (
             <motion.button

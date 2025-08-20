@@ -46,6 +46,7 @@ const SetPasswordPage = lazy(() => import('../pages/SetPasswordPage'));
 const HomePage = lazy(() => import('../pages/HomePage'));
 const MyPosts = lazy(() => import('../pages/MyPosts'));
 const AccountSetting = lazy(() => import('../pages/AccountSetting'));
+const ShareDemo = lazy(() => import('../pages/ShareDemo'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 const cachedExploreLoader = createCachedLoader(exploreLoader);
@@ -66,70 +67,70 @@ const routes = createRoutesFromElements(
   >
     {/* Public Routes */}
     <Route element={<PublicRoute />}>
-      <Route 
-        index 
+      <Route
+        index
         element={
           <SuspenseWrapper>
             <LandingPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="login" 
+      <Route
+        path="login"
         element={
           <SuspenseWrapper>
             <AuthPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="signup" 
+      <Route
+        path="signup"
         element={
           <SuspenseWrapper>
             <AuthPage />
           </SuspenseWrapper>
-        } 
+        }
       />
       <Route path="google-auth" element={<GoogleAuthHandler />} />
-      <Route 
-        path="forgot-password" 
+      <Route
+        path="forgot-password"
         element={
           <SuspenseWrapper>
             <ForgotPasswordPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="verify-otp" 
+      <Route
+        path="verify-otp"
         element={
           <SuspenseWrapper>
             <VerifyOTPPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="verify-signup" 
+      <Route
+        path="verify-signup"
         element={
           <SuspenseWrapper>
             <VerifySignupPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="reset-password" 
+      <Route
+        path="reset-password"
         element={
           <SuspenseWrapper>
             <ResetPasswordPage />
           </SuspenseWrapper>
-        } 
+        }
       />
-      <Route 
-        path="set-password" 
+      <Route
+        path="set-password"
         element={
           <SuspenseWrapper>
             <SetPasswordPage />
           </SuspenseWrapper>
-        } 
+        }
       />
     </Route>
 
@@ -164,6 +165,17 @@ const routes = createRoutesFromElements(
           </SuspenseWrapper>
         }
         loader={cachedBlogDetailLoader}
+        errorElement={<RouterErrorBoundary />}
+      />
+
+      {/* Share Demo Route - Public Access */}
+      <Route
+        path="share-demo"
+        element={
+          <SuspenseWrapper>
+            <ShareDemo />
+          </SuspenseWrapper>
+        }
         errorElement={<RouterErrorBoundary />}
       />
 
@@ -211,13 +223,13 @@ const routes = createRoutesFromElements(
     </Route>
 
     {/* Fallback */}
-    <Route 
-      path="*" 
+    <Route
+      path="*"
       element={
         <SuspenseWrapper>
           <NotFound />
         </SuspenseWrapper>
-      } 
+      }
     />
   </Route>
 );

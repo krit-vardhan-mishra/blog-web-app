@@ -28,19 +28,13 @@ node_modules/
 backend/.env
 backend/node_modules/
 
-# Android specific
-android/app/build/
-android/build/
-android/.gradle/
-android/local.properties
-android/app/debug/
+# Android & Capacitor - Ignore entire Android folder
+android/
+.capacitor/
 
 # APK files (except release APK for GitHub)
 *.apk
 *.aab
-
-# Capacitor
-.capacitor/
 
 # Editor directories and files
 .vscode/*
@@ -59,3 +53,6 @@ script/
 .cache/
 .vite/
 .eslintcache
+
+.prettierignore
+.prettierrc

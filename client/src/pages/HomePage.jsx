@@ -9,7 +9,6 @@ import { useHomePage } from '../hooks/useHomePage.js';
 import { useEffectsManager } from '../hooks/useEffectsManager.js';
 import '@/css/home-page.css';
 import { usePerformanceOptimizations } from '@/hooks/usePerformanceOptimization.js';
-import { BlogProvider } from '@/context/BlogContext.jsx';
 import { useSearch } from '@/context/SearchContext.jsx';
 import PostsSection from '@/components/PostsSection.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -96,17 +95,6 @@ export const HomePage = () => {
     setShowNotificationBanner: (show) => updateState({ showNotificationBanner: show }),
   });
 
-  const blogContextValue = {
-    allBlogs,
-    latestBlogs,
-    userBlogs,
-    user,
-    token,
-    stats,
-    refreshBlogs: fetchAllBlogsData,
-    isLoading,
-  };
-
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -129,8 +117,7 @@ export const HomePage = () => {
   };
 
   return (
-    <BlogProvider value={blogContextValue}>
-      <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-[#1A1C20] text-gray-100 flex flex-col">
 
         {/* Header */}
         
@@ -231,10 +218,9 @@ export const HomePage = () => {
           onCloseWelcome={() => updateState({ showWelcomeBanner: false })}
           onCloseNotification={() => updateState({ showNotificationBanner: false })}
         />
-      </div>
 
       <Footer />
-    </BlogProvider>
+    </div>
   );
 };
 

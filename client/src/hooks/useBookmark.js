@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import blogService from '../api/blogService';
-import { useBlogContext } from '@/context/BlogContext';
 
-export const useBookmark = () => {
-  const { allBlogs, user, token, refreshBlogs } = useBlogContext();
+export const useBookmark = (allBlogs = [], user = null, token = null, refreshBlogs = () => {}) => {
 
   const toggleBookmark = useCallback(async (blogId, options = {}) => {
     const { optimistic = true, onOptimisticUpdate, onError } = options;

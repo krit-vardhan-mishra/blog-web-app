@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import blogService from '../api/blogService';
 
-import { Eye, ArrowLeft, Calendar, User as UserIcon, Edit, Trash2, Bookmark, Share2, Tag, Target, Clock } from 'lucide-react';
+import { Eye, ArrowLeft, Calendar, User as UserIcon, Edit, Trash2, Bookmark, Tag, Target, Clock } from 'lucide-react';
 import { formatDate } from '../utils/utilityFunctions';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/Button';
 import EditPostModal from '../components/ui/modals/EditPostModal';
 import NotifyBanner from '../components/ui/NotifyBanner';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
-import SharePreview from '../components/SharePreview';
 import { motion } from 'framer-motion';
 import getGenreColor from '@/utils/genreColors';
+import ShareButton from '../components/ShareButton';
 
 const BlogDetail = () => {
     const { user, token, isAuthenticated } = useAuth();
@@ -45,10 +45,10 @@ const BlogDetail = () => {
         const checkIsMobile = () => {
             setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
         };
-        
+
         checkIsMobile();
         window.addEventListener('resize', checkIsMobile);
-        
+
         return () => window.removeEventListener('resize', checkIsMobile);
     }, []);
 
@@ -79,12 +79,12 @@ const BlogDetail = () => {
     // Long press functionality for mobile
     const handleTouchStart = (e, action) => {
         if (!isMobile) return;
-        
+
         e.preventDefault();
-        
+
         const touch = e.touches[0];
         touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-        
+
         longPressTimer.current = setTimeout(() => {
             action();
         }, 3000); // 3 seconds
@@ -92,7 +92,7 @@ const BlogDetail = () => {
 
     const handleTouchEnd = (e) => {
         if (!isMobile) return;
-        
+
         if (longPressTimer.current) {
             clearTimeout(longPressTimer.current);
             longPressTimer.current = null;
@@ -101,11 +101,11 @@ const BlogDetail = () => {
 
     const handleTouchMove = (e) => {
         if (!isMobile || !longPressTimer.current) return;
-        
+
         const touch = e.touches[0];
         const deltaX = Math.abs(touch.clientX - touchStartPos.current.x);
         const deltaY = Math.abs(touch.clientY - touchStartPos.current.y);
-        
+
         // Cancel long press if user moves finger too much
         if (deltaX > 10 || deltaY > 10) {
             clearTimeout(longPressTimer.current);
@@ -156,32 +156,7 @@ const BlogDetail = () => {
                 type: 'error',
             });
         }
-    };
-
-    // Share functionality
-    const handleShare = async () => {
-        const shareData = {
-            title: blog?.title,
-            text: `Check out this blog post: ${blog?.title}`,
-            url: window.location.href
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(shareData.url);
-                setNotification({
-                    message: 'URL copied to clipboard',
-                    type: 'success',
-                });
-            }
-        } catch (error) {
-            console.error('Error sharing:', error);
-        }
-    };
-
-    useEffect(() => {
+    };    useEffect(() => {
         const recordEngagement = async () => {
             const timeSpent = (Date.now() - startTime.current) / 1000;
             const maxScrollDepth = scrollPositions.current.length > 0
@@ -403,35 +378,28 @@ const BlogDetail = () => {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 100, damping: 10 }}
-                    className={`bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 mb-6 transition-all duration-300 relative ${
-                        !isMobile ? 'hover:shadow-lg hover:border-blue-900' : ''
-                    }`}
+                    className={`bg-gray-800/50 backdrop-blur-md rounded-lg p-6 border border-gray-700 mb-6 transition-all duration-300 relative ${!isMobile ? 'hover:shadow-lg hover:border-blue-900' : ''
+                        }`}
                 >
                     {/* Action buttons row */}
                     <div className="absolute top-4 right-4 flex space-x-2">
                         {/* Share button */}
-                        <motion.button
-                            whileHover={!isMobile ? { scale: 1.1 } : {}}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={handleShare}
-                            className={`flex items-center justify-center p-2 rounded-full bg-gray-700 text-white transition-all duration-200 h-10 w-10 ${
-                                !isMobile ? 'hover:bg-blue-600' : ''
-                            }`}
-                            aria-label="Share"
-                        >
-                            <Share2 size={18} />
-                        </motion.button>
+                        <ShareButton 
+                            blog={blog} 
+                            size="default" 
+                            variant="primary"
+                            showPlatformOptions={true}
+                        />
 
                         {userId && (
                             <motion.button
                                 whileHover={!isMobile ? { scale: 1.1 } : {}}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={handleBookmarkToggle}
-                                className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 h-10 w-10 ${
-                                    isBookmarked
+                                className={`flex items-center justify-center p-2 rounded-full transition-all duration-200 h-10 w-10 ${isBookmarked
                                         ? 'bg-yellow-600 text-white' + (!isMobile ? ' hover:bg-yellow-700' : '')
                                         : 'bg-gray-700 text-gray-300' + (!isMobile ? ' hover:bg-yellow-600 hover:text-white' : '')
-                                }`}
+                                    }`}
                                 aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                             >
                                 <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
@@ -447,9 +415,8 @@ const BlogDetail = () => {
                                     onTouchEnd={isMobile ? handleTouchEnd : undefined}
                                     onTouchMove={isMobile ? handleTouchMove : undefined}
                                     disabled={isDeleting}
-                                    className={`p-2 rounded-full bg-blue-600 text-white transition-all duration-200 flex items-center justify-center ${
-                                        !isMobile ? 'hover:bg-blue-700 hover:scale-110' : ''
-                                    }`}
+                                    className={`p-2 rounded-full bg-blue-600 text-white transition-all duration-200 flex items-center justify-center ${!isMobile ? 'hover:bg-blue-700 hover:scale-110' : ''
+                                        }`}
                                     aria-label={isMobile ? "Hold for 3s to Edit Post" : "Edit Post"}
                                     title={isMobile ? "Hold for 3 seconds to edit" : "Edit Post"}
                                 >
@@ -461,9 +428,8 @@ const BlogDetail = () => {
                                     onTouchEnd={isMobile ? handleTouchEnd : undefined}
                                     onTouchMove={isMobile ? handleTouchMove : undefined}
                                     disabled={isDeleting}
-                                    className={`p-2 rounded-full bg-red-600 text-white transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        !isMobile ? 'hover:bg-red-700 hover:scale-110' : ''
-                                    }`}
+                                    className={`p-2 rounded-full bg-red-600 text-white transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${!isMobile ? 'hover:bg-red-700 hover:scale-110' : ''
+                                        }`}
                                     aria-label={isMobile ? "Hold for 3s to Delete Post" : "Delete Post"}
                                     title={isMobile ? "Hold for 3 seconds to delete" : "Delete Post"}
                                 >
@@ -478,9 +444,8 @@ const BlogDetail = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className={`text-3xl font-bold mb-3 text-white transition-colors duration-300 pr-32 ${
-                            !isMobile ? 'hover:text-orange-300' : ''
-                        }`}
+                        className={`text-3xl font-bold mb-3 text-white transition-colors duration-300 pr-32 ${!isMobile ? 'hover:text-orange-300' : ''
+                            }`}
                     >
                         {title}
                     </motion.h1>
@@ -539,32 +504,29 @@ const BlogDetail = () => {
                         animate="visible"
                         className="flex flex-wrap text-sm mb-4 space-x-4"
                     >
-                        <motion.span 
-                            variants={itemVariants} 
-                            className={`flex items-center space-x-1 text-indigo-100 transition-colors duration-200 ${
-                                !isMobile ? 'hover:text-indigo-300' : ''
-                            }`}
+                        <motion.span
+                            variants={itemVariants}
+                            className={`flex items-center space-x-1 text-indigo-100 transition-colors duration-200 ${!isMobile ? 'hover:text-indigo-300' : ''
+                                }`}
                         >
                             <Calendar size={16} />
                             <span>{formatDate(createdAt)}</span>
                         </motion.span>
-                        
-                        <motion.span 
-                            variants={itemVariants} 
-                            className={`flex items-center space-x-1 text-teal-100 transition-colors duration-200 ${
-                                !isMobile ? 'hover:text-teal-300' : ''
-                            }`}
+
+                        <motion.span
+                            variants={itemVariants}
+                            className={`flex items-center space-x-1 text-teal-100 transition-colors duration-200 ${!isMobile ? 'hover:text-teal-300' : ''
+                                }`}
                         >
                             <Eye size={16} />
                             <span>{currentViews} views</span>
                         </motion.span>
-                        
+
                         {author?.name && (
                             <motion.span
                                 variants={itemVariants}
-                                className={`flex items-center space-x-1 cursor-pointer text-blue-100 transition-colors duration-200 ${
-                                    !isMobile ? 'hover:text-blue-300' : ''
-                                }`}
+                                className={`flex items-center space-x-1 cursor-pointer text-blue-100 transition-colors duration-200 ${!isMobile ? 'hover:text-blue-300' : ''
+                                    }`}
                                 onClick={() => navigate(`/user/${author._id || author.id}`)}
                             >
                                 <UserIcon size={16} />
@@ -602,11 +564,10 @@ const BlogDetail = () => {
                                 return (
                                     <span
                                         key={index}
-                                        className={`inline-block transition-all duration-200 ease-out cursor-pointer ${
-                                            !isMobile 
-                                                ? 'hover:scale-110 hover:text-white hover:font-medium hover:bg-gray-700/30 hover:px-1 hover:rounded hover:shadow-lg' 
+                                        className={`inline-block transition-all duration-200 ease-out cursor-pointer ${!isMobile
+                                                ? 'hover:scale-110 hover:text-white hover:font-medium hover:bg-gray-700/30 hover:px-1 hover:rounded hover:shadow-lg'
                                                 : ''
-                                        }`}
+                                            }`}
                                     >
                                         <div
                                             className="text-gray-300 whitespace-pre-line"
