@@ -17,6 +17,7 @@ const PostDetails = ({
   const isTouchingRef = useRef(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLongPressing, setIsLongPressing] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   
   const {
     _id,
@@ -29,7 +30,6 @@ const PostDetails = ({
 
   const isAuthor = author?._id === userId;
 
-  // Mobile detection
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
@@ -40,19 +40,32 @@ const PostDetails = ({
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // Touch handlers for mobile modal
+  useEffect(() => {
+    return () => {
+      if (touchTimeoutRef.current) {
+        clearTimeout(touchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleTouchStart = (e) => {
     if (!isMobile || !onOpenModal) return;
     
     isTouchingRef.current = true;
     setIsLongPressing(true);
+    setShowHint(true);
+    
     touchTimeoutRef.current = setTimeout(() => {
       if (isTouchingRef.current) {
         e.preventDefault();
         onOpenModal(blog);
         setIsLongPressing(false);
+        setShowHint(false);
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
       }
-    }, 500);
+    }, 3000);
   };
 
   const handleTouchEnd = () => {
@@ -61,6 +74,22 @@ const PostDetails = ({
     }
     isTouchingRef.current = false;
     setIsLongPressing(false);
+    setShowHint(false);
+  };
+
+  const handleTouchMove = (e) => {
+    // Cancel long press if user moves finger during hold
+    const touch = e.touches[0];
+    if (touch) {
+      // Allow some movement tolerance (10px)
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      
+      if (x < -10 || x > rect.width + 10 || y < -10 || y > rect.height + 10) {
+        handleTouchEnd();
+      }
+    }
   };
 
   const handleClick = () => {
@@ -107,7 +136,7 @@ const PostDetails = ({
         y: 0,
         scale: isLongPressing ? 0.98 : 1,
         boxShadow: isLongPressing 
-          ? '0 0 20px rgba(59, 130, 246, 0.5)' 
+          ? '0 0 30px rgba(59, 130, 246, 0.8)' 
           : '0 8px 20px rgba(0, 0, 0, 0.25)'
       }}
       exit={{ opacity: 0, y: -20 }}
@@ -119,13 +148,87 @@ const PostDetails = ({
       onClick={handleClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
       onTouchCancel={handleTouchEnd}
       className={`flex flex-col h-full bg-gray-800/50 rounded-lg p-4 sm:p-6 shadow-md 
              border-t-[3px] sm:border-t-[4px] hover:border-t-[6px] sm:hover:border-t-[8px] border-blue-500
              hover:scale-[1.02] sm:hover:scale-105 hover:bg-[#282c34]
              transition-all duration-200 ease-in-out
-             relative cursor-pointer group mx-2 sm:mx-0 ${isLongPressing ? 'ring-2 ring-blue-400' : ''}`}
+             relative cursor-pointer group mx-2 sm:mx-0 ${
+               isLongPressing ? 'ring-2 ring-blue-400 ring-opacity-70' : ''
+             }`}
+      role="article"
+      tabIndex={0}
+      aria-label={`Blog post: ${title}. ${isMobile ? 'Tap to view, hold for 3 seconds to open modal' : 'Click to view'}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
     >
+      {/* Progress indicator for long press */}
+      {isLongPressing && (
+        <>
+          {/* Progress bar */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 3, ease: "linear" }}
+            className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-t-lg origin-left z-10"
+            style={{ width: '100%' }}
+          />
+          
+          {/* Progress circle in center */}
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className="relative w-16 h-16">
+              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="rgba(59, 130, 246, 0.3)"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <motion.circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  stroke="rgb(59, 130, 246)"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 3, ease: "linear" }}
+                  style={{
+                    strokeDasharray: "175.929 175.929",
+                  }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Hint text */}
+          {showHint && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none"
+            >
+              <div className="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20">
+                Hold for 3s to open modal
+              </div>
+            </motion.div>
+          )}
+        </>
+      )}
+      
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-lg" />
 
       {/* Header with actions */}

@@ -386,8 +386,8 @@ const BlogDetail = () => {
                         {/* Share button */}
                         <ShareButton 
                             blog={blog} 
-                            size="default" 
-                            variant="primary"
+                            size="fixed" 
+                            variant="ghost"
                             showPlatformOptions={true}
                         />
 

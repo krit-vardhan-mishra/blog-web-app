@@ -2,7 +2,7 @@ class KeepAliveService {
   constructor() {
     this.pingInterval = null;
     this.isProduction = process.env.NODE_ENV === 'PRODUCTION';
-    this.serverUrl = process.env.CLIENT_URL || 'http://localhost:5000';
+    this.serverUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
   }
 
   startPinging() {
@@ -41,7 +41,7 @@ const selfPing = async () => {
   
   const ping = async () => {
     try {
-      const serverUrl = process.env.CLIENT_URL || 'http://localhost:5000';
+      const serverUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
       const response = await fetch(`${serverUrl}/api/health`, {
         method: 'GET',
         headers: { 'User-Agent': 'KeepAlive-Bot' }
@@ -71,7 +71,7 @@ const selfPing = async () => {
   
   setTimeout(() => {
     setInterval(attemptPing, 14 * 60 * 1000);
-  }, 30000);
+  }, 60000);
 };
 
 export { KeepAliveService, selfPing };

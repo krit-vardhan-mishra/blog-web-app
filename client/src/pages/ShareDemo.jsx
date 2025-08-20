@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import ShareButton from '../components/ShareButton';
 import ShareModal from '../components/ShareModal';
 import SharePreview from '../components/SharePreview';
+import PostDetails from '../components/PostDetails';
+import PostModal from '../components/ui/modals/PostModal';
 
 const ShareDemo = () => {
   const [showModal, setShowModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState(null);
 
   // Sample blog data for testing
   const sampleBlog = {
@@ -26,6 +30,24 @@ Join thousands of developers who have already transformed their development work
     interactionMetrics: {
       bookmarks: ['user1', 'user2', 'user3']
     }
+  };
+
+  const handleOpenPostModal = (blog) => {
+    setSelectedBlog(blog);
+    setShowPostModal(true);
+  };
+
+  const handleClosePostModal = () => {
+    setShowPostModal(false);
+    setSelectedBlog(null);
+  };
+
+  const mockToggleBookmark = async () => {
+    return {
+      success: true,
+      isBookmarked: !sampleBlog.interactionMetrics.bookmarks.includes('demo-user'),
+      bookmarkCount: sampleBlog.interactionMetrics.bookmarks.length
+    };
   };
 
   return (
@@ -166,6 +188,35 @@ Join thousands of developers who have already transformed their development work
             </div>
           </div>
         </div>
+
+        {/* PostDetails Long Press Demo */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+            Long Press Demo (Mobile)
+          </h2>
+          
+          <div className="max-w-md mx-auto mb-4">
+            <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 text-center">
+              <p className="text-blue-300 text-sm">
+                📱 On mobile: <strong>Hold for 3 seconds</strong> to open the post modal
+              </p>
+              <p className="text-gray-400 text-xs mt-2">
+                🖱️ On desktop: Just click to navigate to blog details
+              </p>
+            </div>
+          </div>
+          
+          <div className="max-w-md mx-auto">
+            <PostDetails
+              blog={sampleBlog}
+              userId="demo-user"
+              onOpenModal={handleOpenPostModal}
+              onEdit={() => console.log('Edit clicked')}
+              onDelete={() => console.log('Delete clicked')}
+              onToggleBookmark={mockToggleBookmark}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Share Modal */}
@@ -174,6 +225,16 @@ Join thousands of developers who have already transformed their development work
         isOpen={showModal}
         onClose={() => setShowModal(false)}
       />
+
+      {/* Post Modal */}
+      {showPostModal && selectedBlog && (
+        <PostModal
+          blog={selectedBlog}
+          isOpen={showPostModal}
+          onClose={handleClosePostModal}
+          onToggleBookmark={mockToggleBookmark}
+        />
+      )}
     </div>
   );
 };

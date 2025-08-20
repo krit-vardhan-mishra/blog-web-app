@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Eye, UserIcon, Tag, Target, Bookmark, Clock, Calendar, Share2, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { X, Eye, UserIcon, Tag, Target, Bookmark, Clock, Calendar, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../Button';
 import EditPostModal from './EditPostModal';
@@ -11,6 +11,7 @@ import { formatDate } from '../../../utils/utilityFunctions';
 import { parseEmojisEnhanced } from '../../../utils/emojiParser';
 import { getScrollDepth } from '../../../utils/scrollUtils';
 import getGenreColor from '@/utils/genreColors';
+import ShareButton from '../../ShareButton';
 
 const PostModal = ({
   isOpen,
@@ -139,24 +140,6 @@ const PostModal = ({
     }
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: title,
-      text: `Check out this blog post: ${title}`,
-      url: `${window.location.origin}/blog/${blogId}`
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareData.url);
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
   useEffect(() => {
     let timer;
 
@@ -236,15 +219,12 @@ const PostModal = ({
               {/* Action buttons */}
               <div className="flex items-center space-x-1 sm:space-x-2">
                 {/* Share button */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleShare}
-                  className="p-2 rounded-full bg-gray-700 hover:bg-blue-600 text-white transition-all duration-200"
-                  aria-label="Share"
-                >
-                  <Share2 size={16} className="sm:w-5 sm:h-5" />
-                </motion.button>
+                <ShareButton 
+                  blog={blog} 
+                  size="default" 
+                  variant="ghost"
+                  showPlatformOptions={true}
+                />
 
                 {/* Bookmark button (for non-authors) */}
                 {!isAuthor && userId && onToggleBookmark && (

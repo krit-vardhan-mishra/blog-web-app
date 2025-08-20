@@ -55,19 +55,22 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
   const buttonSizes = {
     small: 'p-1.5',
     default: 'p-2',
-    large: 'p-3'
+    large: 'p-3',
+    fixed: 'h-10 w-10 p-2'
   };
 
   const iconSizes = {
     small: 14,
     default: 16,
-    large: 20
+    large: 20,
+    fixed: 18
   };
 
   const variants = {
     default: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
     primary: 'bg-blue-500 hover:bg-blue-600 text-white',
-    ghost: 'hover:bg-gray-100 text-gray-600'
+    ghost: 'bg-gray-700 hover:bg-blue-600 text-gray-300 hover:text-white',
+    dark: 'bg-gray-700 hover:bg-gray-600 text-white'
   };
 
   return (
@@ -95,10 +98,10 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
 
         {/* Platform Options Dropdown */}
         {showShareOptions && showPlatformOptions && (
-          <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-[160px]">
+          <div className="absolute top-full right-0 mt-2 bg-gray-800 rounded-lg shadow-lg border border-gray-600 py-2 z-50 min-w-[160px]">
             <button
               onClick={handleShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-gray-700"
+              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
             >
               <Share2 size={16} className="mr-3" />
               General Share
@@ -106,7 +109,7 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
             
             <button
               onClick={handleInstagramShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-gray-700"
+              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
             >
               <Instagram size={16} className="mr-3 text-pink-500" />
               Instagram Stories
@@ -114,7 +117,7 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
             
             <button
               onClick={handleSnapchatShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-sm text-gray-700"
+              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
             >
               <Camera size={16} className="mr-3 text-yellow-500" />
               Snapchat
