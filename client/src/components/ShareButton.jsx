@@ -1,55 +1,114 @@
 import React, { useRef, useState } from 'react';
-import { Share2, Instagram, Camera, Loader2 } from 'lucide-react';
-import { useShareBlog } from '../hooks/useShareBlog';
+import { Share2, Loader2 } from 'lucide-react';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import html2canvas from 'html2canvas';
 import SharePreview from './SharePreview';
 
-const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatformOptions = true }) => {
-  const [showShareOptions, setShowShareOptions] = useState(false);
+const ShareButton = ({ blog, size = 'default', variant = 'default' }) => {
+  const [isSharing, setIsSharing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const sharePreviewRef = useRef(null);
-  const { shareBlog, shareToInstagram, shareToSnapchat, isSharing } = useShareBlog();
 
-  const handleShare = async (platform = null) => {
-    if (!sharePreviewRef.current) {
-      // Show preview first if not visible
-      setShowPreview(true);
-      setTimeout(() => {
-        handleShare(platform);
-      }, 100);
-      return;
+  const handleShare = async () => {
+    if (!blog) return;
+
+    setIsSharing(true);
+    
+    try {
+      const webAppUrl = `${window.location.origin}/blog/${blog._id}`;
+
+      if (Capacitor.isNativePlatform()) {
+        // Show preview temporarily for image generation
+        setShowPreview(true);
+        
+        // Wait for preview to render
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (sharePreviewRef.current) {
+          // Generate image for mobile sharing
+          const canvas = await html2canvas(sharePreviewRef.current, {
+            backgroundColor: '#121212',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            width: 320,
+            height: 569,
+            foreignObjectRendering: false,
+            onclone: (clonedDoc) => {
+              const clonedContainer = clonedDoc.querySelector('.share-preview-container');
+              if (clonedContainer) {
+                clonedContainer.style.backgroundColor = '#121212';
+                clonedContainer.style.color = '#e0e0e0';
+                clonedContainer.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+                
+                const allElements = clonedContainer.querySelectorAll('*');
+                allElements.forEach(el => {
+                  el.style.color = '#e0e0e0';
+                  el.style.fontFamily = 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+                });
+              }
+            }
+          });
+
+          // Convert to base64 and save
+          const base64Data = canvas.toDataURL('image/png', 1.0);
+          const base64Image = base64Data.split(',')[1];
+          
+          const fileName = `blog_share_${Date.now()}.png`;
+          const result = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Image,
+            directory: Directory.Cache,
+            encoding: Encoding.Base64
+          });
+
+          // Share with image and regular URL
+          await Share.share({
+            title: blog.title || 'Check out this blog post!',
+            text: `"${blog.title}" by ${blog.author?.name || 'Anonymous'}`,
+            url: webAppUrl,
+            files: [result.uri],
+            dialogTitle: 'Share Blog Post'
+          });
+
+          // Clean up file after a delay
+          setTimeout(async () => {
+            try {
+              await Filesystem.deleteFile({
+                path: fileName,
+                directory: Directory.Cache
+              });
+            } catch (error) {
+              console.warn('Failed to cleanup temp file:', error);
+            }
+          }, 5000);
+        }
+      } else {
+        // Web fallback
+        if (navigator.share) {
+          await navigator.share({
+            title: blog.title,
+            text: `"${blog.title}" by ${blog.author?.name || 'Anonymous'}`,
+            url: webAppUrl
+          });
+        } else {
+          // Copy to clipboard fallback with regular URL
+          const shareText = `Check out this blog post: "${blog.title}" by ${blog.author?.name || 'Anonymous'} - ${webAppUrl}`;
+          await navigator.clipboard.writeText(shareText);
+          alert('Link copied to clipboard!');
+        }
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      if (error.message && !error.message.includes('canceled')) {
+        alert('Failed to share. Please try again.');
+      }
+    } finally {
+      setIsSharing(false);
+      setShowPreview(false);
     }
-
-    await shareBlog(sharePreviewRef.current, blog, platform);
-    setShowShareOptions(false);
-    setShowPreview(false);
-  };
-
-  const handleInstagramShare = async () => {
-    if (!sharePreviewRef.current) {
-      setShowPreview(true);
-      setTimeout(() => {
-        handleInstagramShare();
-      }, 100);
-      return;
-    }
-
-    await shareToInstagram(sharePreviewRef.current, blog);
-    setShowShareOptions(false);
-    setShowPreview(false);
-  };
-
-  const handleSnapchatShare = async () => {
-    if (!sharePreviewRef.current) {
-      setShowPreview(true);
-      setTimeout(() => {
-        handleSnapchatShare();
-      }, 100);
-      return;
-    }
-
-    await shareToSnapchat(sharePreviewRef.current, blog);
-    setShowShareOptions(false);
-    setShowPreview(false);
   };
 
   const buttonSizes = {
@@ -75,57 +134,6 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
 
   return (
     <>
-      <div className="relative">
-        {/* Main Share Button */}
-        <button
-          onClick={() => showPlatformOptions ? setShowShareOptions(!showShareOptions) : handleShare()}
-          disabled={isSharing}
-          className={`
-            ${buttonSizes[size]} ${variants[variant]}
-            rounded-full transition-all duration-200 
-            flex items-center justify-center
-            disabled:opacity-50 disabled:cursor-not-allowed
-            hover:scale-105 active:scale-95
-          `}
-          title="Share this blog post"
-        >
-          {isSharing ? (
-            <Loader2 size={iconSizes[size]} className="animate-spin" />
-          ) : (
-            <Share2 size={iconSizes[size]} />
-          )}
-        </button>
-
-        {/* Platform Options Dropdown */}
-        {showShareOptions && showPlatformOptions && (
-          <div className="absolute top-full right-0 mt-2 bg-gray-800 rounded-lg shadow-lg border border-gray-600 py-2 z-50 min-w-[160px]">
-            <button
-              onClick={handleShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
-            >
-              <Share2 size={16} className="mr-3" />
-              General Share
-            </button>
-            
-            <button
-              onClick={handleInstagramShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
-            >
-              <Instagram size={16} className="mr-3 text-pink-500" />
-              Instagram Stories
-            </button>
-            
-            <button
-              onClick={handleSnapchatShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center text-sm text-gray-200"
-            >
-              <Camera size={16} className="mr-3 text-yellow-500" />
-              Snapchat
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Hidden SharePreview for image generation */}
       {showPreview && (
         <div 
@@ -133,23 +141,34 @@ const ShareButton = ({ blog, size = 'default', variant = 'default', showPlatform
             position: 'fixed', 
             top: '-9999px', 
             left: '-9999px',
-            zIndex: -1,
-            visibility: 'hidden'
+            zIndex: -1
           }}
         >
           <div ref={sharePreviewRef}>
-            <SharePreview blog={blog} size="story" />
+            <SharePreview blog={blog} />
           </div>
         </div>
       )}
 
-      {/* Click outside to close dropdown */}
-      {showShareOptions && (
-        <div 
-          className="fixed inset-0 z-40"
-          onClick={() => setShowShareOptions(false)}
-        />
-      )}
+      {/* Simple Share Button */}
+      <button
+        onClick={handleShare}
+        disabled={isSharing}
+        className={`
+          ${buttonSizes[size]} ${variants[variant]}
+          rounded-full transition-all duration-200 
+          flex items-center justify-center
+          disabled:opacity-50 disabled:cursor-not-allowed
+          hover:scale-105 active:scale-95
+        `}
+        title="Share this blog post"
+      >
+        {isSharing ? (
+          <Loader2 size={iconSizes[size]} className="animate-spin" />
+        ) : (
+          <Share2 size={iconSizes[size]} />
+        )}
+      </button>
     </>
   );
 };

@@ -16,11 +16,10 @@ const truncateText = (text, maxLength) => {
   return text.substring(0, maxLength) + '...';
 };
 
-const SharePreview = ({ blog, className = "", size = "default" }) => {
+const SharePreview = ({ blog, size = "default" }) => {
   const { author, content, title, views, createdAt, genre } = blog;
   const authorName = author?.name || 'Deleted User';
 
-  // Size configurations
   const sizeConfig = {
     default: { width: '320px', height: '569px' },
     story: { width: '360px', height: '640px' },
@@ -28,16 +27,6 @@ const SharePreview = ({ blog, className = "", size = "default" }) => {
   };
 
   const currentSize = sizeConfig[size] || sizeConfig.default;
-
-  const themeColors = {
-    background: '#1a1a2e',
-    cardBg: '#121212',
-    border: 'rgba(255, 255, 255, 0.08)',
-    text: '#e0e0e0',
-    secondaryText: '#8899a6',
-    accent: '#8b5cf6',
-  };
-
   const truncatedTitle = truncateText(title || '', size === 'post' ? 60 : 80);
   const truncatedContent = size === 'post' 
     ? truncateText(content || '', 150) 
@@ -45,32 +34,49 @@ const SharePreview = ({ blog, className = "", size = "default" }) => {
 
   return (
     <div
-      className={`share-preview-container rounded-xl overflow-hidden shadow-xl relative transition-all duration-300 ease-in-out flex flex-col ${className}`}
+      className="share-preview-container"
       style={{
         width: currentSize.width,
         height: currentSize.height,
-        background: themeColors.cardBg,
-        border: `1px solid ${themeColors.border}`,
-        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-        color: themeColors.text,
+        backgroundColor: '#121212',
+        border: '2px solid rgba(139, 92, 246, 0.5)',
+        borderRadius: '16px',
+        fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        color: '#e0e0e0',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        transform: 'translateZ(0)',
+        boxShadow: '0 8px 32px rgba(139, 92, 246, 0.2)',
       }}
     >
-      {/* Header section with title */}
+      {/* Header */}
       <div 
-        className="p-5 pb-3 border-b flex-shrink-0" 
         style={{ 
-          borderColor: themeColors.border,
-          backgroundColor: themeColors.cardBg 
+          padding: '20px 20px 12px 20px',
+          borderBottom: '1px solid rgba(139, 92, 246, 0.3)',
+          backgroundColor: '#121212',
+          color: '#e0e0e0',
+          flexShrink: 0,
         }}
       >
         {genre && (
-          <div className="mb-2">
+          <div style={{ marginBottom: '8px' }}>
             <span 
-              className="text-xs px-2 py-1 rounded-full font-medium"
               style={{ 
-                backgroundColor: themeColors.accent + '20',
-                color: themeColors.accent,
-                border: `1px solid ${themeColors.accent}40`
+                fontSize: '12px',
+                padding: '4px 8px',
+                borderRadius: '20px',
+                fontWeight: '500',
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                color: '#8b5cf6',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                display: 'inline-block',
               }}
             >
               {genre}
@@ -78,29 +84,43 @@ const SharePreview = ({ blog, className = "", size = "default" }) => {
           </div>
         )}
         <h3
-          className="font-extrabold text-xl mb-2 leading-tight"
           style={{ 
-            color: themeColors.text,
-            fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-            fontSize: size === 'post' ? '18px' : '20px'
+            color: '#e0e0e0',
+            fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+            fontSize: size === 'post' ? '18px' : '20px',
+            fontWeight: '800',
+            margin: '0 0 8px 0',
+            lineHeight: '1.3',
           }}
         >
           {truncatedTitle}
         </h3>
       </div>
 
-      {/* Main content area */}
-      <div className="flex-1 px-5 py-3 relative overflow-hidden">
+      {/* Content */}
+      <div 
+        style={{
+          flex: 1,
+          padding: '12px 20px',
+          backgroundColor: '#121212',
+          color: '#e0e0e0',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
         <div
-          className={`text-sm leading-relaxed h-full overflow-hidden ${size === 'post' ? 'whitespace-pre-wrap' : 'whitespace-pre-wrap'}`}
           style={{
-            color: themeColors.text,
+            color: '#e0e0e0',
             fontSize: size === 'post' ? '12px' : '14px',
             lineHeight: '1.5',
-            background: 'transparent',
+            backgroundColor: 'transparent',
+            height: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             ...(size !== 'post' && {
-              maskImage: `linear-gradient(to bottom, black 0%, black 70%, transparent 100%)`,
-              WebkitMaskImage: `linear-gradient(to bottom, black 0%, black 70%, transparent 100%)`,
+              maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
             })
           }}
         >
@@ -108,39 +128,50 @@ const SharePreview = ({ blog, className = "", size = "default" }) => {
         </div>
       </div>
 
-      {/* Footer section */}
+      {/* Footer */}
       <div 
-        className="px-5 py-3 border-t flex-shrink-0" 
         style={{ 
-          borderColor: themeColors.border,
-          backgroundColor: themeColors.cardBg
+          padding: '12px 20px',
+          borderTop: '1px solid rgba(139, 92, 246, 0.3)',
+          backgroundColor: '#121212',
+          color: '#e0e0e0',
+          flexShrink: 0,
         }}
       >
-        <div className="flex justify-between items-center">
-          {/* Left Section - Author and Date */}
-          <div className="flex-1">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
             <p 
-              className="flex items-center font-semibold text-sm mb-1" 
-              style={{ color: themeColors.text }}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                fontWeight: '600', 
+                fontSize: '14px', 
+                margin: '0 0 4px 0',
+                color: '#e0e0e0',
+              }}
             >
-              <NotebookPen size={14} className="mr-2" />
+              <NotebookPen size={14} style={{ marginRight: '8px' }} />
               {authorName}
             </p>
             <p 
-              className="text-xs" 
-              style={{ color: themeColors.secondaryText }}
+              style={{ 
+                fontSize: '12px',
+                color: '#8899a6',
+                margin: 0,
+              }}
             >
               {formatDate(createdAt)}
             </p>
           </div>
-
-          {/* Right Section - Views */}
           <div 
-            className="flex items-center" 
-            style={{ color: themeColors.secondaryText }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              color: '#8899a6',
+            }}
           >
-            <Eye size={16} className="mr-1" />
-            <span className="text-xs font-medium">{views || 0}</span>
+            <Eye size={16} style={{ marginRight: '4px' }} />
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>{views || 0}</span>
           </div>
         </div>
       </div>

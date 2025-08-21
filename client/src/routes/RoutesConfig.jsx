@@ -46,7 +46,6 @@ const SetPasswordPage = lazy(() => import('../pages/SetPasswordPage'));
 const HomePage = lazy(() => import('../pages/HomePage'));
 const MyPosts = lazy(() => import('../pages/MyPosts'));
 const AccountSetting = lazy(() => import('../pages/AccountSetting'));
-const ShareDemo = lazy(() => import('../pages/ShareDemo'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 const cachedExploreLoader = createCachedLoader(exploreLoader);
@@ -165,17 +164,6 @@ const routes = createRoutesFromElements(
           </SuspenseWrapper>
         }
         loader={cachedBlogDetailLoader}
-        errorElement={<RouterErrorBoundary />}
-      />
-
-      {/* Share Demo Route - Public Access */}
-      <Route
-        path="share-demo"
-        element={
-          <SuspenseWrapper>
-            <ShareDemo />
-          </SuspenseWrapper>
-        }
         errorElement={<RouterErrorBoundary />}
       />
 

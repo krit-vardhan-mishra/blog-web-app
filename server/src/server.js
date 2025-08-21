@@ -3,6 +3,7 @@ import usersRoutes from './routes/usersRoutes.js';
 import blogsRoutes from './routes/blogsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
+import shareRoutes from './routes/shareRoutes.js';
 import initMiddleware from './middleware/initMiddleware.js';
 import './config/passport.js';
 import connectDB from './config/db.js';
@@ -55,6 +56,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/blogs', blogsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', otpRoutes);
+app.use('/api/share', shareRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -81,6 +83,11 @@ app.get('/api/test', (req, res) => {
 
 if (NODE_ENV === 'PRODUCTION') {
   app.use(express.static(path.join(__dirname, '..', '..', 'client', 'dist')));
+
+  // Handle share routes before the catch-all
+  app.get('/blog/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', '..', 'client', 'dist', 'index.html'));
+  });
 
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'client', 'dist', 'index.html'));
