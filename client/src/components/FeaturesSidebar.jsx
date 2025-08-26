@@ -1,5 +1,5 @@
 import CardBox from './ui/CardBox';
-import { motion } from 'framer-motion'; // Import motion
+import { motion } from 'framer-motion'; 
 import {
   PenLine,
   FileTextIcon,
@@ -8,7 +8,6 @@ import {
   ArrowRightCircle,
 } from 'lucide-react';
 
-// Variants for the sidebar itself
 const sidebarVariants = {
   hidden: { x: '-100%', opacity: 0 },
   visible: {
@@ -18,18 +17,11 @@ const sidebarVariants = {
   },
 };
 
-// Variants for the container of cards.
-// If CardBox itself is not a motion component, staggerChildren here
-// will not directly apply to individual CardBox elements.
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    // Staggering would typically go here, but since CardBox is not
-    // directly a motion component, this will only affect the container.
-    // Individual CardBox animations would need CardBox itself to be a motion component
-    // or wrapped in a motion.div (which we are removing per your request).
-    transition: { delay: 0.4, duration: 0.5 }, // Simple fade-in for the container
+    transition: { delay: 0.4, duration: 0.5 },
   },
 };
 
@@ -37,13 +29,13 @@ export const FeaturesSidebar = () => {
   return (
     <motion.div
       className="flex flex-col items-start justify-center p-4 sm:p-6 xl:p-10 w-full h-full xl:overflow-y-auto"
-      variants={sidebarVariants} // Apply sidebar entry animation
+      variants={sidebarVariants} 
       initial="hidden"
       animate="visible"
     >
       <motion.div
         className="flex flex-col items-start gap-4 xl:gap-6 w-full"
-        variants={containerVariants} // Apply container animation (fade-in for the group)
+        variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
