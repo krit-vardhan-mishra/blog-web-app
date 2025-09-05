@@ -57,11 +57,11 @@ const ExplorePage = () => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const isHashtagSearch = query.startsWith('#');
-      const tagQuery = isHashtagSearch ? query.substring(1) : query;
+      const isTagSearch = query.startsWith('#');
+      const tagQuery = isTagSearch ? query.substring(1) : query;
 
       filtered = filtered.filter(blog => {
-        if (isHashtagSearch) {
+        if (isTagSearch) {
           return (blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery));
         }
 

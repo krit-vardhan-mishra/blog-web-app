@@ -618,7 +618,7 @@ const BlogDetail = () => {
                             transition={{ duration: 1, delay: 0.5 }}
                             className="text-gray-300 whitespace-pre-line text-sm sm:text-base leading-relaxed p-4"
                         >
-                            {content.split(/(\s+)/).map((part, index) => {
+                            {content ? content.split(/(\s+)/).map((part, index) => {
                                 if (/^\s+$/.test(part)) {
                                     return part;
                                 }
@@ -636,7 +636,7 @@ const BlogDetail = () => {
                                         />
                                     </span>
                                 );
-                            })}
+                            }) : 'Content not available.'}
                         </motion.div>
                     </SimpleBar>
                 </motion.div>

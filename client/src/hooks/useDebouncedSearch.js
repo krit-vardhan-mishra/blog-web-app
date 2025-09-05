@@ -60,11 +60,11 @@ export const useDebouncedSearch = (allBlogs, allUsers, debounceMs = 300) => {
     }
     
     const searchTerm = query.toLowerCase().trim();
-    const isHashtagSearch = searchTerm.startsWith('#');
-    const tagQuery = isHashtagSearch ? searchTerm.substring(1) : searchTerm;
+    const isTagSearch = searchTerm.startsWith('#');
+    const tagQuery = isTagSearch ? searchTerm.substring(1) : searchTerm;
 
     const matchingBlogs = allBlogs.filter(blog => {
-      if (isHashtagSearch) {
+      if (isTagSearch) {
         return (blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery));
       }
       

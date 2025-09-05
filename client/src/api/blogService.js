@@ -1,6 +1,21 @@
 import apiClient from './apiService.js';
 
 const blogService = {
+  searchByTitle: async (title) => {
+    const response = await apiClient.get(`/blogs/search/title/${encodeURIComponent(title)}`);
+    return response.data || response;
+  },
+
+  searchByContent: async (content) => {
+    const response = await apiClient.get(`/blogs/search/content/${encodeURIComponent(content)}`);
+    return response.data || response;
+  },
+
+  searchByTags: async (tags) => {
+    const response = await apiClient.get(`/blogs/search/tags/${encodeURIComponent(tags)}`);
+    return response.data || response;
+  },
+
   fetchAll: async (filters = {}, pagination = { page: 1, limit: 12 }, sortOptions = {}) => {
     try {
       const queryParams = new URLSearchParams();
@@ -41,6 +56,34 @@ const blogService = {
       const url = `/blogs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiClient.get(url);
 
+      // Check if response is using ApiResponse format (has data property containing the actual data)
+      if (response.data && (response.success !== undefined)) {
+        // Handle ApiResponse format
+        const data = response.data;
+        if (data.blogs && data.pagination) {
+          return {
+            blogs: data.blogs.map((blog) => ({
+              ...blog,
+              _id: blog._id || blog.id,
+            })),
+            pagination: data.pagination
+          };
+        }
+        
+        // If no blogs/pagination structure in data, return the data itself
+        return { 
+          blogs: Array.isArray(data) ? data.map(blog => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })) : [data].map(blog => ({
+            ...blog,
+            _id: blog._id || blog.id,
+          })),
+          pagination: null 
+        };
+      }
+      
+      // Handle direct response format (older endpoints)
       if (response.blogs && response.pagination) {
         return {
           blogs: response.blogs.map((blog) => ({
@@ -52,10 +95,11 @@ const blogService = {
       }
 
       const blogs = response.blogs || response;
-      const processedBlogs = blogs.map((blog) => ({
+      const processedBlogs = Array.isArray(blogs) ? blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
-      }));
+      })) : [];
+      
       return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ blogService: fetchAll failed:', error.message);
@@ -103,7 +147,7 @@ const blogService = {
   fetchById: async (blogId) => {
     try {
       const response = await apiClient.get(`/blogs/${blogId}`);
-      return response;
+      return response.data;
     } catch (error) {
       console.error('❌ Error fetching blog by ID:', error.message);
       throw error;
@@ -133,6 +177,22 @@ const blogService = {
       const url = `/blogs/user/${userId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiClient.get(url);
 
+      // Handle ApiResponse format
+      if (response.data && (response.success !== undefined)) {
+        const apiData = response.data;
+        if (apiData.blogs && apiData.pagination) {
+          return {
+            blogs: apiData.blogs.map((blog) => ({
+              ...blog,
+              _id: blog._id || blog.id,
+            })),
+            pagination: apiData.pagination
+          };
+        }
+        return { blogs: [], pagination: null };
+      }
+
+      // Handle direct response format (fallback)
       if (response.blogs && response.pagination) {
         return {
           blogs: response.blogs.map((blog) => ({
@@ -143,11 +203,12 @@ const blogService = {
         };
       }
 
+      // Final fallback for unexpected formats
       const blogs = response.blogs || response;
-      const processedBlogs = blogs.map((blog) => ({
+      const processedBlogs = Array.isArray(blogs) ? blogs.map((blog) => ({
         ...blog,
         _id: blog._id || blog.id,
-      }));
+      })) : [];
       return { blogs: processedBlogs, pagination: null };
     } catch (error) {
       console.error('❌ Error fetching blogs by user ID:', error.message);
@@ -158,7 +219,7 @@ const blogService = {
   getUserBlogsStats: async (userId) => {
     try {
       const response = await apiClient.get(`/blogs/user/${userId}/stats`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error fetching user blog stats:', error.message);
       // Return default values if stats endpoint fails
@@ -182,7 +243,7 @@ const blogService = {
       };
 
       const response = await apiClient.post('/blogs', payload);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error creating blog:', error);
       if (error.response?.data?.message) {
@@ -203,7 +264,7 @@ const blogService = {
       };
 
       const response = await apiClient.put(`/blogs/${blogId}`, payload);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error updating blog:', error.message);
       throw error;
@@ -213,7 +274,7 @@ const blogService = {
   delete: async (blogId) => {
     try {
       const response = await apiClient.delete(`/blogs/${blogId}`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error deleting blog:', error.message);
       throw error;
@@ -223,7 +284,7 @@ const blogService = {
   permanentlyDelete: async (blogId) => {
     try {
       const response = await apiClient.delete(`/blogs/permanent/${blogId}`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error permanently deleting blog:', error.message);
       throw error;
@@ -233,7 +294,7 @@ const blogService = {
   restore: async (blogId) => {
     try {
       const response = await apiClient.post(`/blogs/restore/${blogId}`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error restoring blog:', error.message);
       throw error;
@@ -243,7 +304,7 @@ const blogService = {
   incrementView: async (blogId) => {
     try {
       const response = await apiClient.post(`/blogs/increment-view/${blogId}`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error incrementing view:', error.message);
       throw error;
@@ -258,6 +319,17 @@ const blogService = {
 
       const response = await apiClient.get(`/blogs/deleted?${queryParams.toString()}`);
 
+      // Handle ApiResponse format
+      if (response.data && response.success !== undefined) {
+        const blogs = response.data.blogs || response.data;
+        const processedBlogs = Array.isArray(blogs) ? blogs.map((blog) => ({
+          ...blog,
+          _id: blog._id || blog.id,
+        })) : [];
+        return { blogs: processedBlogs, pagination: response.data.pagination || null };
+      }
+
+      // Fallback for direct response
       if (response.blogs && response.pagination) {
         return {
           blogs: response.blogs.map((blog) => ({
@@ -286,7 +358,7 @@ const blogService = {
         `/blogs/${blogId}/engagement`,
         engagementData
       );
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('Error updating engagement:', error);
       throw error;
@@ -296,7 +368,7 @@ const blogService = {
   toggleBookmark: async (blogId) => {
     try {
       const response = await apiClient.post(`/blogs/${blogId}/bookmark`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ blogService: toggleBookmark failed:', {
         blogId,
@@ -408,7 +480,7 @@ const blogService = {
   getUserStats: async (userId) => {
     try {
       const response = await apiClient.get(`/blogs/user/${userId}/stats`);
-      return response;
+      return response.data || response;
     } catch (error) {
       console.error('❌ Error fetching user stats:', error.message);
       throw error;

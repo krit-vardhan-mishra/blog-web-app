@@ -127,7 +127,7 @@ export const useHomePage = () => {
       const response = await blogService.fetchForHomePage();
       const latestBlogs = response.blogs || [];
 
-      const allBlogsResponse = await blogService.fetchAll({}, { page: 1, limit: 100 });
+      const allBlogsResponse = await blogService.fetchAll({}, { page: 1, limit: 50 });
       const allBlogsData = allBlogsResponse.blogs || [];
 
       updateState({

@@ -7,6 +7,7 @@ import {
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import authenticateToken from '../middleware/authenticateToken.js';
 import { SERVER } from '../utils/constants.js';
+import errorHandler from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -65,5 +66,8 @@ router.get('/google/callback',
 );
 
 console.debug('Auth routes initialized successfully');
+
+// Apply error handler middleware
+router.use(errorHandler);
 
 export default router;

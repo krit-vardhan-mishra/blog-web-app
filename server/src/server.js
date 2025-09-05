@@ -94,19 +94,17 @@ if (NODE_ENV === 'PRODUCTION') {
   });
 }
 
+// Special handler for OAuth errors
 app.use((err, req, res, next) => {
-  console.error('Global error:', err);
-
   if (err.oauthError) {
     return res.redirect(`${CLIENT_URL}/login?error=oauth_${err.oauthError.code}`);
   }
-
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: NODE_ENV === 'DEVELOPMENT' ? err.message : undefined
-  });
+  next(err);
 });
+
+// Import and use the global error handler
+import errorHandler from './middleware/errorHandler.js';
+app.use(errorHandler);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`

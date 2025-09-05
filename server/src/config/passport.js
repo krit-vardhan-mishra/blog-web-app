@@ -21,8 +21,19 @@ passport.use(new GoogleStrategy({
       let user = await User.findOne({ email });
       
       if (!user) {
+        // Generate unique username from email
+        let baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
+        let username = baseUsername;
+        let counter = 1;
+        
+        while (await User.findOne({ username })) {
+          username = `${baseUsername}${counter}`;
+          counter++;
+        }
+        
         user = await User.create({
           name: profile.displayName,
+          username,
           email,
           isEmailVerified: true,
           authMethod: 'google'

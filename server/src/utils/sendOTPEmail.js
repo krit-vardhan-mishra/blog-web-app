@@ -38,28 +38,40 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
 
     const emailConfig = {
       signup: {
-        subject: 'Verify Your Email Address',
+        subject: 'Verify Your Blog Web App Account',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 24px;">Email Verification</h1>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1C222A; color: #ffffff; border-radius: 8px; overflow: hidden;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: #ffffff;">Blog Web App</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #d1d5db;">Verify Your Email Address</p>
             </div>
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
-              <h2 style="color: #2563eb; margin-bottom: 20px;">Welcome to SecureApp!</h2>
-              <p style="color: #495057; font-size: 16px; line-height: 1.6;">
-                Thank you for signing up. Please use the following verification code to complete your registration:
-              </p>
-              <div style="background: #2563eb; color: white; padding: 15px 25px; border-radius: 8px; display: inline-block; margin: 20px 0; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
-                ${otp}
+            <!-- Body -->
+            <div style="padding: 30px; background: #2A2E36; border: 1px solid #374151; border-top: none; border-radius: 0 0 8px 8px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; padding: 12px 20px; background: #2563eb; border-radius: 50%; margin-bottom: 15px;">
+                  <svg style="width: 24px; height: 24px; fill: #ffffff;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <h2 style="color: #2563eb; font-size: 20px; font-weight: bold; margin: 0;">Welcome to Blog Web App!</h2>
               </div>
-              <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-                ⏰ This code will expire in 5 minutes.
+              <p style="color: #d1d5db; font-size: 16px; line-height: 1.6; text-align: center; margin-bottom: 20px;">
+                Thank you for joining us. Please use the following OTP to verify your account:
               </p>
-              <p style="color: #6c757d; font-size: 14px;">
-                If you didn't request this verification, please ignore this email.
+              <div style="text-align: center; margin: 20px 0;">
+                <span style="display: inline-block; background: #2563eb; color: #ffffff; padding: 15px 25px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 3px;">
+                  ${otp}
+                </span>
+              </div>
+              <p style="color: #9ca3af; font-size: 14px; text-align: center; margin-bottom: 10px;">
+                ⏰ This OTP will expire in 5 minutes.
               </p>
-              <hr style="border: none; border-top: 1px solid #dee2e6; margin: 25px 0;">
-              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              <p style="color: #9ca3af; font-size: 14px; text-align: center;">
+                If you didn’t request this, please ignore this email or contact support.
+              </p>
+              <hr style="border: none; border-top: 1px solid #374151; margin: 25px 0;">
+              <p style="color: #6b7280; font-size: 12px; text-align: center; margin: 0;">
                 📍 Request IP: ${ipAddress}<br>
                 🕒 Sent at: ${new Date().toLocaleString()}
               </p>
@@ -68,30 +80,42 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
         `
       },
       reset: {
-        subject: 'Password Reset Request',
+        subject: 'Blog Web App Password Reset',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 24px;">Password Reset</h1>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #1C222A; color: #ffffff; border-radius: 8px; overflow: hidden;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #dc3545 0%, #991b1b 100%); padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: #ffffff;">Blog Web App</h1>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #d1d5db;">Password Reset Request</p>
             </div>
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
-              <h2 style="color: #dc3545; margin-bottom: 20px;">Reset Your Password</h2>
-              <p style="color: #495057; font-size: 16px; line-height: 1.6;">
+            <!-- Body -->
+            <div style="padding: 30px; background: #2A2E36; border: 1px solid #374151; border-top: none; border-radius: 0 0 8px 8px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; padding: 12px 20px; background: #dc3545; border-radius: 50%; margin-bottom: 15px;">
+                  <svg style="width: 24px; height: 24px; fill: #ffffff;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <h2 style="color: #dc3545; font-size: 20px; font-weight: bold; margin: 0;">Reset Your Password</h2>
+              </div>
+              <p style="color: #d1d5db; font-size: 16px; line-height: 1.6; text-align: center; margin-bottom: 20px;">
                 We received a request to reset your password. Use the following OTP to proceed:
               </p>
-              <div style="background: #dc3545; color: white; padding: 15px 25px; border-radius: 8px; display: inline-block; margin: 20px 0; font-size: 24px; font-weight: bold; letter-spacing: 2px;">
-                ${otp}
+              <div style="text-align: center; margin: 20px 0;">
+                <span style="display: inline-block; background: #dc3545; color: #ffffff; padding: 15px 25px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 3px;">
+                  ${otp}
+                </span>
               </div>
-              <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-                ⏰ This code will expire in 5 minutes.
+              <p style="color: #9ca3af; font-size: 14px; text-align: center; margin-bottom: 10px;">
+                ⏰ This OTP will expire in 5 minutes.
               </p>
-              <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
-                <p style="color: #856404; font-size: 14px; margin: 0;">
-                  ⚠️ <strong>Security Notice:</strong> If you didn't request this password reset, please secure your account immediately and contact support.
+              <div style="background: #7f1d1d; border: 1px solid #b91c1c; border-radius: 5px; padding: 15px; margin: 20px 0;">
+                <p style="color: #f87171; font-size: 14px; text-align: center; margin: 0;">
+                  ⚠️ <strong>Security Notice:</strong> If you didn’t request this, please secure your account immediately and contact support.
                 </p>
               </div>
-              <hr style="border: none; border-top: 1px solid #dee2e6; margin: 25px 0;">
-              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              <hr style="border: none; border-top: 1px solid #374151; margin: 25px 0;">
+              <p style="color: #6b7280; font-size: 12px; text-align: center; margin: 0;">
                 📍 Request IP: ${ipAddress}<br>
                 🕒 Sent at: ${new Date().toLocaleString()}
               </p>
@@ -102,7 +126,7 @@ const sendOTPEmail = async (toEmail, otp, type, ipAddress) => {
     };
 
     const mailOptions = {
-      from: `"Blog-Web-App" <${SENDER_EMAIL}>`,
+      from: `"Blog Web App" <${SENDER_EMAIL}>`,
       to: toEmail,
       subject: emailConfig[type].subject,
       html: emailConfig[type].html

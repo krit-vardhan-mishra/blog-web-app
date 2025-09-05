@@ -17,30 +17,23 @@ export default function initMiddleware(app) {
 
   const uniqueOrigins = [...new Set(allowedOrigins)];
 
-  console.log('Allowed CORS origins:', uniqueOrigins);
-  console.log('Server environment:', SERVER.NODE_ENV);
-
   app.use(
     cors({
       origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, Postman, etc.)
         if (!origin) return callback(null, true);
-        
-        console.log('CORS request from origin:', origin);
-        
+
         // Check if origin is allowed
         if (uniqueOrigins.includes(origin)) {
           return callback(null, true);
         }
-        
+
         // In production, be more restrictive
         if (SERVER.NODE_ENV === 'PRODUCTION') {
           console.error('CORS blocked origin:', origin);
           return callback(new Error(`Origin ${origin} not allowed by CORS`));
         }
-        
-        // In development, allow all origins
-        console.log('Development mode: allowing origin', origin);
+
         return callback(null, true);
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -58,13 +51,13 @@ export default function initMiddleware(app) {
       saveUninitialized: false,
       store: MongoStore.create({
         mongoUrl: DATABASE.MONGODB_URI,
-        ttl: 30 * 24 * 60 * 60, 
+        ttl: 30 * 24 * 60 * 60,
         touchAfter: 24 * 3600,
       }),
       cookie: {
         secure: SERVER.NODE_ENV === 'PRODUCTION',
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 30, 
+        maxAge: 1000 * 60 * 60 * 24 * 30,
         sameSite: SERVER.NODE_ENV === 'PRODUCTION' ? 'none' : 'lax',
         domain: SERVER.NODE_ENV === 'PRODUCTION' ? SERVER.COOKIE_DOMAIN : undefined,
       },

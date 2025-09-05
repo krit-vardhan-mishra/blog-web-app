@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { GENRES, READING_LEVELS } from '../constants/enums.js';
+import mongooseAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const BlogSchema = new mongoose.Schema(
   {
@@ -48,7 +49,7 @@ const BlogSchema = new mongoose.Schema(
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
-          required: false 
+          required: false
         },
         duration: Number,
         lastRead: Date
@@ -116,6 +117,7 @@ BlogSchema.methods = {
   },
 };
 
+BlogSchema.plugin(mongooseAggregatePaginate);
 const Blog = mongoose.model('Blog', BlogSchema);
 
 export default Blog;

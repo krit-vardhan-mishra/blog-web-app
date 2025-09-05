@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Blog from '../models/Blog.js';
 import { generateBlogOGImage } from '../services/ogImageService.js';
+import errorHandler from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -249,5 +250,8 @@ router.get('/blog/:id/image', async (req, res) => {
     res.status(500).json({ message: 'Error generating image' });
   }
 });
+
+// Apply error handler middleware
+router.use(errorHandler);
 
 export default router;

@@ -33,7 +33,7 @@ const UserDetail = () => {
       try {
         setLoading(true);
         const response = await userService.fetchById(userId);
-        setUser(response.user);
+        setUser(response);
       } catch (err) {
         setError(err.message);
         setNotification({
@@ -55,7 +55,7 @@ const UserDetail = () => {
       try {
         setBlogsLoading(true);
         const data = await blogService.fetchByUserId(userId, {}, { page: 1, limit: 5 });
-        
+
         if (data.blogs) {
           setUserBlogs(data.blogs);
           setPagination(data.pagination);
@@ -87,9 +87,9 @@ const UserDetail = () => {
     try {
       const loadingPromise = new Promise(resolve => setTimeout(resolve, 1200));
       const dataPromise = blogService.fetchByUserId(userId, {}, { page: pagination.currentPage + 1, limit: 5 });
-      
+
       const [, data] = await Promise.all([loadingPromise, dataPromise]);
-      
+
       if (data.blogs) {
         setUserBlogs(prevBlogs => {
           const existingIds = new Set(prevBlogs.map(blog => blog._id));
@@ -194,7 +194,7 @@ const UserDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f0f23] text-white">
-        
+
         <div className="max-w-6xl mx-auto p-6">
           <div className="animate-pulse">
             <div className="bg-gray-800 rounded-lg p-6 mb-6">
@@ -215,7 +215,7 @@ const UserDetail = () => {
   if (error || !user) {
     return (
       <div className="min-h-screen bg-[#0f0f23] text-white">
-        
+
         <div className="max-w-6xl mx-auto p-6">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -243,7 +243,7 @@ const UserDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1C20] text-white">
-      
+
 
       <motion.div
         className="max-w-6xl mx-auto p-6"
@@ -295,7 +295,7 @@ const UserDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-blue-300" />
-                  <span>{user.email || 'Email not provided'}</span>
+                  <span>{user.username || 'Username not provided'}</span>
                 </div>
 
                 <div className="flex items-center space-x-2">

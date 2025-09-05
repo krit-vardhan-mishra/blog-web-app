@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import userService from '../api/userService';
 
 const SearchContext = createContext();
 
@@ -62,22 +63,22 @@ export const SearchProvider = ({ children }) => {
     };
   }, [searchQuery, allBlogs, allUsers]);
 
-  const performSearch = useCallback((query) => {
+  const performSearch = useCallback(async (query) => {
     if (!query || !query.trim()) {
       setSearchResults([]);
       setSearchLoading(false);
       return;
     }
-    
+
     const searchTerm = query.toLowerCase().trim();
-    const isHashtagSearch = searchTerm.startsWith('#');
-    const tagQuery = isHashtagSearch ? searchTerm.substring(1) : searchTerm;
+    const isTagSearch = searchTerm.startsWith('#');
+    const tagQuery = isTagSearch ? searchTerm.substring(1) : searchTerm;
 
     const matchingBlogs = allBlogs.filter(blog => {
-      if (isHashtagSearch) {
+      if (isTagSearch) {
         return (blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery));
       }
-      
+
       return (
         blog.title.toLowerCase().includes(searchTerm) ||
         blog.content.toLowerCase().includes(searchTerm) ||
@@ -87,12 +88,43 @@ export const SearchProvider = ({ children }) => {
       );
     });
 
-    // Search users
-    const matchingUsers = allUsers.filter(user =>
-      user.name.toLowerCase().includes(searchTerm) ||
-      (user.email || '').toLowerCase().includes(searchTerm) ||
-      (user.about || '').toLowerCase().includes(searchTerm)
-    );
+    // Enhanced user search with email API
+    let matchingUsers = [];
+
+    // Check if query looks like an email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isEmail = emailRegex.test(searchTerm);
+
+    if (isEmail) {
+      try {
+        const emailResponse = await userService.fetchByEmail(searchTerm);
+        if (emailResponse.data?.success && emailResponse.data.user) {
+          matchingUsers = [emailResponse.data.user];
+        }
+      } catch (emailError) {
+        console.log('Email search failed, falling back to general search');
+      }
+    }
+
+    if (username) {
+      try {
+        const usernameResponse = await userService.fetchByUsername(username);
+        if (usernameResponse.data?.success && usernameResponse.data.user) {
+          matchingUsers = [usernameResponse.data.user];
+        }
+      } catch (error) {
+        console.log('Username search failed:', error.message);
+      }
+    }
+
+    // If no email results or not an email query, search local users
+    if (matchingUsers.length === 0) {
+      matchingUsers = allUsers.filter(user =>
+        user.name.toLowerCase().includes(searchTerm) ||
+        (user.email || '').toLowerCase().includes(searchTerm) ||
+        (user.about || '').toLowerCase().includes(searchTerm)
+      );
+    }
 
     // Calculate relevance and sort
     const sortedBlogs = matchingBlogs
@@ -122,38 +154,38 @@ export const SearchProvider = ({ children }) => {
     const author = (blog.author?.name || '').toLowerCase();
     const tags = (blog.tags || []).join(' ').toLowerCase();
     const genre = (blog.genre || '').toLowerCase();
-    
+
     // Title matches get highest score
     if (title.includes(searchTerm)) score += 10;
     if (title.startsWith(searchTerm)) score += 5;
-    
+
     // Content matches
     if (content.includes(searchTerm)) score += 3;
-    
+
     // Author matches
     if (author.includes(searchTerm)) score += 5;
-    
+
     if (tags.includes(searchTerm)) score += 8;
     if ((blog.tags || []).some(tag => tag.toLowerCase() === searchTerm)) score += 15;
-    
+
     if (genre.includes(searchTerm)) score += 4;
-    
-    // Special handling for hashtag searches
+
+    // Special handling for tag searches
     if (searchTerm.startsWith('#')) {
       const tagQuery = searchTerm.substring(1);
       if ((blog.tags || []).some(tag => tag.toLowerCase().includes(tagQuery))) score += 20;
     }
-    
+
     // Boost for exact matches
     if (title === searchTerm) score += 20;
-    
+
     // Boost for recent posts
     const daysSinceCreation = (Date.now() - new Date(blog.createdAt)) / (1000 * 60 * 60 * 24);
     if (daysSinceCreation < 7) score += 2;
-    
+
     // Boost for popular posts
     if (blog.views > 100) score += 1;
-    
+
     return score;
   }, []);
 
@@ -162,13 +194,13 @@ export const SearchProvider = ({ children }) => {
     const name = user.name.toLowerCase();
     const email = (user.email || '').toLowerCase();
     const about = (user.about || '').toLowerCase();
-    
+
     if (name.includes(searchTerm)) score += 10;
     if (name.startsWith(searchTerm)) score += 5;
     if (email.includes(searchTerm)) score += 7;
     if (about.includes(searchTerm)) score += 3;
     if (name === searchTerm) score += 20;
-    
+
     return score;
   }, []);
 
@@ -178,12 +210,12 @@ export const SearchProvider = ({ children }) => {
     } else if (result.type === 'user') {
       navigate(`/user/${result._id || result.id}`);
     }
-    
+
     // Close search and clear everything
     setIsSearchActive(false);
     setSearchQuery('');
     setSearchResults([]);
-    
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -194,7 +226,7 @@ export const SearchProvider = ({ children }) => {
     setSearchResults([]);
     setIsSearchActive(false);
     setSearchLoading(false);
-    
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }

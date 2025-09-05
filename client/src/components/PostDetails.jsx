@@ -18,7 +18,7 @@ const PostDetails = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  
+
   const {
     _id,
     title,
@@ -34,12 +34,12 @@ const PostDetails = ({
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
     };
-    
+
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
-
+  
   useEffect(() => {
     return () => {
       if (touchTimeoutRef.current) {
@@ -50,11 +50,11 @@ const PostDetails = ({
 
   const handleTouchStart = (e) => {
     if (!isMobile || !onOpenModal) return;
-    
+
     isTouchingRef.current = true;
     setIsLongPressing(true);
     setShowHint(true);
-    
+
     touchTimeoutRef.current = setTimeout(() => {
       if (isTouchingRef.current) {
         e.preventDefault();
@@ -85,7 +85,7 @@ const PostDetails = ({
       const rect = e.currentTarget.getBoundingClientRect();
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
-      
+
       if (x < -10 || x > rect.width + 10 || y < -10 || y > rect.height + 10) {
         handleTouchEnd();
       }
@@ -98,7 +98,7 @@ const PostDetails = ({
       clearTimeout(touchTimeoutRef.current);
       setIsLongPressing(false);
     }
-    
+
     // Navigate to blog detail page
     const blogId = _id || blog.id;
     navigate(`/blog/${blogId}`);
@@ -131,12 +131,12 @@ const PostDetails = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         y: 0,
         scale: isLongPressing ? 0.98 : 1,
-        boxShadow: isLongPressing 
-          ? '0 0 30px rgba(59, 130, 246, 0.8)' 
+        boxShadow: isLongPressing
+          ? '0 0 30px rgba(59, 130, 246, 0.8)'
           : '0 8px 20px rgba(0, 0, 0, 0.25)'
       }}
       exit={{ opacity: 0, y: -20 }}
@@ -154,9 +154,8 @@ const PostDetails = ({
              border-t-[3px] sm:border-t-[4px] hover:border-t-[6px] sm:hover:border-t-[8px] border-blue-500
              hover:scale-[1.02] sm:hover:scale-105 hover:bg-[#282c34]
              transition-all duration-200 ease-in-out
-             relative cursor-pointer group mx-2 sm:mx-0 ${
-               isLongPressing ? 'ring-2 ring-blue-400 ring-opacity-70' : ''
-             }`}
+             relative cursor-pointer group mx-2 sm:mx-0 ${isLongPressing ? 'ring-2 ring-blue-400 ring-opacity-70' : ''
+        }`}
       role="article"
       tabIndex={0}
       aria-label={`Blog post: ${title}. ${isMobile ? 'Tap to view, hold for 3 seconds to open modal' : 'Click to view'}`}
@@ -178,7 +177,7 @@ const PostDetails = ({
             className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-t-lg origin-left z-10"
             style={{ width: '100%' }}
           />
-          
+
           {/* Progress circle in center */}
           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
             <div className="relative w-16 h-16">
@@ -212,7 +211,7 @@ const PostDetails = ({
               </div>
             </div>
           </div>
-          
+
           {/* Hint text */}
           {showHint && (
             <motion.div
@@ -228,7 +227,7 @@ const PostDetails = ({
           )}
         </>
       )}
-      
+
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-lg" />
 
       {/* Header with actions */}
@@ -239,14 +238,13 @@ const PostDetails = ({
           </h3>
         </div>
 
-        <div className={`flex items-center space-x-1 sm:space-x-2 transition-opacity duration-200 ${
-          isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        }`}>
+        <div className={`flex items-center space-x-1 sm:space-x-2 transition-opacity duration-200 ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}>
           {/* Share button - always visible for all users */}
-          <ShareButton 
-            blog={blog} 
-            size="small" 
-            variant="ghost" 
+          <ShareButton
+            blog={blog}
+            size="small"
+            variant="ghost"
             showPlatformOptions={true}
           />
 
@@ -304,14 +302,21 @@ const PostDetails = ({
       {/* Footer - simplified */}
       <div className="mt-auto flex items-center justify-between text-gray-400 text-xs">
         <div className="flex items-center group-hover:scale-105 transition-transform duration-200">
-          <NavLink
-            to={`/user/${author?._id || author?.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center hover:text-blue-400 transition-colors duration-200"
-          >
-            <User size={12} className="mr-1 text-blue-400 flex-shrink-0" />
-            <span className="truncate max-w-[120px] sm:max-w-none">{author ? author.name : 'Unknown'}</span>
-          </NavLink>
+          {author?.isPlaceholder || !author ? (
+            <div className="flex items-center">
+              <User size={12} className="mr-1 text-gray-500 flex-shrink-0" />
+              <span className="truncate max-w-[120px] sm:max-w-none text-gray-500">User not found</span>
+            </div>
+          ) : (
+            <NavLink
+              to={`/user/${author?._id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center hover:text-blue-400 transition-colors duration-200"
+            >
+              <User size={12} className="mr-1 text-blue-400 flex-shrink-0" />
+              <span className="truncate max-w-[120px] sm:max-w-none">{author ? author.name : 'Unknown'}</span>
+            </NavLink>
+          )}
         </div>
 
         <div className="flex items-center space-x-3">

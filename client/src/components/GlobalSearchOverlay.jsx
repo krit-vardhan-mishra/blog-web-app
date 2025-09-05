@@ -1,16 +1,12 @@
-import React, { useRef } from 'react';
-import SearchFunctionality from './SearchFunctionality';
+import React from 'react';
+import EnhancedSearchOverlay from './EnhancedSearchOverlay';
 import { useSearch } from '../context/SearchContext';
+import SearchService from '../services/searchService';
 
 const GlobalSearchOverlay = ({ allBlogs = [] }) => {
-  const searchInputRef = useRef(null);
   const {
     isSearchActive,
-    searchQuery,
-    searchResults,
-    searchLoading,
     handleSearchToggle,
-    handleSearchChange,
     handleSearchResultClick,
   } = useSearch();
 
@@ -19,16 +15,15 @@ const GlobalSearchOverlay = ({ allBlogs = [] }) => {
   }
 
   return (
-    <SearchFunctionality
-      isSearchActive={isSearchActive}
-      searchQuery={searchQuery}
-      searchResults={searchResults}
-      searchLoading={searchLoading}
-      searchInputRef={searchInputRef}
-      onSearchToggle={handleSearchToggle}
-      onSearchChange={handleSearchChange}
-      onSearchResultClick={handleSearchResultClick}
-      onPerformSearch={() => { }}
+    <EnhancedSearchOverlay
+      isOpen={isSearchActive}
+      onClose={handleSearchToggle}
+      onSearchResults={() => {}}
+      onSearchResultClick={(result) => {
+        handleSearchResultClick(result);
+        handleSearchToggle(); // Close the search overlay after clicking a result
+      }}
+      searchService={new SearchService()}
       allBlogs={allBlogs}
     />
   );

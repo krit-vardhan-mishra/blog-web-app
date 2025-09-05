@@ -56,7 +56,7 @@ export const homePageLoader = async () => {
 
   try {
     const [blogsRes, homepageBlogsRes, usersRes, statsRes] = await Promise.allSettled([
-      blogService.fetchAll({}, { page: 1, limit: 100 }),
+      blogService.fetchAll({}, { page: 1, limit: 50 }),
       blogService.fetchForHomePage(),
       userService.fetchAll ? userService.fetchAll() : Promise.resolve([]),
       blogService.getUserStats ? blogService.getUserStats(user.id) : Promise.resolve(null),

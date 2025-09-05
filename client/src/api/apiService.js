@@ -137,6 +137,15 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
+      // For login and register endpoints, pass through the original error
+      const isAuthLogin = error.config?.url?.includes('/auth/login');
+      const isAuthRegister = error.config?.url?.includes('/auth/register');
+      
+      if (isAuthLogin || isAuthRegister) {
+        return Promise.reject(error);
+      }
+      
+      // For other endpoints that require authentication, handle token/session issues
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       sessionStorage.removeItem('token');
@@ -150,7 +159,7 @@ apiClient.interceptors.response.use(
         window.location.href = '/login';
       }
 
-      return Promise.reject(new Error('Check the entered details, Session expired. Please log in again.'));
+      return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
     if (error.response?.status === 403) {

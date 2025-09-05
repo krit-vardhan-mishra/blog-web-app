@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, Form } from 'react-router-dom'; 
 import { useAuth } from '../context/AuthContext';
-
-import authService from '../api/authService';
+import authService, { AuthError, handleAuthError } from '../api/authService';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../css/auth-page.css';
@@ -72,13 +71,14 @@ export const AuthPage = () => {
 
   // Form data for both login and signup
   const [loginFormData, setLoginFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
 
   const [signupFormData, setSignupFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     password: '',
     age: '',
@@ -255,11 +255,22 @@ export const AuthPage = () => {
   const validateLogin = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/;
 
-    if (!loginFormData.email) newErrors.email = 'Email is required';
-    else if (!emailRegex.test(loginFormData.email))
-      newErrors.email = 'Invalid email format';
+    if (!loginFormData.identifier) newErrors.identifier = 'Email or Username is required';
+    else {
+      const isEmail = emailRegex.test(loginFormData.identifier);
+      const isUsername = usernameRegex.test(loginFormData.identifier);
+      
+      if (!isEmail && !isUsername) {
+        newErrors.identifier = 'Please enter a valid email or username';
+      } else if (isEmail && loginFormData.identifier.length > 254) {
+        newErrors.identifier = 'Email is too long';
+      } else if (isUsername && (loginFormData.identifier.length < 3 || loginFormData.identifier.length > 30)) {
+        newErrors.identifier = 'Username must be 3-30 characters';
+      }
+    }
 
     if (!loginFormData.password) newErrors.password = 'Password is required';
     else if (!passwordRegex.test(loginFormData.password))
@@ -279,6 +290,14 @@ export const AuthPage = () => {
       newErrors.firstName = 'First name is required';
     if (!signupFormData.lastName.trim())
       newErrors.lastName = 'Last name is required';
+    if (!signupFormData.username.trim())
+      newErrors.username = 'Username is required';
+    else if (signupFormData.username.length < 3)
+      newErrors.username = 'Username must be at least 3 characters';
+    else if (signupFormData.username.length > 30)
+      newErrors.username = 'Username must be at most 30 characters';
+    else if (!/^[a-zA-Z0-9_]+$/.test(signupFormData.username))
+      newErrors.username = 'Username can only contain letters, numbers, and underscores';
     if (!signupFormData.email) newErrors.email = 'Email is required';
     else if (!emailRegex.test(signupFormData.email))
       newErrors.email = 'Invalid email format';
@@ -302,92 +321,118 @@ export const AuthPage = () => {
     setErrors({});
 
     try {
-      await login(loginFormData.email, loginFormData.password, rememberMe);
+      await login(loginFormData.identifier, loginFormData.password, rememberMe);
     } catch (err) {
       console.error('Login error:', err);
 
-      // Handle email verification required scenario
-      if (err.response?.status === 403 && err.response?.data?.requiresVerification) {
-        const email = err.response.data.email || loginFormData.email;
-        navigate('/verify-signup', {
-          state: {
-            email: email,
-            message: 'Please verify your email to complete login. We\'ve sent a new verification code to your email.'
-          }
-        });
-        return;
+      // Use the new AuthError handling system
+      let authError;
+      if (err instanceof AuthError) {
+        authError = err;
+      } else {
+        authError = handleAuthError(err);
       }
 
-      if (err.response?.status === 429) {
-        const message = err.response?.data?.message || err.message;
-
-        if (message.includes('Account temporarily locked')) {
-          const minutes = message.match(/\d+/)?.[0] || 25;
-          setErrors({
-            loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
-          });
-
-          let timeLeft = minutes * 60;
-          const timer = setInterval(() => {
-            timeLeft -= 1;
-            if (timeLeft <= 0) {
-              clearInterval(timer);
-              setErrors({});
-              setLockoutTimer(null);
-            } else {
-              const minutesLeft = Math.floor(timeLeft / 60);
-              const secondsLeft = timeLeft % 60;
-              setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
-            }
-          }, 1000);
-        } else {
-          setErrors({
-            loginError: 'Too many login attempts. Please wait 15 minutes before trying again.'
-          });
-
-          let timeLeft = 15 * 60;
-          const timer = setInterval(() => {
-            timeLeft -= 1;
-            if (timeLeft <= 0) {
-              clearInterval(timer);
-              setErrors({});
-              setRateLimitTimer(null);
-            } else {
-              const minutesLeft = Math.floor(timeLeft / 60);
-              const secondsLeft = timeLeft % 60;
-              setRateLimitTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
-            }
-          }, 1000);
-        }
-        return;
-      }
-
-      if (err.isAccountLocked) {
-        const minutes = err.lockoutTime || 25;
-        setErrors({
-          loginError: `Account temporarily locked due to too many failed attempts. Please try again after ${minutes} minutes.`
-        });
-
-        let timeLeft = minutes * 60;
-        const timer = setInterval(() => {
-          timeLeft -= 1;
-          if (timeLeft <= 0) {
-            clearInterval(timer);
-            setErrors({});
-            setLockoutTimer(null);
+      // Handle different error types based on status code
+      switch (authError.statusCode) {
+        case 400:
+          // Validation errors
+          const message = authError.message;
+          if (message.includes('Email or username is required')) {
+            setErrors({ identifier: 'Email or username is required' });
+          } else if (message.includes('Password is required')) {
+            setErrors({ password: 'Password is required' });
           } else {
-            const minutesLeft = Math.floor(timeLeft / 60);
-            const secondsLeft = timeLeft % 60;
-            setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
+            setErrors({ 
+            loginError: 'Validation error',
+            errorDetails: message || 'Please check the form for errors and try again.'
+          });
           }
-        }, 1000);
+          break;
 
-        return;
+        case 401:
+          // Handle different types of authentication errors
+          if (authError.data?.errorType === 'account_not_found') {
+            setErrors({ identifier: authError.message || 'No account found with this email/username.' });
+          } else if (authError.data?.errorType === 'incorrect_password') {
+            setErrors({ password: authError.message || 'Incorrect password. Please try again.' });
+          } else {
+            // Generic error with full error details
+            setErrors({ 
+              loginError: 'Authentication failed', 
+              errorDetails: authError.message || 'Invalid email/username or password. Please check your credentials and try again.' 
+            });
+          }
+          break;
+
+        case 403:
+          // Email verification required
+          if (authError.data?.requiresVerification) {
+            const email = authError.data.email || loginFormData.identifier;
+            navigate('/verify-signup', {
+              state: {
+                email: email,
+                message: 'Please verify your email to complete login. We\'ve sent a new verification code to your email.'
+              }
+            });
+            return;
+          }
+          setErrors({ 
+            loginError: 'Access denied',
+            errorDetails: authError.message || 'Your account requires additional verification before access is granted.'
+          });
+          break;
+
+        case 429:
+          // Rate limiting or account lockout
+          if (authError.data?.isAccountLocked) {
+            const minutes = authError.data.lockoutTime || 25;
+            setErrors({
+              loginError: `Account temporarily locked`,
+              errorDetails: `Too many failed login attempts. Your account is locked for ${minutes} minutes.`
+            });
+
+            let timeLeft = minutes * 60;
+            const timer = setInterval(() => {
+              timeLeft -= 1;
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                setErrors({});
+                setLockoutTimer(null);
+              } else {
+                const minutesLeft = Math.floor(timeLeft / 60);
+                const secondsLeft = timeLeft % 60;
+                setLockoutTimer(`${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`);
+              }
+            }, 1000);
+          } else {
+            setErrors({
+              loginError: 'Rate limited',
+              errorDetails: authError.message || 'Too many login attempts. Please wait before trying again.'
+            });
+          }
+          break;
+
+        case 404:
+          setErrors({ 
+            loginError: 'User not found',
+            errorDetails: authError.message || 'Please check your email/username and try again.' 
+          });
+          break;
+
+        case 500:
+          setErrors({ 
+            loginError: 'Server error',
+            errorDetails: authError.message || 'Our servers are experiencing issues. Please try again later.' 
+          });
+          break;
+
+        default:
+          setErrors({ 
+            loginError: 'Authentication error', 
+            errorDetails: authError.message || 'An unexpected error occurred. Please try again.' 
+          });
       }
-
-      setErrors({
-        loginError: err.message || 'Invalid email or password. Please try again.'
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -402,6 +447,7 @@ export const AuthPage = () => {
       const data = await authService.register(
         signupFormData.firstName,
         signupFormData.lastName,
+        signupFormData.username,
         signupFormData.email,
         signupFormData.password,
         parseInt(signupFormData.age)
@@ -418,7 +464,67 @@ export const AuthPage = () => {
         return;
       }
 
-      setErrors({ form: err.message });
+      // Handle specific validation errors from API
+      if (err.response?.status === 400) {
+        const message = err.response?.data?.message || err.message;
+        
+        if (message.includes('First name is required')) {
+          setErrors({ firstName: 'First name is required' });
+        } else if (message.includes('Last name is required')) {
+          setErrors({ lastName: 'Last name is required' });
+        } else if (message.includes('Username is required')) {
+          setErrors({ username: 'Username is required' });
+        } else if (message.includes('Email is required')) {
+          setErrors({ email: 'Email is required' });
+        } else if (message.includes('Password is required')) {
+          setErrors({ password: 'Password is required' });
+        } else if (message.includes('Age is required')) {
+          setErrors({ age: 'Age is required' });
+        } else if (message.includes('valid email address')) {
+          setErrors({ email: 'Please provide a valid email address' });
+        } else if (message.includes('Password must be at least 8 characters')) {
+          setErrors({ password: 'Password must be at least 8 characters long' });
+        } else if (message.includes('valid age between 13 and 120')) {
+          setErrors({ age: 'Please provide a valid age between 13 and 120' });
+        } else if (message.includes('Username can only contain letters, numbers, and underscores')) {
+          setErrors({ username: 'Username can only contain letters, numbers, and underscores' });
+        } else if (message.includes('Username must be between 3 and 20 characters')) {
+          setErrors({ username: 'Username must be between 3 and 20 characters' });
+        } else {
+          setErrors({ form: message });
+        }
+        return;
+      }
+
+      // Handle conflict errors (user already exists)
+      if (err.response?.status === 409) {
+        const message = err.response?.data?.message || err.message;
+        
+        if (message.includes('email already exists')) {
+          setErrors({ email: 'An account with this email already exists. Please login instead.' });
+        } else if (message.includes('username is already taken')) {
+          setErrors({ username: 'This username is already taken. Please choose a different username.' });
+        } else {
+          setErrors({ form: message });
+        }
+        return;
+      }
+
+      // Handle rate limiting
+      if (err.response?.status === 429) {
+        const message = err.response?.data?.message || err.message;
+        if (message.includes('Too many OTP requests')) {
+          setErrors({ form: 'Too many registration attempts. Please wait 15 minutes before trying again.' });
+        } else {
+          setErrors({ form: 'Too many requests. Please wait before trying again.' });
+        }
+        return;
+      }
+
+      // Default error handling
+      setErrors({ 
+        form: err.response?.data?.message || err.message || 'Registration failed. Please try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -442,19 +548,70 @@ export const AuthPage = () => {
   // Show loading spinner only when submitting
   if (isSubmitting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1C222A] via-[#252B35] to-[#1C222A] flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <LoadingSpinner />
-          <p className="text-white mt-4 text-lg font-medium">
-            {isLoginMode ? 'Logging you in...' : 'Creating your account...'}
-          </p>
-        </motion.div>
-      </div>
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-[#1C222A] via-[#252B35] to-[#1C222A]"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Main Container */}
+        <div className="min-h-screen flex flex-col lg:flex-row">
+          {/* Features Sidebar */}
+          <motion.div
+            className={`
+              ${isMobile ? 'h-auto min-h-[40vh]' :
+                isTablet ? 'h-auto min-h-[45vh]' :
+                'lg:w-1/2 lg:min-h-screen'}
+              w-full
+            `}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <FeaturesSidebar />
+          </motion.div>
+
+          {/* Auth Forms Container */}
+          <motion.div
+            className={`
+              flex flex-col items-center justify-center
+              ${isMobile ? 'px-4 py-6' :
+                isTablet ? 'px-6 py-8' :
+                'lg:w-1/2 px-8 py-12'}
+              w-full bg-gradient-to-t from-[#2A2E36] to-[#323742]
+              ${isMobile ? 'min-h-[60vh]' :
+                isTablet ? 'min-h-[55vh]' :
+                'lg:min-h-screen'}
+              relative overflow-hidden
+            `}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+          >
+            {/* Background decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
+            </div>
+
+            {/* Blur overlay */}
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10"></div>
+
+            {/* Loading spinner overlay */}
+            <motion.div
+              className="relative z-20 flex flex-col items-center justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <LoadingSpinner />
+              <p className="text-white mt-4 text-lg font-medium">
+                {isLoginMode ? 'Logging you in...' : 'Creating your account...'}
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -549,23 +706,23 @@ export const AuthPage = () => {
                     initial="hidden"
                     animate="visible"
                   >
-                    {/* Email Input */}
+                    {/* Email/Username Input */}
                     <motion.div variants={formItemVariants} className="space-y-2">
                       <label
                         className="block text-white font-medium"
-                        htmlFor="email"
+                        htmlFor="identifier"
                       >
-                        Email Address
+                        Email or Username
                       </label>
                       <motion.div
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
                         <input
-                          type="email"
-                          id="email"
-                          autoComplete="email"
-                          value={loginFormData.email}
+                          type="text"
+                          id="identifier"
+                          autoComplete="username"
+                          value={loginFormData.identifier}
                           onChange={handleLoginChange}
                           className={`
                             w-full bg-[#1C222A]/80 text-white border border-gray-600/50 rounded-xl
@@ -574,17 +731,17 @@ export const AuthPage = () => {
                             backdrop-blur-sm
                             ${isMobile ? 'p-3 text-base' : 'p-4 text-base'}
                           `}
-                          placeholder="Enter your email"
+                          placeholder="Enter your email or username"
                           required
                         />
-                        {errors.email && (
+                        {errors.identifier && (
                           <motion.p 
                             className="text-red-400 text-sm mt-2 font-medium"
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3 }}
                           >
-                            {errors.email}
+                            {errors.identifier}
                           </motion.p>
                         )}
                       </motion.div>
@@ -678,9 +835,16 @@ export const AuthPage = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <p className="text-red-400 text-sm text-center font-medium">
-                          {errors.loginError}
-                        </p>
+                        <div className="flex flex-col items-center">
+                          <p className="text-red-400 text-sm text-center font-medium">
+                            {errors.loginError}
+                          </p>
+                          {errors.errorDetails && (
+                            <p className="text-gray-300 text-xs mt-1 italic">
+                              {errors.errorDetails}
+                            </p>
+                          )}
+                        </div>
                         {lockoutTimer && (
                           <p className="text-yellow-400 text-sm text-center mt-1">
                             Lockout time: {lockoutTimer}
@@ -877,6 +1041,47 @@ export const AuthPage = () => {
                         </motion.div>
                       </motion.div>
                     </div>
+
+                    {/* Username */}
+                    <motion.div variants={formItemVariants} className="space-y-2">
+                      <label
+                        className="block text-white font-medium text-sm"
+                        htmlFor="username"
+                      >
+                        Username
+                      </label>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <input
+                          type="text"
+                          id="username"
+                          autoComplete="username"
+                          value={signupFormData.username}
+                          onChange={handleSignupChange}
+                          className={`
+                            w-full bg-[#1C222A]/80 text-white border border-gray-600/50 rounded-xl
+                            focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20
+                            hover:border-gray-400 transition-all duration-300
+                            backdrop-blur-sm
+                            ${isMobile ? 'p-3 text-base' : 'p-3 text-sm'}
+                          `}
+                          placeholder="Choose a username"
+                          required
+                        />
+                        {errors.username && (
+                          <motion.p 
+                            className="text-red-400 text-xs mt-1 font-medium"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            {errors.username}
+                          </motion.p>
+                        )}
+                      </motion.div>
+                    </motion.div>
 
                     {/* Email & Age Row */}
                     <div className={`
