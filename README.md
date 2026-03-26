@@ -80,5 +80,5 @@ For questions or feedback, open an issue or contact [krit-vardhan-mishra](https:
 
 ---
 
-> - [Project Live Link](https://blog-web-app-ngmh.onrender.com/)
+> - [Project Live Link](https://blog-web-app-krit.vercel.app/)
 > - And You can also try the android application too, get the application from release section.
