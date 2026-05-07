@@ -5,9 +5,9 @@ dotenv.config();
 // Server Configuration
 export const SERVER = {
     PORT: process.env.PORT || 5000,
-    CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+    CLIENT_URL: process.env.CLIENT_URL || 'https://blog-web-app-krit.vercel.app',
     NODE_ENV: process.env.NODE_ENV || 'DEVELOPMENT',
-    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || 'localhost',
+    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || 'blog-web-app-krit.vercel.app',
 };
 
 // Database Configuration

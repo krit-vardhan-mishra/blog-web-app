@@ -28,7 +28,7 @@ const isProduction = () => {
 const getApiBaseUrl = () => {
   if (isProduction()) {
     // In production, always use the explicit API URL for Capacitor apps
-    return import.meta.env.VITE_API_BASE_URL || 'https://blog-web-app-ngmh.onrender.com/api';
+    return import.meta.env.VITE_API_BASE_URL || 'https://blog-web-app-krit.vercel.app/api';
   }
   
   return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -47,7 +47,7 @@ if (!isProduction()) {
 
 export const getBaseURL = () => {
   if (isProduction()) {
-    return typeof window !== 'undefined' ? window.location.origin : 'https://blog-web-app-ngmh.onrender.com';
+    return typeof window !== 'undefined' ? window.location.origin : 'https://blog-web-app-krit.vercel.app';
   }
   return API_BASE_URL.replace('/api', '');
 };

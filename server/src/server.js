@@ -106,16 +106,20 @@ app.use((err, req, res, next) => {
 import errorHandler from './middleware/errorHandler.js';
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`
-  Server running in ${NODE_ENV} mode
-  API: http://localhost:${PORT}
-  Client: ${CLIENT_URL}
-  Time: ${new Date().toLocaleTimeString()}
-  `);
-  
-  if (NODE_ENV === 'PRODUCTION') {
-    console.log('Initializing keep-alive service...');
-    selfPing();
-  }
-});
+if (process.env.NODE_ENV !== 'PRODUCTION' || process.env.VERCEL !== '1') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`
+    Server running in ${NODE_ENV} mode
+    API: http://localhost:${PORT}
+    Client: ${CLIENT_URL}
+    Time: ${new Date().toLocaleTimeString()}
+    `);
+    
+    if (NODE_ENV === 'PRODUCTION') {
+      console.log('Initializing keep-alive service...');
+      selfPing();
+    }
+  });
+}
+
+export default app;
