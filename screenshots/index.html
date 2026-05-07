@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Web App - Launchpad Graphics</title>
+
+    <!-- Fonts as specified in PROJECT_THEME.md -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dekko&family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primaryBg: '#1A1C20',
+                        secondaryBg: '#121212',
+                        accentBlue: '#2563EB',
+                        accentGreen: '#10B981',
+                        warmHighlight: '#fed7aa',
+                        coolHighlight: '#bfdbfe',
+                        textPrimary: 'hsl(0, 0%, 98%)',
+                        textMuted: 'hsl(0, 0%, 63.9%)',
+                        borderColor: 'hsl(0, 0%, 14.9%)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        hand: ['Dekko', 'cursive']
+                    },
+                    backgroundImage: {
+                        'glass': 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0d0e12;
+            /* Slightly darker body to make cards pop */
+        }
+
+        /* The Starry Background from MD */
+        .stars-bg {
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #FAFAFA, rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 40px 70px, #FAFAFA, rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 90px 40px, #FAFAFA, rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 160px 120px, #FAFAFA, rgba(0, 0, 0, 0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.15;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .browser-mockup {
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.8), 0 0 40px rgba(37, 99, 235, 0.15);
+        }
+
+        .browser-mockup img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Heartbeat animation for interactions */
+        @keyframes heartbeat {
+            0% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.15);
+            }
+
+            28% {
+                transform: scale(1);
+            }
+
+            42% {
+                transform: scale(1.15);
+            }
+
+            70% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center py-12 gap-16 font-sans text-textPrimary">
+
+    <!-- SLIDE 1: The Entrance (Landing Page) -->
+    <div
+        class="relative w-[1280px] h-[720px] bg-primaryBg overflow-hidden flex rounded-sm shrink-0 border border-borderColor shadow-2xl">
+        <!-- Background FX -->
+        <div class="absolute inset-0 stars-bg z-0"></div>
+        <div
+            class="absolute -top-[10%] -left-[10%] w-[700px] h-[700px] bg-coolHighlight rounded-full blur-[150px] opacity-10 z-0">
+        </div>
+
+        <div class="w-1/2 h-full relative z-10 flex items-center pl-10">
+            <div
+                class="browser-mockup w-[850px] absolute left-[-20px] transform rotate-[3deg] hover:rotate-0 transition-all duration-700">
+                <div class="h-8 bg-secondaryBg flex items-center px-4 gap-2 border-b border-borderColor">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <img src="landingpage.png" alt="Landing Page">
+            </div>
+        </div>
+
+        <div class="w-1/2 h-full flex flex-col justify-center pr-20 pl-24 z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="sparkles" class="text-coolHighlight w-8 h-8"></i>
+                <span class="font-poppins font-medium tracking-widest text-sm text-textMuted uppercase">First
+                    Impressions</span>
+            </div>
+
+            <h2 class="font-serif text-[64px] leading-[1.1] mb-6">
+                Begin the <br>
+                <span class="italic text-coolHighlight">journey.</span>
+            </h2>
+
+            <p class="text-textMuted text-[20px] font-light leading-relaxed mb-10 font-sans">
+                A cinematic entry point. The landing page greets users with typing effects, a deep galaxy backdrop, and
+                an invitation to explore.
+            </p>
+
+            <div class="glass-panel rounded-xl p-4 flex items-center gap-4 w-max">
+                <div class="bg-coolHighlight/20 p-2 rounded-lg">
+                    <i data-lucide="mouse-pointer-click" class="text-coolHighlight w-5 h-5"></i>
+                </div>
+                <span class="font-poppins font-medium text-textPrimary">Immersive Gateway</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Home Feed (Formerly Slide 1) -->
+    <div
+        class="relative w-[1280px] h-[720px] bg-primaryBg overflow-hidden flex rounded-sm shrink-0 border border-borderColor shadow-2xl">
+        <!-- Background FX -->
+        <div class="absolute inset-0 stars-bg z-0"></div>
+        <div
+            class="absolute -top-[20%] -right-[10%] w-[800px] h-[800px] bg-accentBlue rounded-full blur-[150px] opacity-15 z-0">
+        </div>
+
+        <div class="w-5/12 h-full flex flex-col justify-center pl-20 pr-8 z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="feather" class="text-accentBlue w-8 h-8"></i>
+                <span class="font-poppins font-medium tracking-widest text-sm text-textMuted uppercase">Digital
+                    Sanctuary</span>
+            </div>
+
+            <h1 class="font-serif text-[64px] leading-[1.1] mb-6">
+                Stories that <br>
+                <span class="italic text-coolHighlight">resonate.</span>
+            </h1>
+
+            <p class="text-textMuted text-[20px] font-light leading-relaxed mb-10 font-sans">
+                A modern, immersive platform focusing on content discovery and uninterrupted reading experiences.
+            </p>
+
+            <div class="flex flex-col gap-4">
+                <div class="glass-panel rounded-xl p-4 flex items-center gap-4 w-max">
+                    <div class="bg-accentGreen/20 p-2 rounded-lg">
+                        <i data-lucide="globe" class="text-accentGreen w-5 h-5"></i>
+                    </div>
+                    <span class="font-poppins font-medium text-textPrimary">Multilingual Support</span>
+                </div>
+                <div class="glass-panel rounded-xl p-4 flex items-center gap-4 w-max translate-x-6">
+                    <div class="bg-warmHighlight/20 p-2 rounded-lg">
+                        <i data-lucide="sparkles" class="text-warmHighlight w-5 h-5"></i>
+                    </div>
+                    <span class="font-poppins font-medium text-textPrimary">Personalized Engine</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-7/12 h-full relative z-10 flex items-center">
+            <div
+                class="browser-mockup w-[850px] absolute right-[-50px] transform -rotate-[2deg] hover:rotate-0 transition-all duration-700">
+                <!-- Browser Header -->
+                <div class="h-8 bg-secondaryBg flex items-center px-4 gap-2 border-b border-borderColor">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <img src="homepage.png" alt="Homepage">
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SLIDE 3: Explore / Discovery -->
+    <div
+        class="relative w-[1280px] h-[720px] bg-primaryBg overflow-hidden flex rounded-sm shrink-0 border border-borderColor shadow-2xl">
+        <!-- Background FX -->
+        <div class="absolute inset-0 stars-bg z-0"></div>
+        <div
+            class="absolute bottom-[-30%] left-[-10%] w-[700px] h-[700px] bg-warmHighlight rounded-full blur-[180px] opacity-10 z-0">
+        </div>
+
+        <div class="w-1/2 h-full relative z-10">
+            <div
+                class="browser-mockup w-[700px] absolute left-[40px] top-[100px] transform rotate-[3deg] hover:rotate-0 transition-all duration-700">
+                <div class="h-8 bg-secondaryBg flex items-center px-4 gap-2 border-b border-borderColor">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <img src="explorepage.png" alt="Explore Page">
+            </div>
+
+            <!-- Floating handwritten note -->
+            <div class="absolute top-[60px] right-[40px] transform rotate-[12deg]">
+                <p class="font-hand text-warmHighlight text-2xl">Find your next favorite read!</p>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" class="text-warmHighlight ml-8 mt-1">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="w-1/2 h-full flex flex-col justify-center pr-20 pl-16 z-10">
+            <h2 class="font-serif text-[56px] leading-[1.1] mb-6">
+                A galaxy of <br>
+                <span class="text-textMuted italic">perspectives.</span>
+            </h2>
+
+            <p class="text-textMuted text-[22px] font-light leading-relaxed mb-10">
+                Navigate through beautifully masonry-arranged cards. Find content that matters to you with our smart
+                categorisation.
+            </p>
+
+            <div class="flex flex-wrap gap-3 font-poppins">
+                <span
+                    class="px-5 py-2 glass-panel rounded-full text-sm text-coolHighlight border-coolHighlight/20">Technology</span>
+                <span
+                    class="px-5 py-2 glass-panel rounded-full text-sm text-warmHighlight border-warmHighlight/20">Philosophy</span>
+                <span
+                    class="px-5 py-2 glass-panel rounded-full text-sm text-accentGreen border-accentGreen/20">Devanagari</span>
+                <span class="px-5 py-2 glass-panel rounded-full text-sm text-textPrimary">Design</span>
+                <span class="px-5 py-2 glass-panel rounded-full text-sm text-textPrimary">Culture</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SLIDE 4: User Profiles & Community -->
+    <div
+        class="relative w-[1280px] h-[720px] bg-primaryBg overflow-hidden flex rounded-sm shrink-0 border border-borderColor shadow-2xl">
+        <!-- Background FX -->
+        <div class="absolute inset-0 stars-bg z-0"></div>
+        <div
+            class="absolute top-[20%] left-[30%] w-[600px] h-[600px] bg-accentGreen rounded-full blur-[200px] opacity-10 z-0">
+        </div>
+
+        <div class="w-5/12 h-full flex flex-col justify-center pl-20 pr-10 z-10">
+            <h2 class="font-serif text-[56px] leading-[1.1] mb-6">
+                Your Digital <br>
+                Identity.
+            </h2>
+
+            <p class="text-textMuted text-[22px] font-light leading-relaxed mb-10">
+                Manage your presence, track engagement metrics, and connect deeply with writers across the platform.
+            </p>
+
+            <ul class="space-y-6 font-poppins">
+                <li class="flex items-start gap-4">
+                    <i data-lucide="bar-chart-2" class="text-accentBlue mt-1"></i>
+                    <div>
+                        <h4 class="text-textPrimary font-medium text-lg">Engagement Analytics</h4>
+                        <p class="text-textMuted text-sm mt-1">Track reads, views, and appreciation.</p>
+                    </div>
+                </li>
+                <li class="flex items-start gap-4">
+                    <i data-lucide="users" class="text-accentGreen mt-1"></i>
+                    <div>
+                        <h4 class="text-textPrimary font-medium text-lg">Author Profiles</h4>
+                        <p class="text-textMuted text-sm mt-1">Discover the minds behind the stories.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="w-7/12 h-full relative z-10">
+            <!-- Profile 1 -->
+            <div
+                class="browser-mockup w-[550px] absolute top-[80px] left-[40px] shadow-2xl z-20 transform transition-transform hover:-translate-y-2">
+                <img src="ownprofilepage.png" alt="My Profile">
+            </div>
+
+            <!-- Profile 2 -->
+            <div
+                class="browser-mockup w-[550px] absolute bottom-[60px] right-[40px] shadow-2xl z-10 opacity-60 transform scale-95 transition-all hover:opacity-100 hover:scale-100 hover:z-30">
+                <img src="anotheruserpage.png" alt="Another User Profile">
+            </div>
+
+            <!-- Glass Floating Metric -->
+            <div class="glass-panel absolute top-[350px] right-[120px] p-4 rounded-sm z-30 flex items-center gap-4">
+                <i data-lucide="heart" class="text-red-500 fill-red-500 animate-heartbeat"></i>
+                <div>
+                    <div class="text-xs text-textMuted font-poppins uppercase tracking-wider">Total Likes</div>
+                    <div class="text-2xl font-serif text-textPrimary">2,481</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SLIDE 5: Secure Access / Login -->
+    <div
+        class="relative w-[1280px] h-[720px] bg-primaryBg overflow-hidden flex flex-col items-center rounded-sm shrink-0 border border-borderColor shadow-2xl">
+        <!-- Background FX -->
+        <div class="absolute inset-0 stars-bg z-0"></div>
+        <div
+            class="absolute top-[-20%] right-[-20%] w-[600px] h-[600px] bg-accentBlue rounded-full blur-[150px] opacity-15 z-0">
+        </div>
+
+        <div class="text-center mt-20 z-10 w-full max-w-3xl px-8">
+            <h2 class="font-serif text-[56px] leading-[1.1] mb-4">
+                Step into your space.
+            </h2>
+            <p class="text-textMuted text-[22px] font-light">
+                Secure access with role-based management for readers and writers.
+            </p>
+        </div>
+
+        <div class="relative flex-1 w-full mt-12 z-10 flex justify-center">
+            <div class="browser-mockup w-[1000px] h-[500px] absolute bottom-[-50px] shadow-2xl">
+                <div class="h-8 bg-secondaryBg flex items-center px-4 gap-2 border-b border-borderColor">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <img src="loginpage.png" alt="Login Page" class="object-cover object-top w-full h-full">
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
