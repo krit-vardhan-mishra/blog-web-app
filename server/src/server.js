@@ -15,6 +15,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { SERVER, GOOGLE_AUTH } from './utils/constants.js';
 import { selfPing } from './utils/keepAlive.js';
+import { checkRedisHealth } from './config/redis.js';
+import initEmailWorker from './workers/emailWorker.js';
 
 const app = express();
 
@@ -34,6 +36,9 @@ initMiddleware(app);
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Initialize BullMQ worker
+initEmailWorker();
 
 cron.schedule('0 0 * * *', async () => {
   try {
@@ -63,6 +68,7 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     environment: NODE_ENV,
+    redisOnline: checkRedisHealth(),
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
@@ -84,7 +90,6 @@ app.get('/api/test', (req, res) => {
 if (NODE_ENV === 'PRODUCTION') {
   app.use(express.static(path.join(__dirname, '..', '..', 'client', 'dist')));
 
-  // Handle share routes before the catch-all
   app.get('/blog/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'client', 'dist', 'index.html'));
   });
@@ -102,7 +107,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Import and use the global error handler
 import errorHandler from './middleware/errorHandler.js';
 app.use(errorHandler);
 
@@ -113,6 +117,7 @@ if (process.env.NODE_ENV !== 'PRODUCTION' || process.env.VERCEL !== '1') {
     API: http://localhost:${PORT}
     Client: ${CLIENT_URL}
     Time: ${new Date().toLocaleTimeString()}
+    Redis: ${checkRedisHealth() ? 'Online ⚡' : 'Offline (Fallback active 🛡️)'}
     `);
     
     if (NODE_ENV === 'PRODUCTION') {

@@ -73,6 +73,10 @@ const BlogSchema = new mongoose.Schema(
   }
 );
 
+BlogSchema.index({ author: 1, createdAt: -1 });
+BlogSchema.index({ genre: 1, isDeleted: 1, createdAt: -1 });
+BlogSchema.index({ isDeleted: 1, engagementScore: -1 });
+
 BlogSchema.methods = {
   updateTitle(newTitle) {
     if (newTitle && newTitle.trim() !== '') {

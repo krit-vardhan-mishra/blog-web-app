@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import OTP from '../models/OTP.js';
-import sendOTPEmail from '../utils/sendOTPEmail.js';
+import { queueOTPEmail } from '../queues/emailQueue.js';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { AUTH, SERVER } from '../utils/constants.js';
 import ApiResponse from '../utils/ApiResponse.js';
@@ -59,7 +59,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     await OTP.deleteMany({ email: user.email, type: 'signup' });
     await OTP.create({ email: user.email, otp, type: 'signup', ipAddress });
-    await sendOTPEmail(user.email, otp, 'signup', ipAddress);
+    await queueOTPEmail(user.email, otp, 'signup', ipAddress);
 
     throw new ApiError('Account not verified. Please verify your email before logging in', 403, [], '', {
       requiresVerification: true,

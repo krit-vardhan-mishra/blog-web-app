@@ -106,6 +106,8 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+userSchema.index({ email: 1, isEmailVerified: 1 });
+
 userSchema.virtual('blogs', {
   ref: 'Blog',
   localField: '_id',

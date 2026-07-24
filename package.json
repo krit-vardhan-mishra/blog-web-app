@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A full-featured blogging platform for writing, sharing, and discovering blogs across a wide variety of genres and topics. Supports user authentication, content creation, bookmarking, recommendations, and engagement analytics.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "npm install --prefix server && npm install --prefix client --legacy-peer-deps && npm run build --prefix client",
     "start": "npm run start --prefix server",

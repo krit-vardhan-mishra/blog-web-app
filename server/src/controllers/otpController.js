@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import OTP from '../models/OTP.js';
 import bcrypt from 'bcryptjs';
-import sendOTPEmail from '../utils/sendOTPEmail.js';
+import { queueOTPEmail } from '../queues/emailQueue.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
@@ -40,7 +40,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     ipAddress
   });
 
-  await sendOTPEmail(email.toLowerCase().trim(), otp, 'reset', ipAddress);
+  await queueOTPEmail(email.toLowerCase().trim(), otp, 'reset', ipAddress);
 
   const responseData = {
     email: email.toLowerCase().trim(),

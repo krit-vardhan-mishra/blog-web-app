@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { AUTH } from '../utils/constants.js';
+import { getRedisClient } from '../config/redis.js';
+
+const SESSION_CACHE_TTL = 900; // 15 minutes in seconds
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -16,15 +19,42 @@ const authenticateToken = async (req, res, next) => {
 
     // Verify the token
     const decoded = jwt.verify(token, AUTH.JWT_SECRET);
+    const redis = getRedisClient();
+    let foundUser = null;
 
-    // Check if user exists in database
-    const foundUser = await User.findById(decoded.id);
+    // Check Redis cache first to avoid DB query bottlenecks under high load
+    if (redis) {
+      try {
+        const cachedUserStr = await redis.get(`user:session:${decoded.id}`);
+        if (cachedUserStr) {
+          foundUser = JSON.parse(cachedUserStr);
+        }
+      } catch (err) {
+        // Fall back to database query silently if Redis get fails
+      }
+    }
+
     if (!foundUser) {
-      console.error('❌ Auth middleware: User not found in DB for ID:', decoded.id);
-      return res.status(401).json({ 
-        message: 'User not found',
-        expired: false 
-      });
+      const dbUser = await User.findById(decoded.id).lean();
+      if (!dbUser) {
+        console.error('❌ Auth middleware: User not found in DB for ID:', decoded.id);
+        return res.status(401).json({ 
+          message: 'User not found',
+          expired: false 
+        });
+      }
+
+      foundUser = {
+        id: dbUser._id.toString(),
+        email: dbUser.email,
+        name: dbUser.name,
+        isEmailVerified: dbUser.isEmailVerified
+      };
+
+      // Populate Redis cache asynchronously
+      if (redis) {
+        redis.setex(`user:session:${decoded.id}`, SESSION_CACHE_TTL, JSON.stringify(foundUser)).catch(() => {});
+      }
     }
 
     if (!foundUser.isEmailVerified) {
@@ -36,21 +66,14 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Attach user to request object
-    req.user = {
-      id: foundUser._id.toString(),
-      email: foundUser.email,
-      name: foundUser.name,
-      isEmailVerified: foundUser.isEmailVerified
-    };
+    req.user = foundUser;
 
     next();
 
   } catch (error) {
     console.error('❌ Auth middleware error:', error.message);
 
-    // Handle specific JWT errors
     if (error.name === 'TokenExpiredError') {
-      console.warn('⏰ Auth middleware: Token expired');
       return res.status(401).json({ 
         message: 'Token expired',
         expired: true 
@@ -58,7 +81,6 @@ const authenticateToken = async (req, res, next) => {
     }
 
     if (error.name === 'JsonWebTokenError') {
-      console.warn('🔐 Auth middleware: Invalid token');
       return res.status(401).json({ 
         message: 'Invalid token',
         expired: false 
@@ -66,15 +88,12 @@ const authenticateToken = async (req, res, next) => {
     }
 
     if (error.name === 'NotBeforeError') {
-      console.warn('⏰ Auth middleware: Token not active');
       return res.status(401).json({ 
         message: 'Token not active',
         expired: false 
       });
     }
 
-    // Database or other errors
-    console.error('💥 Auth middleware: Database error:', error.message);
     return res.status(500).json({ 
       message: 'Internal server error during authentication',
       expired: false 
