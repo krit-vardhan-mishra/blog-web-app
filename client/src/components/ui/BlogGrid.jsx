@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
-import BlogCard from './BlogCard'; 
+import BlogCard from './BlogCard';
+import AdSlot from '../AdSlot';
 
 const BlogGrid = ({
   filteredBlogs,
@@ -123,48 +124,68 @@ const BlogGrid = ({
       initial="hidden"
       animate="visible"
     >
-      {filteredBlogs.map((blog, index) => {
-        // Determine if the blog is newly loaded for pagination, apply specific variant
-        const isNewBlog = index >= filteredBlogs.length - newBlogsCount;
-        const blogVariants = isNewBlog ? newBlogVariants : cardVariants;
+      {(() => {
+        const gridItems = [];
+        filteredBlogs.forEach((blog, index) => {
+          // If we reach index 2 (the 3rd slot), insert the ad card
+          if (index === 2) {
+            gridItems.push(
+              <motion.div
+                key="explore-feed-ad"
+                variants={cardVariants}
+                className="break-inside-avoid"
+                style={{
+                  perspective: "1000px",
+                  transformStyle: "preserve-3d"
+                }}
+              >
+                <AdSlot placement="explore-feed" className="mb-4 sm:mb-6" />
+              </motion.div>
+            );
+          }
 
-        return (
-          <motion.div
-            key={blog._id}
-            variants={blogVariants} // Apply hidden/visible variants
-            {...cardHoverVariants} // Spread hover variants
-            whileHover="hover" // Enable hover state
-            className="break-inside-avoid"
-            style={{
-              perspective: "1000px", // Enable 3D transform for child elements
-              transformStyle: "preserve-3d" // Keep children in 3D space
-            }}
-            // Add a subtle glowing effect specifically for new blogs
-            animate={isNewBlog ? {
-              boxShadow: [
-                "0 0 0px rgba(59, 130, 246, 0)", // Start no glow
-                "0 0 15px rgba(59, 130, 246, 0.3)", // Glow intensely
-                "0 0 30px rgba(59, 130, 246, 0.15)", // Fade out glow
-                "0 0 0px rgba(59, 130, 246, 0)" // End no glow
-              ]
-            } : {}}
-            transition={isNewBlog ? {
-              boxShadow: {
-                duration: 2, // Glow duration
-                repeat: 2, // Repeat twice
-                ease: "easeInOut"
-              }
-            } : {}}
-          >
-            <BlogCard
-              blog={blog}
-              index={index}
-              handleBlogClick={handleBlogClick}
-              handleAuthorClick={handleAuthorClick}
-            />
-          </motion.div>
-        );
-      })}
+          const isNewBlog = index >= filteredBlogs.length - newBlogsCount;
+          const blogVariants = isNewBlog ? newBlogVariants : cardVariants;
+
+          gridItems.push(
+            <motion.div
+              key={blog._id}
+              variants={blogVariants} // Apply hidden/visible variants
+              {...cardHoverVariants} // Spread hover variants
+              whileHover="hover" // Enable hover state
+              className="break-inside-avoid"
+              style={{
+                perspective: "1000px", // Enable 3D transform for child elements
+                transformStyle: "preserve-3d" // Keep children in 3D space
+              }}
+              // Add a subtle glowing effect specifically for new blogs
+              animate={isNewBlog ? {
+                boxShadow: [
+                  "0 0 0px rgba(59, 130, 246, 0)", // Start no glow
+                  "0 0 15px rgba(59, 130, 246, 0.3)", // Glow intensely
+                  "0 0 30px rgba(59, 130, 246, 0.15)", // Fade out glow
+                  "0 0 0px rgba(59, 130, 246, 0)" // End no glow
+                ]
+              } : {}}
+              transition={isNewBlog ? {
+                boxShadow: {
+                  duration: 2, // Glow duration
+                  repeat: 2, // Repeat twice
+                  ease: "easeInOut"
+                }
+              } : {}}
+            >
+              <BlogCard
+                blog={blog}
+                index={index}
+                handleBlogClick={handleBlogClick}
+                handleAuthorClick={handleAuthorClick}
+              />
+            </motion.div>
+          );
+        });
+        return gridItems;
+      })()}
     </motion.div>
   );
 };

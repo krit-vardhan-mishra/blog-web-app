@@ -135,3 +135,7 @@ client/.prettierignore
 *.tsbuildinfo
 .turbo/
 client/.prettierignore
+strix-env/*
+strix-env
+strix_runs/*
+strix_runs

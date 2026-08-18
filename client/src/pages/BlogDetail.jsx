@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import getGenreColor from '@/utils/genreColors';
 import ShareButton from '../components/ShareButton';
 import SharePreview from '@/components/SharePreview';
+import AdSlot from '../components/AdSlot';
 
 const BlogDetail = () => {
     const { user, token } = useAuth();
@@ -616,29 +617,45 @@ const BlogDetail = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 1, delay: 0.5 }}
-                            className="text-gray-300 whitespace-pre-line text-sm sm:text-base leading-relaxed p-4"
+                            className="text-gray-300 text-sm sm:text-base leading-relaxed p-4"
                         >
-                            {content ? content.split(/(\s+)/).map((part, index) => {
-                                if (/^\s+$/.test(part)) {
-                                    return part;
-                                }
-                                return (
-                                    <span
-                                        key={index}
-                                        className={`inline-block transition-all duration-200 ease-out cursor-pointer ${!isMobile
-                                            ? 'hover:scale-110 hover:text-white hover:font-medium hover:bg-gray-700/30 hover:px-1 hover:rounded hover:shadow-lg'
-                                            : ''
-                                            }`}
-                                    >
-                                        <div
-                                            className="text-gray-300 whitespace-pre-line"
-                                            dangerouslySetInnerHTML={{ __html: parseEmojisEnhanced(part) }}
-                                        />
-                                    </span>
-                                );
-                            }) : 'Content not available.'}
+                            {content ? (() => {
+                                const paragraphs = content.split(/\n\s*\n/);
+                                return paragraphs.map((paragraph, pIndex) => (
+                                    <React.Fragment key={pIndex}>
+                                        <div className="mb-4">
+                                            {paragraph.split(/(\s+)/).map((part, index) => {
+                                                if (/^\s+$/.test(part)) {
+                                                    return part;
+                                                }
+                                                return (
+                                                    <span
+                                                        key={index}
+                                                        className={`inline-block transition-all duration-200 ease-out cursor-pointer ${!isMobile
+                                                            ? 'hover:scale-110 hover:text-white hover:font-medium hover:bg-gray-700/30 hover:px-1 hover:rounded hover:shadow-lg'
+                                                            : ''
+                                                            }`}
+                                                    >
+                                                        <div
+                                                            className="text-gray-300 whitespace-pre-line"
+                                                            dangerouslySetInnerHTML={{ __html: parseEmojisEnhanced(part) }}
+                                                        />
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Priority 4: In-Article Mid-Body placement (Desktop Only) after the 2nd paragraph */}
+                                        {pIndex === 1 && !isMobile && (
+                                            <AdSlot placement="in-article" className="my-6 clear-both" />
+                                        )}
+                                    </React.Fragment>
+                                ));
+                            })() : 'Content not available.'}
                         </motion.div>
                     </SimpleBar>
+
+                    {/* Priority 2: End-of-Article ad slot */}
+                    <AdSlot placement="article-end" className="mt-6" />
                 </motion.div>
             </div>
 

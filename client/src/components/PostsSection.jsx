@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { BinocularsIcon, Plus } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import OptimizedPostDetails from './OptimizedPostDetails.jsx';
+import AdSlot from './AdSlot';
 
 const PostsSection = ({
   // Common props
@@ -104,9 +105,18 @@ const PostsGrid = ({
   onOpenModal,
   onToggleBookmark,
   mode
-}) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {posts.map((blog) => (
+}) => {
+  const gridItems = [];
+  
+  posts.forEach((blog, index) => {
+    // Inject ad slot at index 2 (the 3rd item in the grid)
+    if (index === 2) {
+      gridItems.push(
+        <AdSlot key="dashboard-feed-ad" placement="dashboard-feed" className="h-full min-h-[300px]" />
+      );
+    }
+    
+    gridItems.push(
       <OptimizedPostDetails
         key={blog._id || blog.id}
         blog={blog}
@@ -118,9 +128,15 @@ const PostsGrid = ({
         onOpenModal={onOpenModal}
         onToggleBookmark={mode === 'recent' || onToggleBookmark ? onToggleBookmark : null}
       />
-    ))}
-  </div>
-);
+    );
+  });
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {gridItems}
+    </div>
+  );
+};
 
 const ViewAllButton = () => (
   <div className="text-center mt-6">
